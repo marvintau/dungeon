@@ -1,0 +1,21 @@
+{application, new_game_server,
+    [{description, "An OTP application"},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {mod, { new_game_server_app, []}},
+    {applications,
+        [kernel,
+        stdlib,
+        cowboy
+            ]},
+    {env,[]},
+    {modules, [
+        battle,
+        roulette,
+        schema
+    ]},
+
+    {maintainers, []},
+    {licenses, []},
+    {links, []}
+    ]}.
