@@ -7,14 +7,16 @@
 
 -record(char, {
         type        :: char_type(),
+        pri_type    :: physical | magic,
         primary     :: range(),
+        sec_type    :: physical | magic | shield | bare,
         secondary   :: range(),
         hp,
         armor,
         hit,
-        critical,
+        critic,
         dodge,
-        resistance,
+        resist,
         block,
         agility
     }).
@@ -44,15 +46,19 @@
         atk_lower,
         armor,
         hit,
-        critical,
+        critic,
         dodge,
-        resistance,
+        resist,
         block,
         agility,
-        remaining_attacks,
-        weapon,
+        which_hand,
         status
     }).
 
 -record(battle, {
-        remaining_attacks}).
+        seq_no,
+        outcome :: plain | critical | dodge | block | resist, 
+        damage,
+        log_type,
+        is_latter,
+        rem_atk}).
