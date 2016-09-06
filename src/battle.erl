@@ -226,8 +226,6 @@ battle_loop(A, D, Battle, Log) when A#player.hp < 0 orelse D#player.hp < 0 ->
             list_to_binary([<<"{\"win\": \"">>, atom_to_list(A#player.id), <<"\"}">>])
     end,
 
-    erlang:display(is_list(Log)),
-    erlang:display(Log),
     wrap_log(Battle, <<"{\"proc\": [", (list_to_binary(join(",", lists:reverse(Log))))/binary, "], \"res\": ", NewLog/binary, "}">>);
 
 % 后手玩家剩余攻击次数用尽时，注意剩余攻击次数重置为2，但是未来会有更复杂的计算方法，
