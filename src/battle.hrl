@@ -7,9 +7,9 @@
 
 -record(char, {
         type        :: char_type(),
-        pri_type    :: physical | magic,
+        pri_type    :: {damage, physical} | {damage, magic},
         primary     :: range(),
-        sec_type    :: physical | magic | shield | bare,
+        sec_type    :: {damage, physical} | {damage, magic} | {no_damage, shield} | {no_damage, bare},
         secondary   :: range(),
         hp,
         armor,

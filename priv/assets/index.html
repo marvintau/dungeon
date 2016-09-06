@@ -1,0 +1,42 @@
+<title> ===TEST=== </title>
+
+<head>
+    <link rel="stylesheet" media="screen" href="tab.css" />
+</head>
+<h1> Test result </h1>
+
+<div id="main"></div>
+
+<script src="jquery.js"></script>
+
+<script>
+    $.makeTable = function (mydata) {
+        var table = $('<table id="table" class="table-fill">');
+            var tblHeader = "<tr>";
+                for (var k in mydata[0]) tblHeader += "<th>" + k + "</th>";
+                tblHeader += "</tr>";
+            $(tblHeader).appendTo(table);
+            $.each(mydata, function (index, value) {
+                var TableRow = "<tr>";
+                    $.each(value, function (key, val) {
+                        TableRow += "<td>" + val + "</td>";
+                    });
+                    TableRow += "</tr>";
+                $(table).append(TableRow);
+            });
+            return ($(table));
+        };
+
+    $.getJSON("/get_result", function(data){
+
+        var table = $.makeTable(data.proc);
+        $(table).appendTo("#main");
+
+        var res ="<div class=\"cap\"><br>Win:" + data.res.win + "</b>";
+        $(res).appendTo("#table");
+
+        }).fail(function() {
+            console.log( "error" );
+        }); 
+    </script>
+

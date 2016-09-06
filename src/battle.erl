@@ -28,7 +28,7 @@ rotate(Roulette) ->
     Rand = random:uniform() * hd(Cumulative),
     
     ResultIndex = length(element(1, lists:splitwith(fun(X) -> X > Rand end, Cumulative))),
-    lists:nth(ResultIndex, [block, resist, dodge, critical, attack]).
+    lists:nth(ResultIndex, [block, resist, dodge, critic, attack]).
 
 % Preparing the roulette, might be affected by the buff or other conditions
 % specified in Battle Context
@@ -38,17 +38,17 @@ prepare_roulette_from(A, D, _B) ->
 
     {Dodge, Resist, Block} = case {get_player_weapon_type(A), D#player.char#char.sec_type} of
         
-        {magic, _} ->
+        {{_, magic}, _} ->
             {0, A#player.resist, 0};
         
-        {physical, shield} ->
+        {{_, physical}, {_, shield}} ->
             {D#player.dodge, 0, D#player.block};
 
-        {physical, _} ->
+        {{_, physical}, _} ->
             {D#player.dodge, 0, 0};
 
-        % For the condition that never happen. should be avoided before
-        % rotating the roulette.
+        % For the condition that supposed not to happen. should be avoided
+        % before rotating the roulette.
         {_, _} ->
             {0, 0, 0}
     end,
@@ -100,9 +100,9 @@ single_attack(WeaponType, Upper, Lower, Armor, Outcome) ->
 
     case WeaponType of
 
-        magic ->
+        {_, magic} ->
             magic_damage(Random, Outcome, Upper, Lower);
-        physical ->
+        {_, physical} ->
             physical_damage(Random, Outcome, Upper, Lower, Armor);
         _ ->
             0
@@ -122,28 +122,39 @@ single_attack(Attack, Defense, Outcome) ->
 
 % ================ CREATE LOG ENTRY FOR CURRENT  ======================
 
+join(Sep, Items) ->
+        lists:flatten(lists:reverse(join1(Items, Sep, []))).
+ 
+join1([Head | []], _Sep, Acc) ->
+        [Head | Acc];
+join1([Head | Tail], Sep, Acc) ->
+        join1(Tail, Sep, [Sep, Head | Acc]).
+
 update_log(Attack, Defense, Battle)  ->
     case Battle#battle.log_type of
         json ->
-            list_to_binary([ "{",
-            "seq:", integer_to_list(Battle#battle.seq_no), ", "
-            "attacker: \"", atom_to_list(Attack#player.id), "\", "
-            "outcome: \"", atom_to_list(Battle#battle.outcome), "\", "
-            "damage:", integer_to_list(Battle#battle.damage), ", "
-            "attacker_hp:", integer_to_list(Attack#player.hp), ", "
-            "defenser_hp:", integer_to_list(Defense#player.hp), 
-            "}, "]);
+            join("", [ "{",
+                "\"seq\":", integer_to_list(Battle#battle.seq_no), ", ",
+                "\"attacker\": \"", atom_to_list(Attack#player.id), "\", ",
+                "\"type\": \"", atom_to_list(Attack#player.char#char.type), "\", ",
+                "\"attack_type\": \"", atom_to_list(element(2, get_player_weapon_type(Attack))), "\", ",
+                "\"outcome\": \"", atom_to_list(Battle#battle.outcome), "\", ",
+                "\"damage\":", integer_to_list(Battle#battle.damage), ", ",
+                "\"attacker_hp\":", integer_to_list(Attack#player.hp), ", ",
+                "\"defenser_hp\":", integer_to_list(Defense#player.hp), 
+                "}"]
+            );
         
         html ->
-            list_to_binary([
-            "<b>Sequence: </b>", integer_to_list(Battle#battle.seq_no), "\t\t ",
-            "<b>Attacker: </b>", atom_to_list(Attack#player.id),"\t\t ",
-            "<b>Type: </b>", atom_to_list(get_player_weapon_type(Attack)), "\t\t ",
-            "<b>Action: </b>: ", atom_to_list(Battle#battle.outcome), "\t\t ",
-            "<b>Damage: </b>", integer_to_list(Battle#battle.damage), "\t\t ",
-            "<b>Attacker's HP: </b>", integer_to_list(Attack#player.hp), "\t\t ",
-            "<b>Defenser's HP: </b>", integer_to_list(Defense#player.hp), 
-            "<br> "])
+            list_to_binary(["<tr>",
+            "<td>", integer_to_list(Battle#battle.seq_no), "</td>",
+            "<td>", atom_to_list(Attack#player.id),"</td> ",
+            "<td>", atom_to_list(element(2, get_player_weapon_type(Attack))), "</td>",
+            "<td>", atom_to_list(Battle#battle.outcome), "</td>",
+            "<td>", integer_to_list(Battle#battle.damage), "</td>",
+            "<td>", integer_to_list(Attack#player.hp), "</td>",
+            "<td>", integer_to_list(Defense#player.hp), "</td>"
+            "</tr> "])
     end.
 
 wrap_log(B, Log) ->
@@ -198,16 +209,26 @@ battle_loop({Player1ID, Char1}, {Player2ID, Char2}, LogType) ->
 
     case P1#player.agility > P2#player.agility of
         true ->
-            battle_loop(P1, P2, B, <<>>);
+            battle_loop(P1, P2, B, []);
         _ ->
-            battle_loop(P2, P1, B, <<>>)
+            battle_loop(P2, P1, B, [])
     end.
 
 
 
 % 有一方血量不足，终止
-battle_loop(#player{hp=As}, #player{hp=Ds}, Battle, Log) when As < 0 orelse Ds < 0 ->
-    wrap_log(Battle, Log);
+battle_loop(A, D, Battle, Log) when A#player.hp < 0 orelse D#player.hp < 0 ->
+    
+    NewLog = if
+        A#player.hp < 0 ->
+            list_to_binary([<<"{\"win\": \"">>, atom_to_list(D#player.id), <<"\"}">>]);
+        D#player.hp < 0 ->
+            list_to_binary([<<"{\"win\": \"">>, atom_to_list(A#player.id), <<"\"}">>])
+    end,
+
+    erlang:display(is_list(Log)),
+    erlang:display(Log),
+    wrap_log(Battle, <<"{\"proc\": [", (list_to_binary(join(",", lists:reverse(Log))))/binary, "], \"res\": ", NewLog/binary, "}">>);
 
 % 后手玩家剩余攻击次数用尽时，注意剩余攻击次数重置为2，但是未来会有更复杂的计算方法，
 % 届时可以将此处的设定去掉，在无条件循环中依据buff状态等计算下一回合的剩余攻击次数。
@@ -234,7 +255,7 @@ battle_loop(A, D, B, L) when B#battle.rem_atk=:=0 ->
 battle_loop(Attack, Defense, Battle, Log) ->
 
     case get_player_weapon_type(Attack) of
-        bare ->
+        {no_damage, bare} ->
             
             {NextAttackLower, NextAttackUpper} = Attack#player.char#char.primary,
 
@@ -249,7 +270,7 @@ battle_loop(Attack, Defense, Battle, Log) ->
             },
             battle_loop(NextAttack, Defense, NextBattle, Log);
 
-        shield ->
+        {no_damage, shield} ->
 
             {NextAttackLower, NextAttackUpper} = Attack#player.char#char.primary,
 
@@ -297,7 +318,7 @@ battle_loop(Attack, Defense, Battle, Log) ->
             % Defenser's context after updated.
             NextLog = update_log(Attack, NextDefense, NextBattle),
 
-            battle_loop(NextAttack, NextDefense, NextBattle, <<Log/binary, NextLog/binary>>)
+            battle_loop(NextAttack, NextDefense, NextBattle, [NextLog | Log])
 
     end.
 

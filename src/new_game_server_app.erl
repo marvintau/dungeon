@@ -19,7 +19,10 @@ start(_StartType, _StartArgs) ->
     battle:init_database(),
 
     Dispatch = cowboy_router:compile([
-            {'_', [{"/", new_game_handler, []}]}
+            {'_', [
+                   {"/exam/[...]", cowboy_static, {priv_dir, new_game_server, "assets"}},
+                   {"/get_result", new_game_handler, []}
+                  ]}
         ]),
 
     {ok, _} = cowboy:start_clear(my_http_listener, 100,

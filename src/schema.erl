@@ -49,9 +49,9 @@ rebuild_table() ->
 setup_char() ->
     mnesia:dirty_write(#char{
             type        = warrior,
-            pri_type    = physical,
+            pri_type    = {damage, physical},
             primary     = {190, 235},
-            sec_type    = shield,
+            sec_type    = {no_damage, shield},
             secondary   = {0, 0},
             hp          = 3400,
             armor       = 5400,
@@ -65,9 +65,9 @@ setup_char() ->
 
     mnesia:dirty_write(#char{
             type        = mage,
-            pri_type    = magic,
+            pri_type    = {damage, magic},
             primary     = {255, 280},
-            sec_type    = bare,
+            sec_type    = {no_damage, bare},
             secondary   = {0, 0},
             hp          = 2300,
             armor       = 2700,
@@ -81,9 +81,9 @@ setup_char() ->
 
     mnesia:dirty_write(#char{
             type        = rogue,
-            pri_type    = physical,
+            pri_type    = {damage, physical},
             primary     = {190, 205},
-            sec_type    = physical,
+            sec_type    = {damage, physical},
             secondary   = {175, 190},
             hp          = 2700,
             armor       = 3100,
@@ -97,9 +97,9 @@ setup_char() ->
     
         mnesia:dirty_write(#char{
             type        = hunter,
-            pri_type    = physical,
+            pri_type    = {damage, physical},
             primary     = {335, 370},
-            sec_type    = bare,
+            sec_type    = {no_damage, bare},
             secondary   = {0, 0},
             hp          = 3100,
             armor       = 5400,

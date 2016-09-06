@@ -21,21 +21,15 @@ content_types_provided(Req, State) ->
 
 hello_to_html(Req, State) ->
     
-    {done, Result} = battle:init_new_battle(html),
+    {done, Result} = battle:init_new_battle(json),
 
-    Body = list_to_binary([<<"<html>
-    <head>
-    <meta charset=\"utf-8\">
-    <title>Test!</title>
-    </head>
-    <body>">>,
-    Result,
-    <<"</body>
-    </html>">>]),
+    Body = Result,
     {Body, Req, State}.
 
 hello_to_json(Req, State) ->
-    
+
+    erlang:display(we_got_json),
+
     {done, Result} = battle:init_new_battle(json),
 
     Body = Result,
