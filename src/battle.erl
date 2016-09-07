@@ -9,13 +9,13 @@
 
 get_player_weapon_type(A) ->
 
-    CurrHand = A#player.which_hand,
+    CurrHand = A#player.curr_hand,
 
     case CurrHand of
-        primary ->
-            A#player.char#char.pri_type;
-        secondary ->
-            A#player.char#char.sec_type
+        prim ->
+            A#player.prim_type;
+        secd ->
+            A#player.secd_type
     end.
 
 
@@ -36,7 +36,7 @@ prepare_roulette_from(A, D, _B) ->
 
     BasicAttack = 8, 
 
-    {Dodge, Resist, Block} = case {get_player_weapon_type(A), D#player.char#char.sec_type} of
+    {Dodge, Resist, Block} = case {get_player_weapon_type(A), D#player.secd_type} of
         
         {{_, magic}, _} ->
             {0, A#player.resist, 0};
@@ -55,7 +55,7 @@ prepare_roulette_from(A, D, _B) ->
 
     [BasicAttack + A#player.hit, A#player.critic, Dodge, Resist, Block].
 
-magic_damage(Random, Outcome, Upper, Lower) ->
+magic_damage(Random, Outcome, {Lower, Upper}) ->
     
     % Magic attack cannot be blocked, thus make sure that block has
     % been set 0 before turning the roulette.
@@ -71,7 +71,7 @@ magic_damage(Random, Outcome, Upper, Lower) ->
             round(Lower + Random * (Upper - Lower))
     end.
 
-physical_damage(Random, Outcome, Upper, Lower, Armor) ->
+physical_damage(Random, Outcome, Armor, {Lower, Upper}) ->
     
     % --------------- PLAYER AS NON-MAGE --------------------------
     % Physical attack cannot be resisted, make sure that resist has
@@ -94,16 +94,16 @@ physical_damage(Random, Outcome, Upper, Lower, Armor) ->
 % Calculates the damage with given character type, the upper and lower
 % damage of weapon, and outcome of roulette turning.
 
-single_attack(WeaponType, Upper, Lower, Armor, Outcome) ->
+single_attack(WeaponType, AtkRange, Armor, Outcome) ->
 
     Random = random:uniform(),
 
     case WeaponType of
 
         {_, magic} ->
-            magic_damage(Random, Outcome, Upper, Lower);
+            magic_damage(Random, Outcome, AtkRange);
         {_, physical} ->
-            physical_damage(Random, Outcome, Upper, Lower, Armor);
+            physical_damage(Random, Outcome, Armor, AtkRange);
         _ ->
             0
     end.
@@ -114,8 +114,7 @@ single_attack(Attack, Defense, Outcome) ->
 
     single_attack(
         get_player_weapon_type(Attack),
-        Attack#player.atk_upper,
-        Attack#player.atk_lower,
+        Attack#player.curr_atk,
         Defense#player.armor,
         Outcome
      ).
@@ -131,50 +130,30 @@ join1([Head | Tail], Sep, Acc) ->
         join1(Tail, Sep, [Sep, Head | Acc]).
 
 update_log(Attack, Defense, Battle)  ->
-    case Battle#battle.log_type of
-        json ->
-            join("", [ "{",
-                "\"seq\":", integer_to_list(Battle#battle.seq_no), ", ",
-                "\"attacker\": \"", atom_to_list(Attack#player.id), "\", ",
-                "\"type\": \"", atom_to_list(Attack#player.char#char.type), "\", ",
-                "\"attack_type\": \"", atom_to_list(element(2, get_player_weapon_type(Attack))), "\", ",
-                "\"outcome\": \"", atom_to_list(Battle#battle.outcome), "\", ",
-                "\"damage\":", integer_to_list(Battle#battle.damage), ", ",
-                "\"attacker_hp\":", integer_to_list(Attack#player.hp), ", ",
-                "\"defenser_hp\":", integer_to_list(Defense#player.hp), 
-                "}"]
-            );
-        
-        html ->
-            list_to_binary(["<tr>",
-            "<td>", integer_to_list(Battle#battle.seq_no), "</td>",
-            "<td>", atom_to_list(Attack#player.id),"</td> ",
-            "<td>", atom_to_list(element(2, get_player_weapon_type(Attack))), "</td>",
-            "<td>", atom_to_list(Battle#battle.outcome), "</td>",
-            "<td>", integer_to_list(Battle#battle.damage), "</td>",
-            "<td>", integer_to_list(Attack#player.hp), "</td>",
-            "<td>", integer_to_list(Defense#player.hp), "</td>"
-            "</tr> "])
-    end.
-
-wrap_log(B, Log) ->
-    case B#battle.log_type of
-        json ->
-            {done, Log};
-        html ->
-            {done, <<"<table>", Log/binary, "</table>">>}
-    end.
+    
+    {[
+        { seq, Battle#battle.seq_no }, { attacker, Attack#player.id },
+        { attack_type, element(2, get_player_weapon_type(Attack)) },
+        { action, Battle#battle.outcome },
+        { damage, Battle#battle.damage },
+        { attacker_hp, Attack#player.hp },
+        { defenser_hp, Defense#player.hp }
+    ]}.
 
 % ================= GET PLAYER CONTEXT FROM CHAR  ======================
 
 % In the future, both PlayerID and Char information should be extracted
 % from player database.
 
-player_from_char(PlayerID, Char) ->
+player_context_from_char(PlayerID, Char) ->
     #player{
         id         = PlayerID,
-        char       = Char,
         hp         = Char#char.hp,
+        prim_type  = Char#char.prim_type,
+        prim_range = Char#char.prim_range,
+        secd_type  = Char#char.secd_type,
+        secd_range = Char#char.secd_range,
+        
         armor      = Char#char.armor,
         hit        = Char#char.hit,
         critic     = Char#char.critic,
@@ -183,9 +162,8 @@ player_from_char(PlayerID, Char) ->
         block      = Char#char.block,
         agility    = Char#char.agility,
  
-        which_hand = primary,
-        atk_upper  = element(2, Char#char.primary),
-        atk_lower  = element(1, Char#char.primary)
+        curr_hand  = prim,
+        curr_atk   = Char#char.prim_range
     }.
 
 
@@ -196,8 +174,8 @@ battle_loop({Player1ID, Char1}, {Player2ID, Char2}, LogType) ->
 
     random:seed(erlang:phash2([node()]), erlang:monotonic_time(), erlang:unique_integer()),
 
-    P1 = player_from_char(Player1ID, Char1),
-    P2 = player_from_char(Player2ID, Char2),
+    P1 = player_context_from_char(Player1ID, Char1),
+    P2 = player_context_from_char(Player2ID, Char2),
 
     B = #battle{
         seq_no = 1,
@@ -218,20 +196,22 @@ battle_loop({Player1ID, Char1}, {Player2ID, Char2}, LogType) ->
 
 % 有一方血量不足，终止
 battle_loop(A, D, Battle, Log) when A#player.hp < 0 orelse D#player.hp < 0 ->
-    
-    NewLog = if
-        A#player.hp < 0 ->
-            list_to_binary([<<"{\"win\": \"">>, atom_to_list(D#player.id), <<"\"}">>]);
-        D#player.hp < 0 ->
-            list_to_binary([<<"{\"win\": \"">>, atom_to_list(A#player.id), <<"\"}">>])
+
+    Winner = if
+        A#player.hp < 0 -> A#player.id;
+        D#player.hp < 0 -> D#player.id
     end,
 
-    wrap_log(Battle, <<"{\"proc\": [", (list_to_binary(join(",", lists:reverse(Log))))/binary, "], \"res\": ", NewLog/binary, "}">>);
+    erlang:display(jiffy:encode(
+            {[{foo, bar}, {foo2, baz}]}
+        )),
+
+    {done, jiffy:encode({ [{proc, Log}, {res, Winner}] } )};
 
 % 后手玩家剩余攻击次数用尽时，注意剩余攻击次数重置为2，但是未来会有更复杂的计算方法，
 % 届时可以将此处的设定去掉，在无条件循环中依据buff状态等计算下一回合的剩余攻击次数。
 
-battle_loop(A, D, B, L) when (B#battle.is_latter==true) and (B#battle.rem_atk==0) ->
+battle_loop(A, D, B=#{is_latter:=true, rem_atk:=0}, L) ->
 
     SeqNo = B#battle.seq_no,
 
@@ -244,7 +224,7 @@ battle_loop(A, D, B, L) when (B#battle.is_latter==true) and (B#battle.rem_atk==0
 
 % 排除以上情况，便是先手玩家剩余攻击次数用尽时
 
-battle_loop(A, D, B, L) when B#battle.rem_atk=:=0 ->
+battle_loop(A, D, B=#{rem_atk := 0}, L) ->
     battle_loop(D, A, B#battle{is_latter=true, rem_atk=2}, L);
 
 % -------------- MAIN UNCONDITIONAL LOOP FOR BATTLE -------------------
@@ -253,40 +233,22 @@ battle_loop(A, D, B, L) when B#battle.rem_atk=:=0 ->
 battle_loop(Attack, Defense, Battle, Log) ->
 
     case get_player_weapon_type(Attack) of
-        {no_damage, bare} ->
-            
-            {NextAttackLower, NextAttackUpper} = Attack#player.char#char.primary,
+        {no_damage, _} ->
 
             NextAttack = Attack#player{
-                atk_lower = NextAttackLower,
-                atk_upper = NextAttackUpper,
-                which_hand = primary 
+                curr_atk = Attack#player.prim_range, 
+                curr_hand = prim
             },
-
             NextBattle = Battle#battle{
                 rem_atk = Battle#battle.rem_atk - 1
             },
             battle_loop(NextAttack, Defense, NextBattle, Log);
 
-        {no_damage, shield} ->
-
-            {NextAttackLower, NextAttackUpper} = Attack#player.char#char.primary,
-
-            NextAttack = Attack#player{
-                atk_lower = NextAttackLower,
-                atk_upper = NextAttackUpper,
-                which_hand = primary
-            },
-            NextBattle = Battle#battle{
-                rem_atk = Battle#battle.rem_atk - 1
-            },
-            battle_loop(NextAttack, Defense, NextBattle, Log);
         _ ->
 
             Outcome = rotate(prepare_roulette_from(Attack, Defense, Battle)),
 
             Damage = single_attack(Attack, Defense, Outcome),
-         
 
             NextBattle = Battle#battle{
                 outcome = Outcome,
@@ -294,19 +256,17 @@ battle_loop(Attack, Defense, Battle, Log) ->
                 damage = Damage
             },
 
-            { NextHand, {NextAttackUpper, NextAttackLower}} = case Attack#player.which_hand of
-                primary ->
-                    {secondary, Attack#player.char#char.secondary};
+            { NextHand, NextAttackRange} = case Attack#player.curr_hand of
+                prim ->
+                    {secd, Attack#player.secd_range};
                 _ ->
-                    {primary, Attack#player.char#char.primary}
+                    {prim, Attack#player.prim_range}
             end,
 
             NextAttack = Attack#player{
-                atk_lower = NextAttackLower,
-                atk_upper = NextAttackUpper,
-                which_hand = NextHand
+                curr_atk = NextAttackRange,
+                curr_hand = NextHand 
             },
-
                
             NextDefense = Defense#player{
                 hp = Defense#player.hp - NextBattle#battle.damage 
@@ -319,8 +279,6 @@ battle_loop(Attack, Defense, Battle, Log) ->
             battle_loop(NextAttack, NextDefense, NextBattle, [NextLog | Log])
 
     end.
-
-
 
 init_database() ->
     schema:rebuild_schema(),

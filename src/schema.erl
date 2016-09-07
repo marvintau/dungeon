@@ -49,10 +49,10 @@ rebuild_table() ->
 setup_char() ->
     mnesia:dirty_write(#char{
             type        = warrior,
-            pri_type    = {damage, physical},
-            primary     = {190, 235},
-            sec_type    = {no_damage, shield},
-            secondary   = {0, 0},
+            prim_type   = {damage, physical},
+            prim_range  = {190, 235},
+            secd_type   = {no_damage, shield},
+            secd_range   = {0, 0},
             hp          = 3400,
             armor       = 5400,
             hit         = 15,
@@ -65,10 +65,10 @@ setup_char() ->
 
     mnesia:dirty_write(#char{
             type        = mage,
-            pri_type    = {damage, magic},
-            primary     = {255, 280},
-            sec_type    = {no_damage, bare},
-            secondary   = {0, 0},
+            prim_type    = {damage, magic},
+            prim_range     = {255, 280},
+            secd_type    = {no_damage, bare},
+            secd_range   = {0, 0},
             hp          = 2300,
             armor       = 2700,
             hit         = 20,
@@ -81,10 +81,10 @@ setup_char() ->
 
     mnesia:dirty_write(#char{
             type        = rogue,
-            pri_type    = {damage, physical},
-            primary     = {190, 205},
-            sec_type    = {damage, physical},
-            secondary   = {175, 190},
+            prim_type    = {damage, physical},
+            prim_range     = {190, 205},
+            secd_type    = {damage, physical},
+            secd_range   = {175, 190},
             hp          = 2700,
             armor       = 3100,
             hit         = 25,
@@ -97,10 +97,10 @@ setup_char() ->
     
         mnesia:dirty_write(#char{
             type        = hunter,
-            pri_type    = {damage, physical},
-            primary     = {335, 370},
-            sec_type    = {no_damage, bare},
-            secondary   = {0, 0},
+            prim_type    = {damage, physical},
+            prim_range     = {335, 370},
+            secd_type    = {no_damage, bare},
+            secd_range   = {0, 0},
             hp          = 3100,
             armor       = 5400,
             hit         = 35,

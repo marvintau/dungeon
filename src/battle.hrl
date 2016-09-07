@@ -7,10 +7,10 @@
 
 -record(char, {
         type        :: char_type(),
-        pri_type    :: {damage, physical} | {damage, magic},
-        primary     :: range(),
-        sec_type    :: {damage, physical} | {damage, magic} | {no_damage, shield} | {no_damage, bare},
-        secondary   :: range(),
+        prim_type   :: {damage, physical} | {damage, magic},
+        prim_range  :: range(),
+        secd_type   :: {damage, physical} | {damage, magic} | {no_damage, shield} | {no_damage, bare},
+        secd_range  :: range(),
         hp,
         armor,
         hit,
@@ -40,18 +40,25 @@
 
 -record(player, {
         id          :: atom(),
-        char        :: #char{},
         hp,
-        atk_upper,
-        atk_lower,
+
+        prim_type   :: {damage, physical} | {damage, magic},
+        prim_range  :: range(),
+        secd_type   :: {damage, physical} | {damage, magic} | {no_damage, shield} | {no_damage, bare},
+        secd_range  :: range(),
+
+        curr_hand   :: prim | secd,
+        curr_atk    :: range(),
+
         armor,
+        
         hit,
         critic,
         dodge,
         resist,
         block,
         agility,
-        which_hand,
+        
         status
     }).
 
