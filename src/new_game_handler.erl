@@ -4,36 +4,56 @@
 -module(new_game_handler).
 
 -export([init/2]).
--export([content_types_provided/2]).
--export([hello_to_html/2]).
--export([hello_to_json/2]).
--export([hello_to_text/2]).
+-export([content_types_provided/2, content_types_accepted/2]).
+-export([allow_missing_posts/2]).
+-export([allowed_methods/2]).
+-export([handle_post/2]).
 
 init(Req, Opts) ->
     {cowboy_rest, Req, Opts}.
 
-content_types_provided(Req, State) ->
+allowed_methods(Req, Opts) ->
+    {[<<"POST">>], Req, Opts}.
+
+content_types_accepted(Req, State) ->
+    erlang:display(accepted),
+
     {[
-        {<<"text/html">>, hello_to_html},
-        {<<"application/json">>, hello_to_json},
-        {<<"text/plain">>, hello_to_text}
+        {<<"application/json">>, handle_post}
     ], Req, State}.
 
-hello_to_html(Req, State) ->
-    
-    {done, Result} = battle:init_new_battle(json),
 
-    Body = Result,
-    {Body, Req, State}.
+% note that the method won't be called since the callback
+% specified here will be only called when GET and HEAD request
+% being processed.
 
-hello_to_json(Req, State) ->
+content_types_provided(Req, State) ->
+    {[
+        {<<"application/json">>, handle_post}
+    ], Req, State}.
 
-    erlang:display(we_got_json),
 
-    {done, Result} = battle:init_new_battle(json),
+allow_missing_posts(Req, State) ->
+    {false, Req, State}.
 
-    Body = Result,
-    {Body, Req, State}.
+handle_post(Req, State) ->
 
-hello_to_text(Req, State) ->
-    {<<"REST Hello World as text!">>, Req, State}.
+    {ReqBody, NextReq} = try cowboy_req:read_body(Req) of
+        {ok, ReqBodyRaw, NewReq} ->
+            error_logger:info_report(ReqBodyRaw),
+            {ReqBodyRaw, Req}
+    catch
+        error:Error ->
+            erlang:display(Error),
+            {<<"Nah">>, Req}
+    end,
+
+    case jiffy:decode(ReqBody) of
+        {[{<<"foo">>, <<"bar">>}]} ->
+            erlang:display("received"),
+            {true, Req, State};
+        Data ->
+            {done, ResBody} = battle:init_new_battle(json),
+            Res = cowboy_req:set_resp_body(ResBody, NextReq),
+            {true, Res, State}
+    end.

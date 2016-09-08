@@ -1,42 +1,197 @@
-<title> ===TEST=== </title>
 
-<head>
-    <link rel="stylesheet" media="screen" href="tab.css" />
-</head>
-<h1> Test result </h1>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <link rel="icon" href="../../favicon.ico">
 
-<div id="main"></div>
+        <title>Starter Template for Bootstrap</title>
 
-<script src="jquery.js"></script>
+        <!-- Bootstrap core CSS -->
+        <link href="bower_components/bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<script>
-    $.makeTable = function (mydata) {
-        var table = $('<table id="table" class="table-fill">');
-            var tblHeader = "<tr>";
-                for (var k in mydata[0]) tblHeader += "<th>" + k + "</th>";
-                tblHeader += "</tr>";
-            $(tblHeader).appendTo(table);
-            $.each(mydata, function (index, value) {
-                var TableRow = "<tr>";
-                    $.each(value, function (key, val) {
-                        TableRow += "<td>" + val + "</td>";
-                    });
-                    TableRow += "</tr>";
-                $(table).append(TableRow);
-            });
-            return ($(table));
-        };
+        <style type="text/css">
+            .h-divider{
+                margin-top:15px;
+                margin-bottom:5px;
+                height:1px;
+                width:100%;
+                border-top:1px solid #DDDDDD;
+            }
+        </style>
+        <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    </head>
 
-    $.getJSON("/get_result", function(data){
+    <body>
 
-        var table = $.makeTable(data.proc);
-        $(table).appendTo("#main");
+        <nav class="navbar navbar-inverse">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">测试</a>
+            </div>
+        </div>
+        </nav>
 
-        var res ="<div class=\"cap\"><br>Win:" + data.res.win + "</b>";
-        $(res).appendTo("#table");
+        <div class="container">
+            <div class="col-md-6">
+                <div class="row">
+                    <div class="form-group-sm col-sm-2">
+                        <label for="id1">玩家1 ID</label>
+                        <input class="form-control" id="id1" >
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="hp1">血量</label>
+                        <input class="form-control" id="hp1" >
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">护甲</label>
+                        <input class="form-control" id="armor1" >
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group-sm col-sm-2">
+                        <label for="">主手</label>
+                        <select class="form-control input" id="prim_type1">
+                            <option>physical</option>
+                            <option>magic</option>
+                        </select>
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">主手max</label>
+                        <input class="form-control" id="prim_max_1" >
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">主手min</label>
+                        <input class="form-control" id="prim_min_1" >
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="">副手</label>
+                        <select class="form-control input" id="secd_type1">
+                            <option>physical</option>
+                            <option>magic</option>
+                            <option>shield</option>
+                            <option>bare</option>
+                        </select>
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">副手max</label>
+                        <input class="form-control" id="secd_max_1" >
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">副手min</label>
+                        <input class="form-control" id="secd_min_1" >
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">Hit</label>
+                        <input class="form-control" id="hit1" >
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">Critical</label>
+                        <input class="form-control" id="critical1" >
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">Dodge</label>
+                        <input class="form-control" id="dodge1" >
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">Resistance</label>
+                        <input class="form-control" id="resist1" >
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">Block</label>
+                        <input class="form-control" id="block1" >
+                    </div>
+                </div>
+                <div class="h-divider"></div>
+                <div class="row">
+                    <div class="form-group-sm col-sm-2">
+                        <label for="id1">玩家2 ID</label>
+                        <input class="form-control" id="id2" >
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="hp1">血量</label>
+                        <input class="form-control" id="hp2" >
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">护甲</label>
+                        <input class="form-control" id="armor2" >
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group-sm col-sm-2">
+                        <label for="">主手</label>
+                        <select class="form-control input" id="prim_type2">
+                            <option>physical</option>
+                            <option>magic</option>
+                        </select>
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">主手max</label>
+                        <input class="form-control" id="prim_max_2" >
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">主手min</label>
+                        <input class="form-control" id="prim_min_2" >
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="">副手</label>
+                        <select class="form-control input" id="secd_type2">
+                            <option>physical</option>
+                            <option>magic</option>
+                            <option>shield</option>
+                            <option>bare</option>
+                        </select>
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">副手max</label>
+                        <input class="form-control" id="secd_max_2" >
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">副手min</label>
+                        <input class="form-control" id="secd_min_2" >
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">Hit</label>
+                        <input class="form-control" id="hit2" >
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">Critical</label>
+                        <input class="form-control" id="critical2" >
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">Dodge</label>
+                        <input class="form-control" id="dodge2" >
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">Resistance</label>
+                        <input class="form-control" id="resist2" >
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label for="armor1">Block</label>
+                        <input class="form-control" id="block2" >
+                    </div>
+                </div>
+             </div>
+            <div class="col-md-6"></div>
 
-        }).fail(function() {
-            console.log( "error" );
-        }); 
-    </script>
+        </div><!-- /.container -->
+
+
+        <!-- Bootstrap core JavaScript
+        ================================================== -->
+        <!-- Placed at the end of the document so the pages load faster -->
+        <script>window.jQuery || document.write('<script src="bower_components/bootstrap/dist/js/vendor/jquery.min.js"><\/script>')</script>
+            <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+        </body>
+    </html>
 

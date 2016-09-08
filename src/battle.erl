@@ -198,13 +198,9 @@ battle_loop({Player1ID, Char1}, {Player2ID, Char2}, LogType) ->
 battle_loop(A, D, _Battle, Log) when A#player.hp < 0 orelse D#player.hp < 0 ->
 
     Winner = if
-        A#player.hp < 0 -> A#player.id;
-        D#player.hp < 0 -> D#player.id
+        A#player.hp < 0 -> D#player.id;
+        D#player.hp < 0 -> A#player.id
     end,
-
-    erlang:display(jiffy:encode(
-            {[{foo, bar}, {foo2, baz}]}
-        )),
 
     {done, jiffy:encode({ [{proc, lists:reverse(Log)}, {res, Winner}] } )};
 

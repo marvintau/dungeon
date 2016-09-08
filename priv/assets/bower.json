@@ -1,0 +1,23 @@
+{
+  "name": "new_game_frontend",
+  "version": "0.0.0",
+  "homepage": "https://github.com/marvintau/new_game_server",
+  "authors": [
+    "marvinax <nightvista@gmail.com>"
+  ],
+  "description": "nah",
+  "keywords": [
+    "nah"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.3.7"
+  }
+}
