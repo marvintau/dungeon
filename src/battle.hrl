@@ -66,6 +66,5 @@
         seq_no,
         outcome :: plain | critical | dodge | block | resist, 
         damage,
-        log_type,
         is_latter,
         rem_atk}).

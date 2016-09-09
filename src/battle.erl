@@ -170,16 +170,12 @@ player_context_from_char(PlayerID, Char) ->
 % ======================= MAIN BATTLE LOOP ============================
 
 % 主循环入口
-battle_loop({Player1ID, Char1}, {Player2ID, Char2}, LogType) ->
+battle_loop(P1, P2) ->
 
     random:seed(erlang:phash2([node()]), erlang:monotonic_time(), erlang:unique_integer()),
 
-    P1 = player_context_from_char(Player1ID, Char1),
-    P2 = player_context_from_char(Player2ID, Char2),
-
     B = #battle{
         seq_no = 1,
-        log_type = LogType,
         damage = 0,
         is_latter = false,
         rem_atk = 2
@@ -286,6 +282,92 @@ random_char() ->
     schema:get_char(lists:nth(trunc(random:uniform()*4)+1, [warrior, hunter, mage, rogue])).
 
 
-init_new_battle(LogType) ->
-    error_logger:info_report("Initiates new battle."),
-    battle_loop({alice, random_char()}, {bob, random_char()}, LogType).
+player_context_from_parsed_JSON(Data) ->
+
+    {[{<<"player1">>, Player1}, {<<"player2">>, Player2}]} = Data,
+
+    {[
+        {_, ID1}, {_, HP1}, {_, PrimType1}, {_, PrimMax1}, {_, PrimMin1}, {_, SecdType1},
+        {_, SecdMax1}, {_, SecdMin1}, {_, Armor1}, {_, Hit1}, {_, Critic1}, {_, Dodge1},
+        {_, Resist1}, {_, Block1}, {_, Agi1}
+    ]} = Player1,
+
+    {[
+        {_, ID2}, {_, HP2}, {_, PrimType2}, {_, PrimMax2}, {_, PrimMin2}, {_, SecdType2},
+        {_, SecdMax2}, {_, SecdMin2}, {_, Armor2}, {_, Hit2}, {_, Critic2}, {_, Dodge2},
+        {_, Resist2}, {_, Block2}, {_, Agi2}
+    ]} = Player2,
+
+    Prim1 = case binary_to_atom(PrimType1, utf8) of
+        physical -> {damage, physical};
+        mage -> {damage, mage}
+    end,
+
+    Prim2 = case binary_to_atom(PrimType2, utf8) of
+        physical -> {damage, physical};
+        mage -> {damage, mage}
+    end,
+
+    Secd1 = case binary_to_atom(SecdType1, utf8) of
+        physical -> {damage, physical};
+        mage -> {damage, mage};
+        shield -> {no_damage, shield};
+        bare -> {no_damage, bare}
+    end,
+
+    Secd2 = case binary_to_atom(SecdType2, utf8) of
+        physical -> {damage, physical};
+        mage -> {damage, mage};
+        shield -> {no_damage, shield};
+        bare -> {no_damage, bare}
+    end,
+
+    Player1Context = #player{
+        id         = binary_to_atom(ID1, utf8),
+        hp         = HP1,
+        prim_type  = Prim1,
+        prim_range = {PrimMin1, PrimMax1},
+        secd_type  = Secd1,
+        secd_range = {SecdMin1, SecdMax1},
+        
+        armor      = Armor1,
+        hit        = Hit1,
+        critic     = Critic1,
+        dodge      = Dodge1,
+        resist     = Resist1,
+        block      = Block1,
+        agility    = Agi1,
+ 
+        curr_hand  = prim,
+        curr_atk   = {PrimMin1, PrimMax1}
+    },
+
+
+    Player2Context = #player{
+        id         = binary_to_atom(ID2, utf8),
+        hp         = HP2,
+        prim_type  = Prim2,
+        prim_range = {PrimMin2, PrimMax2},
+        secd_type  = Secd2,
+        secd_range = {SecdMin2, SecdMax2},
+        
+        armor      = Armor2,
+        hit        = Hit2,
+        critic     = Critic2,
+        dodge      = Dodge2,
+        resist     = Resist2,
+        block      = Block2,
+        agility    = Agi2,
+ 
+        curr_hand  = prim,
+        curr_atk   = {PrimMin2, PrimMax2}
+    },
+ 
+    error_logger:info_report(Player2Context),
+    {Player1Context, Player2Context}.
+
+
+init_new_battle(Data) ->
+
+    {P1, P2} = player_context_from_parsed_JSON(Data),
+    battle_loop(P1, P2).

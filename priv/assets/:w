@@ -1,0 +1,79 @@
+
+$.getData = function () {
+    return {
+        player1 : {
+            id : $('#id1').val(),
+            hp : parseInt($('#hp1').val()),
+            prim_type : parseInt($('#prim_type1').val()),
+            prim_max : parseInt($('#prim_max_1').val()),
+            prim_min : parseInt($('#prim_min_1').val()),
+
+            secd_type : parseInt($('#secd_type1').val()),
+            secd_max : parseInt($('#secd_max_1').val()),
+            secd_min : parseInt($('#secd_min_1').val()),
+             
+            armor : parseInt($('#armor1').val()),
+            hit : parseInt($('#hit1').val()),
+            critic : parseInt($('#critical1').val()),
+            dodge : parseInt($('#dodge1').val()),
+            resist : parseInt($('#resist1').val()),
+            block : parseInt($('#block1').val()),
+            agility : parseInt($('#agi1').val())
+                  
+        }
+    
+    }    
+}
+
+$.makeTable = function (mydata) {
+    var table = $('<table id="table" class="table table-striped">');
+    var tblHeader = "<thead><tr>";
+    for (var k in mydata[0]) tblHeader += "<th>" + k + "</th>";
+    tblHeader += "</tr></thead>";
+    $(tblHeader).appendTo(table);
+
+    var tblBody = $('<tbody></tbody>').appendTo(table);
+
+    $.each(mydata, function (index, value) {
+        var TableRow = "<tr>";
+        $.each(value, function (key, val) {
+            TableRow += "<td>" + val + "</td>";
+        });
+        TableRow += "</tr>";
+        $(tblBody).append(TableRow);
+    });
+    return ($(table));
+};
+
+$.postJSON = function(url, data, callback) {
+    return jQuery.ajax({
+        headers: { 
+           'Accept': 'application/json',
+           'Content-Type': 'application/json' 
+                 },
+           'type': 'POST',
+           'url': url,
+           'data': JSON.stringify(data),
+           'dataType': 'json',
+           'success': callback
+    });
+};
+
+$("#submit").on('click', function(){
+
+    console.log($.getData());
+
+    $.postJSON("/get_result", {"foo": "br"}, function(data){
+
+        $('#table-section').empty();
+
+        var table = $.makeTable(data.proc);
+        $(table).appendTo("#table-section");
+
+        var res ="<div class=\"cap\"><br>Win:" + data.res.win + "</b>";
+        $(res).appendTo("#table");
+
+    }, "json").fail(function() {
+        console.log( "error" );
+    }); 
+});

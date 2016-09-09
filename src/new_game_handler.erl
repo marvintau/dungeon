@@ -41,7 +41,7 @@ handle_post(Req, State) ->
     {ReqBody, NextReq} = try cowboy_req:read_body(Req) of
         {ok, ReqBodyRaw, NewReq} ->
             error_logger:info_report(ReqBodyRaw),
-            {ReqBodyRaw, Req}
+            {ReqBodyRaw, NewReq}
     catch
         error:Error ->
             erlang:display(Error),
@@ -53,7 +53,9 @@ handle_post(Req, State) ->
             erlang:display("received"),
             {true, Req, State};
         Data ->
-            {done, ResBody} = battle:init_new_battle(json),
+            error_logger:info_report(Data),
+
+            {done, ResBody} = battle:init_new_battle(Data),
             Res = cowboy_req:set_resp_body(ResBody, NextReq),
             {true, Res, State}
     end.
