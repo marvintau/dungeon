@@ -133,6 +133,7 @@ update_log(Attack, Defense, Battle)  ->
     
     {[
         { seq, Battle#battle.seq_no }, { attacker, Attack#player.id },
+        { defenser, Defense#player.id},
         { attack_type, element(2, get_player_weapon_type(Attack)) },
         { action, Battle#battle.outcome },
         { damage, Battle#battle.damage },
@@ -198,7 +199,7 @@ battle_loop(A, D, _Battle, Log) when A#player.hp < 0 orelse D#player.hp < 0 ->
         D#player.hp < 0 -> A#player.id
     end,
 
-    {done, jiffy:encode({ [{proc, lists:reverse(Log)}, {res, Winner}] } )};
+    {done, jiffy:encode({[{proc, lists:reverse(Log)}, {res, Winner}] } )};
 
 % 后手玩家剩余攻击次数用尽时，注意剩余攻击次数重置为2，但是未来会有更复杂的计算方法，
 % 届时可以将此处的设定去掉，在无条件循环中依据buff状态等计算下一回合的剩余攻击次数。
