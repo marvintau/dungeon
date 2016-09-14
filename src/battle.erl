@@ -2,7 +2,6 @@
 
 -author('Yue Marvin Tao').
 
--include("battle.hrl").
 
 -export([init_database/0, init_new_battle/1 ]).
 
