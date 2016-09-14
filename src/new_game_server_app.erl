@@ -16,8 +16,6 @@
 
 start(_StartType, _StartArgs) ->
 
-    battle:init_database(),
-
     Dispatch = cowboy_router:compile([
             {'_', [
                    {"/exam/[...]", cowboy_static, {priv_dir, new_game_server, "assets"}},

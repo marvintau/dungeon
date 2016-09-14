@@ -7,15 +7,11 @@
 -export([init_database/0, init_new_battle/1 ]).
 
 
-get_player_weapon_type(A) ->
-
-    CurrHand = A#player.curr_hand,
+get_player_weapon_type(#{curr_hand:=CurrHand, prim_type:=Prim, secd_type:=Secd}) ->
 
     case CurrHand of
-        prim ->
-            A#player.prim_type;
-        secd ->
-            A#player.secd_type
+        prim -> Prim;
+        secd -> Secd
     end.
 
 
@@ -32,20 +28,23 @@ rotate(Roulette) ->
 
 % Preparing the roulette, might be affected by the buff or other conditions
 % specified in Battle Context
-prepare_roulette_from(A, D, _B) ->
+prepare_roulette_from(
+    #{resist:=Res, hit:=Hit, critic:=Critic}=A,
+    #{secd_type:=Secd, block:=Blo, dodge:=Dod}, _B
+) ->
 
     BasicAttack = 8, 
 
-    {Dodge, Resist, Block} = case {get_player_weapon_type(A), D#player.secd_type} of
+    {Dodge, Resist, Block} = case {get_player_weapon_type(A), Secd} of
         
         {{_, magic}, _} ->
-            {0, A#player.resist, 0};
+            {0, Res, 0};
         
         {{_, physical}, {_, shield}} ->
-            {D#player.dodge, 0, D#player.block};
+            {Dod, 0, Blo};
 
         {{_, physical}, _} ->
-            {D#player.dodge, 0, 0};
+            {Dod, 0, 0};
 
         % For the condition that supposed not to happen. should be avoided
         % before rotating the roulette.
@@ -53,7 +52,7 @@ prepare_roulette_from(A, D, _B) ->
             {0, 0, 0}
     end,
 
-    [BasicAttack + A#player.hit, A#player.critic, Dodge, Resist, Block].
+    [BasicAttack + Hit, Critic, Dodge, Resist, Block].
 
 magic_damage(Random, Outcome, {Lower, Upper}) ->
     
@@ -114,31 +113,23 @@ single_attack(Attack, Defense, Outcome) ->
 
     single_attack(
         get_player_weapon_type(Attack),
-        Attack#player.curr_atk,
-        Defense#player.armor,
+        maps:get(curr_atk, Attack),
+        maps:get(armor, Defense),
         Outcome
      ).
 
 % ================ CREATE LOG ENTRY FOR CURRENT  ======================
 
-join(Sep, Items) ->
-        lists:flatten(lists:reverse(join1(Items, Sep, []))).
- 
-join1([Head | []], _Sep, Acc) ->
-        [Head | Acc];
-join1([Head | Tail], Sep, Acc) ->
-        join1(Tail, Sep, [Sep, Head | Acc]).
-
 update_log(Attack, Defense, Battle)  ->
     
     {[
-        { seq, Battle#battle.seq_no }, { attacker, Attack#player.id },
-        { defenser, Defense#player.id},
+        { seq, maps:get(seq_no, Battle) }, { attacker, maps:get(id,Attack) },
+        { defenser, maps:get(id, Attack)},
         { attack_type, element(2, get_player_weapon_type(Attack)) },
-        { action, Battle#battle.outcome },
-        { damage, Battle#battle.damage },
-        { attacker_hp, Attack#player.hp },
-        { defenser_hp, Defense#player.hp }
+        { action, maps:get(outcome, Battle) },
+        { damage, maps:get(damage, Battle) },
+        { attacker_hp, maps:get(hp, Attack) },
+        { defenser_hp, maps:get(hp, Defense) }
     ]}.
 
 % ================= GET PLAYER CONTEXT FROM CHAR  ======================
@@ -146,43 +137,22 @@ update_log(Attack, Defense, Battle)  ->
 % In the future, both PlayerID and Char information should be extracted
 % from player database.
 
-player_context_from_char(PlayerID, Char) ->
-    #player{
-        id         = PlayerID,
-        hp         = Char#char.hp,
-        prim_type  = Char#char.prim_type,
-        prim_range = Char#char.prim_range,
-        secd_type  = Char#char.secd_type,
-        secd_range = Char#char.secd_range,
-        
-        armor      = Char#char.armor,
-        hit        = Char#char.hit,
-        critic     = Char#char.critic,
-        dodge      = Char#char.dodge,
-        resist     = Char#char.resist,
-        block      = Char#char.block,
-        agility    = Char#char.agility,
- 
-        curr_hand  = prim,
-        curr_atk   = Char#char.prim_range
-    }.
-
 
 % ======================= MAIN BATTLE LOOP ============================
 
 % 主循环入口
-battle_loop(P1, P2) ->
+battle_loop(#{agility := A1} = P1, #{agility := A2} = P2) ->
 
     random:seed(erlang:phash2([node()]), erlang:monotonic_time(), erlang:unique_integer()),
 
-    B = #battle{
-        seq_no = 1,
-        damage = 0,
-        is_latter = false,
-        rem_atk = 2
+    B = #{
+        seq_no => 1,
+        damage => 0,
+        is_latter => false,
+        rem_atk => 2
     },
 
-    case P1#player.agility > P2#player.agility of
+    case A1 > A2 of
         true ->
             battle_loop(P1, P2, B, []);
         _ ->
@@ -192,11 +162,11 @@ battle_loop(P1, P2) ->
 
 
 % 有一方血量不足，终止
-battle_loop(A, D, _Battle, Log) when A#player.hp < 0 orelse D#player.hp < 0 ->
+battle_loop(#{hp:=AH, id:=AI}, #{hp:=DH, id:=DI}, _, Log) when AH < 0 orelse DH < 0 ->
 
     Winner = if
-        A#player.hp < 0 -> D#player.id;
-        D#player.hp < 0 -> A#player.id
+        AH < 0 -> DI;
+        DH < 0 -> AI
     end,
 
     {done, jiffy:encode({[{proc, lists:reverse(Log)}, {res, Winner}] } )};
@@ -204,36 +174,38 @@ battle_loop(A, D, _Battle, Log) when A#player.hp < 0 orelse D#player.hp < 0 ->
 % 后手玩家剩余攻击次数用尽时，注意剩余攻击次数重置为2，但是未来会有更复杂的计算方法，
 % 届时可以将此处的设定去掉，在无条件循环中依据buff状态等计算下一回合的剩余攻击次数。
 
-battle_loop(A, D, B, L) when (B#battle.is_latter==true) and (B#battle.rem_atk==0)->
+battle_loop(
+    #{agility:=AG}=A,
+    #{agility:=DG}=D,
+    #{is_latter:=true, rem_atk:=0, seq_no:=SeqNo}=B, L
+) ->
 
-    SeqNo = B#battle.seq_no,
-
-    case A#player.agility > D#player.agility of
+    case AG > DG of
         true ->
-            battle_loop(A, D, B#battle{is_latter=false, rem_atk=2, seq_no = SeqNo+1}, L);
+            battle_loop(A, D, B#{is_latter:=false, rem_atk:=2, seq_no := SeqNo+1}, L);
         _ ->
-            battle_loop(D, A, B#battle{is_latter=false, rem_atk=2, seq_no = SeqNo+1}, L)
+            battle_loop(D, A, B#{is_latter:=false, rem_atk:=2, seq_no := SeqNo+1}, L)
     end;
 
 % 排除以上情况，便是先手玩家剩余攻击次数用尽时
 
-battle_loop(A, D, B, L) when B#battle.rem_atk==0 ->
-    battle_loop(D, A, B#battle{is_latter=true, rem_atk=2}, L);
+battle_loop(A, D, #{rem_atk:=0}=B, L) ->
+    battle_loop(D, A, B#{is_latter:=true, rem_atk:=2}, L);
 
 % -------------- MAIN UNCONDITIONAL LOOP FOR BATTLE -------------------
 % 当以上的状况都没发生的时候，进入正常发起攻击的动作
 
-battle_loop(Attack, Defense, Battle, Log) ->
+battle_loop(Attack, Defense, #{rem_atk:=RemAtk}=Battle, Log) ->
 
     case get_player_weapon_type(Attack) of
         {no_damage, _} ->
 
-            NextAttack = Attack#player{
-                curr_atk = Attack#player.prim_range, 
-                curr_hand = prim
+            NextAttack = Attack#{
+                curr_atk := maps:get(prim_range, Attack), 
+                curr_hand := prim
             },
-            NextBattle = Battle#battle{
-                rem_atk = Battle#battle.rem_atk - 1
+            NextBattle = Battle#{
+                rem_atk := RemAtk - 1
             },
             battle_loop(NextAttack, Defense, NextBattle, Log);
 
@@ -243,26 +215,26 @@ battle_loop(Attack, Defense, Battle, Log) ->
 
             Damage = single_attack(Attack, Defense, Outcome),
 
-            NextBattle = Battle#battle{
-                outcome = Outcome,
-                rem_atk = Battle#battle.rem_atk - 1,
-                damage = Damage
+            NextBattle = Battle#{
+                outcome => Outcome,
+                rem_atk => RemAtk - 1,
+                damage => Damage
             },
 
-            { NextHand, NextAttackRange} = case Attack#player.curr_hand of
+            { NextHand, NextAttackRange} = case maps:get(curr_hand, Attack) of
                 prim ->
-                    {secd, Attack#player.secd_range};
+                    {secd, maps:get(secd_range, Attack)};
                 _ ->
-                    {prim, Attack#player.prim_range}
+                    {prim, maps:get(prim_range, Attack)}
             end,
 
-            NextAttack = Attack#player{
-                curr_atk = NextAttackRange,
-                curr_hand = NextHand 
+            NextAttack = Attack#{
+                curr_atk := NextAttackRange,
+                curr_hand := NextHand 
             },
                
-            NextDefense = Defense#player{
-                hp = Defense#player.hp - NextBattle#battle.damage 
+            NextDefense = Defense#{
+                hp := maps:get(hp, Defense) - maps:get(damage, NextBattle)
             },
 
             % NextLog always records the Attacker's context before updated, and
@@ -277,98 +249,9 @@ init_database() ->
     schema:rebuild_schema(),
     schema:rebuild_table().
 
-random_char() ->
-    random:seed(erlang:phash2([node()]), erlang:monotonic_time(), erlang:unique_integer()),
-    
-    schema:get_char(lists:nth(trunc(random:uniform()*4)+1, [warrior, hunter, mage, rogue])).
-
-
-player_context_from_parsed_JSON(Data) ->
-
-    {[{<<"player1">>, Player1}, {<<"player2">>, Player2}]} = Data,
-
-    {[
-        {_, ID1}, {_, HP1}, {_, PrimType1}, {_, PrimMax1}, {_, PrimMin1}, {_, SecdType1},
-        {_, SecdMax1}, {_, SecdMin1}, {_, Armor1}, {_, Hit1}, {_, Critic1}, {_, Dodge1},
-        {_, Resist1}, {_, Block1}, {_, Agi1}
-    ]} = Player1,
-
-    {[
-        {_, ID2}, {_, HP2}, {_, PrimType2}, {_, PrimMax2}, {_, PrimMin2}, {_, SecdType2},
-        {_, SecdMax2}, {_, SecdMin2}, {_, Armor2}, {_, Hit2}, {_, Critic2}, {_, Dodge2},
-        {_, Resist2}, {_, Block2}, {_, Agi2}
-    ]} = Player2,
-
-    Prim1 = case binary_to_atom(PrimType1, utf8) of
-        physical -> {damage, physical};
-        mage -> {damage, mage}
-    end,
-
-    Prim2 = case binary_to_atom(PrimType2, utf8) of
-        physical -> {damage, physical};
-        mage -> {damage, mage}
-    end,
-
-    Secd1 = case binary_to_atom(SecdType1, utf8) of
-        physical -> {damage, physical};
-        mage -> {damage, mage};
-        shield -> {no_damage, shield};
-        bare -> {no_damage, bare}
-    end,
-
-    Secd2 = case binary_to_atom(SecdType2, utf8) of
-        physical -> {damage, physical};
-        mage -> {damage, mage};
-        shield -> {no_damage, shield};
-        bare -> {no_damage, bare}
-    end,
-
-    Player1Context = #player{
-        id         = binary_to_atom(ID1, utf8),
-        hp         = HP1,
-        prim_type  = Prim1,
-        prim_range = {PrimMin1, PrimMax1},
-        secd_type  = Secd1,
-        secd_range = {SecdMin1, SecdMax1},
-        
-        armor      = Armor1,
-        hit        = Hit1,
-        critic     = Critic1,
-        dodge      = Dodge1,
-        resist     = Resist1,
-        block      = Block1,
-        agility    = Agi1,
- 
-        curr_hand  = prim,
-        curr_atk   = {PrimMin1, PrimMax1}
-    },
-
-
-    Player2Context = #player{
-        id         = binary_to_atom(ID2, utf8),
-        hp         = HP2,
-        prim_type  = Prim2,
-        prim_range = {PrimMin2, PrimMax2},
-        secd_type  = Secd2,
-        secd_range = {SecdMin2, SecdMax2},
-        
-        armor      = Armor2,
-        hit        = Hit2,
-        critic     = Critic2,
-        dodge      = Dodge2,
-        resist     = Resist2,
-        block      = Block2,
-        agility    = Agi2,
- 
-        curr_hand  = prim,
-        curr_atk   = {PrimMin2, PrimMax2}
-    },
- 
-    error_logger:info_report(Player2Context),
-    {Player1Context, Player2Context}.
 
 
 init_new_battle(Data) ->
 
-    {P1, P2} = player_context_from_parsed_JSON(Data),
+    {P1, P2} = parse:player_context_from_parsed_JSON(Data),
     battle_loop(P1, P2).

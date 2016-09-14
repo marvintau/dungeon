@@ -59,7 +59,9 @@
         block,
         agility,
         
-        status
+        status,
+
+        retained
     }).
 
 -record(battle, {
@@ -67,4 +69,13 @@
         outcome :: plain | critical | dodge | block | resist, 
         damage,
         is_latter,
-        rem_atk}).
+        rem_atk,
+        status_table
+    }).
+
+
+-record(attack, {
+        name,
+        con,
+        act
+    }).
