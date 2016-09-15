@@ -2,8 +2,6 @@
 
 -author('Yue Marvin Tao').
 
--include("battle.hrl").
-
 -export([player_context_from_parsed_JSON/1]).
 
 weapon_attr(Weapon) ->
@@ -38,8 +36,7 @@ parse_single_player(SinglePlayerData) ->
         block      => Block,
         agility    => Agi,
  
-        curr_hand  => prim,
-        curr_atk   => {PrimMin, PrimMax}
+        curr_hand   => {prim, weapon_attr(PrimType), {PrimMin, PrimMax}}
     }.
 
 
