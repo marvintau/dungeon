@@ -122,13 +122,15 @@ $("#submit").on('click', function(){
     
     $.postJSON("/get_result", $.getData(), function(data){
 
+        console.log(data.proc);
+        
         $('#table-section').empty();
 
         var table = $.makeTable(data.proc);
         $(table).appendTo("#table-section");
 
-        var res ="<div class=\"cap\"><br>Win:" + data.res.win + "</b>";
-        $(res).appendTo("#table");
+    var res ="<div class=\"cap\"><br>Win:" + data.res.win + "</b>";
+    $(res).appendTo("#table");
 
     }, "json").fail(function() {
         console.log( "error" );
