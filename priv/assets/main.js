@@ -120,9 +120,15 @@ $.postJSON = function(url, data, callback) {
 
 $("#submit").on('click', function(){
     
+    OutgoingData = $.getData();
+
     $.postJSON("/get_result", $.getData(), function(data){
 
-        console.log(data);
+        IncomingData = data;
+        IncomingData.player1 = OutgoingData.player1;
+        IncomingData.player2 = OutgoingData.player2;
+
+        console.log(IncomingData);
         
         $('#table-section').empty();
 
