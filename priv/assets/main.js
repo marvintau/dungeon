@@ -122,7 +122,7 @@ $("#submit").on('click', function(){
     
     $.postJSON("/get_result", $.getData(), function(data){
 
-        console.log(data.proc);
+        console.log(data);
         
         $('#table-section').empty();
 
