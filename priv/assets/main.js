@@ -135,7 +135,7 @@ $("#submit").on('click', function(){
         var table = $.makeTable(data.proc);
         $(table).appendTo("#table-section");
 
-    var res ="<div class=\"cap\"><br>Win:" + data.res.win + "</b>";
+    var res ="<div class=\"cap\"><br>Win:" + data.win + "</b>";
     $(res).appendTo("#table");
 
     }, "json").fail(function() {
