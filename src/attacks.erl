@@ -1,11 +1,10 @@
 -module(attacks).
 -author('Yue Marvin Tao').
 
--export([plain_attack/4]).
+-export([plain_attack/1]).
 
 rotate(Roulette) ->
 
-    % [2, 2, 2, 2, 2] -> [10, 8, 6, 4, 2, 0]
     Cumulative = lists:foldl(fun(X, Rem) -> [X + hd(Rem) | Rem] end, [0], Roulette),
 
     Rand = rand:uniform() * hd(Cumulative),
@@ -88,35 +87,25 @@ single_attack(#{curr_hand:=CurrHand}, #{armor:=Armor}, Outcome) ->
 
 % ================ CREATE LOG ENTRY FOR CURRENT  ======================
 
-update_log(#{curr_hand:={_, {_, AtkType}, _}}=Attack, Defense, Battle)  ->
-    
-    {[
-        { seq, maps:get(seq_no, Battle) }, { attacker, maps:get(id,Attack) },
-        { defenser, maps:get(id, Attack)},
-        { attack_type, AtkType},
-        { action, maps:get(outcome, Battle) },
-        { damage, maps:get(damage, Battle) },
-        { attacker_hp, maps:get(hp, Attack) },
-        { defenser_hp, maps:get(hp, Defense) }
-    ]}.
-
 % When the weapon type in the current hand is matched with no_damage, we may
 % determine that the current hand is secondary, thus we may directly assign the
 % next hand with primary parameters.
-plain_attack(
+
+plain_attack({
     #{curr_hand:={_, {no_damage, _}, _}, prim_range:=Range, prim_type:=Type}=A, D,
-    #{rem_atk:=RemAtk}=B, Log
-) ->
+    #{rem_atk:=RemAtk}=B
+}) ->
     
-    { A#{curr_hand := {prim, Type, Range}}, D, B#{rem_atk:= RemAtk - 1}, Log };
+    { A#{curr_hand := {prim, Type, Range}}, D, B#{rem_atk:= RemAtk - 1} };
 
 
 % In other cases, a damage will be dealt, thus we to figure out which is the
 % current hand, and next status.
-plain_attack(
+
+plain_attack({
     #{curr_hand:=CH, prim_type:=PT, prim_range:=PR, secd_type:=ST, secd_range:=SR}=A,
-    D, #{rem_atk:=RemAtk}=B, Log
-) ->
+    D, #{rem_atk:=RemAtk}=B
+ }) ->
 
     Outcome = rotate(prepare_roulette_from(A, D, B)),
 
@@ -141,6 +130,5 @@ plain_attack(
 
     % NextLog always records the Attacker's context before updated, and
     % Defenser's context after updated.
-    NewLog = update_log(A, NewDefense, NewBattle),
 
-    {NewAttack, NewDefense, NewBattle, [NewLog | Log]}.
+    {NewAttack, NewDefense, NewBattle}.

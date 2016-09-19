@@ -4,28 +4,48 @@
 
 -export([init_new_battle/1 ]).
 
+-import(effect, [effect/2]).
 
 
 % ======================= MAIN BATTLE LOOP ============================
+% Entrance, providing a battle context.
 
-% 主循环入口
-battle_loop(#{agility := A1} = P1, #{agility := A2} = P2) ->
+update_log(#{curr_hand:={_, {_, AtkType}, _}}=Attack, Defense, Battle)  ->
+    
+    {[
+        { seq, maps:get(seq_no, Battle) }, { attacker, maps:get(id,Attack) },
+        { defenser, maps:get(id, Defense)},
+        { effect_name, maps:get(effect_name, Battle)},
+        { attack_type, AtkType},
+        { action, maps:get(outcome, Battle) },
+        { damage, maps:get(damage, Battle) },
+        { attacker_hp, maps:get(hp, Attack) },
+        { defenser_hp, maps:get(hp, Defense) }
+    ]}.
+
+
+battle_loop(#{id:= I1, agility := A1} = P1, #{id:= I2, agility := A2} = P2) ->
+
+    % TODO: SHOULD BE MOVED TO AN ETS TABLE IN THE FUTURE.
+    EffectList = [
+        {plain_attack, effect(effect:cond_always(), fun attacks:plain_attack/1)}
+    ],
 
     B = #{
         seq_no => 1,
         damage => 0,
         is_latter => false,
-        rem_atk => 2
+        rem_atk => 2,
+        effect_name => null,
+        effect_action_list => EffectList,
     },
 
     case A1 > A2 of
-        true ->
-            battle_loop(P1, P2, B, []);
-        _ ->
-            battle_loop(P2, P1, B, [])
+        true -> battle_loop(P1, P2, B, []);
+        _    -> battle_loop(P2, P1, B, [])
     end.
 
-% 有一方血量不足，终止
+% Condition of terminating: someone's HP dropped below zero.
 battle_loop(#{hp:=AH, id:=AI}, #{hp:=DH, id:=DI}, _, Log) when AH < 0 orelse DH < 0 ->
 
     Winner = if
@@ -33,38 +53,43 @@ battle_loop(#{hp:=AH, id:=AI}, #{hp:=DH, id:=DI}, _, Log) when AH < 0 orelse DH 
         DH < 0 -> AI
     end,
 
-    {done, jiffy:encode({[{proc, lists:reverse(Log)}, {res, Winner}] } )};
 
-% 后手玩家剩余攻击次数用尽时，注意剩余攻击次数重置为2，但是未来会有更复杂的计算方法，
-% 届时可以将此处的设定去掉，在无条件循环中依据buff状态等计算下一回合的剩余攻击次数。
+    {done, jiffy:encode({[
+        {AI, AH}, {DI, DH},
+        {proc, lists:reverse(Log)}, {res, Winner}
+    ]} )};
 
 battle_loop(
-    #{agility:=AG}=A,
-    #{agility:=DG}=D,
+    #{id:=I1, agility:=AG}=A,
+    #{id:=I2, agility:=DG}=D,
     #{is_latter:=true, rem_atk:=0, seq_no:=SeqNo}=B, L
 ) ->
 
-    case AG > DG of
-        true ->
-            battle_loop(A, D, B#{is_latter:=false, rem_atk:=2, seq_no := SeqNo+1}, L);
-        _ ->
-            battle_loop(D, A, B#{is_latter:=false, rem_atk:=2, seq_no := SeqNo+1}, L)
-    end;
+    NewB = B#{ is_latter := false, rem_atk := 2, seq_no := SeqNo + 1},
 
-% 排除以上情况，便是先手玩家剩余攻击次数用尽时
+    case AG > DG of
+        true -> battle_loop(A, D, NewB, L);
+        _    -> battle_loop(D, A, NewB, L)
+    end.
+
+   
 
 battle_loop(A, D, #{rem_atk:=0}=B, L) ->
-    battle_loop(D, A, B#{is_latter:=true, rem_atk:=2}, L);
+
+    battle_loop(D, A, NewB, L);
 
 % -------------- MAIN UNCONDITIONAL LOOP FOR BATTLE -------------------
-% 当以上的状况都没发生的时候，进入正常发起攻击的动作
 
 battle_loop(A, D, B, L) ->
 
-    {NextAttack, NextDefense, NextBattle, NextLog} = attacks:plain_attack(A, D, B, L),
-    battle_loop(NextAttack, NextDefense, NextBattle, NextLog).
+    {NA, ND, NB} = effect:apply_effects({A, D, B}),
+    
+    NL = update_log(NA, ND, NB),
+
+    battle_loop(NA, ND, NB, [NL|L]).
 
 init_new_battle(Data) ->
 
-    {P1, P2} = parse:player_context_from_parsed_JSON(Data),
-    battle_loop(P1, P2).
+    {P1, P2} = parse:player_context_from_parsed_JSON(Data), 
+
+    battle_loop(P1#{status => [plain_attack]}, P2#{status => [plain_attack]}).
