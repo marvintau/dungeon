@@ -55,7 +55,6 @@ battle_loop(#{hp:=AH, id:=AI}, #{hp:=DH, id:=DI}, _, Log) when AH < 0 orelse DH 
     end,
 
     {done, jiffy:encode({[
-        {AI, AH}, {DI, DH},
         {proc, lists:reverse(Log)}, {res, Winner}
     ]} )};
 

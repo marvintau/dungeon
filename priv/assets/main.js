@@ -128,7 +128,7 @@ $("#submit").on('click', function(){
         IncomingData.player1 = OutgoingData.player1;
         IncomingData.player2 = OutgoingData.player2;
 
-        console.log(IncomingData);
+        console.log(JSON.stringify(IncomingData));
         
         $('#table-section').empty();
 
