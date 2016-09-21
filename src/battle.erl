@@ -28,12 +28,6 @@ battle_loop(#{agility := A1} = P1, #{agility := A2} = P2) ->
 
     erlang:display('start new game'),
     % TODO: SHOULD BE MOVED TO AN ETS TABLE IN THE FUTURE.
-    EffectList = [
-%        {assault,       effect(effect:cond_always(), fun char_skills:assault/1)}
-%        {ice_storm,     effect(effect:cond_always(), fun char_skills:ice_storm/1},
-        {pierce_strike, effect(effect:cond_last_for(2), fun char_skills:pierce_strike/1)},
-        {shield_slam,   effect(effect:cond_always(), fun char_skills:shield_slam/1)}
-    ],
 
     B = #{
         seq_no => 1,
