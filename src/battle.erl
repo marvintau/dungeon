@@ -41,7 +41,7 @@ battle_loop(#{agility := A1} = P1, #{agility := A2} = P2) ->
         def_damage => 0,  % damage taken by defenser
         atk_damage => 0,  % damage taken by offenser
         
-        is_latter => false,
+        is_defence_done => false,
         rem_atk => 2,
         effect_name => null,
         effect_action_list => EffectList,
@@ -69,12 +69,12 @@ battle_loop(#{hp:=AH, id:=AI}, #{hp:=DH, id:=DI}, _, Log) when AH < 0 orelse DH 
 
 battle_loop(
     #{agility:=AG}=A, #{agility:=DG}=D,
-    #{is_latter:=true, rem_atk:=0, seq_no:=SeqNo}=B, L
+    #{is_defence_done:=true, rem_atk:=0, seq_no:=SeqNo}=B, L
 ) ->
 
     erlang:display('start new round'),
     
-    NewB = B#{ is_latter := false, rem_atk := 2, seq_no := SeqNo + 1},
+    NewB = B#{ is_defence_done := false, rem_atk := 2, seq_no := SeqNo + 1},
 
     case AG > DG of
         true -> battle_loop(A, D, NewB, L);
@@ -86,11 +86,11 @@ battle_loop(A, D, #{rem_atk:=0}=B, L) ->
 
     erlang:display('swap in same round'),
 
-    battle_loop(D, A, B#{is_latter:=true, rem_atk:=2}, L);
+    battle_loop(D, A, B#{is_defence_done:=true, rem_atk:=2}, L);
 
 % -------------- MAIN UNCONDITIONAL LOOP FOR BATTLE -------------------
 
-battle_loop(#{curr_hand:=Curr}=A, D, B, L) ->
+battle_loop(A, D, B, L) ->
 
 %    {PreA, PreD, PreB} = effect:apply_effects({A, D, B}),
 
@@ -98,10 +98,7 @@ battle_loop(#{curr_hand:=Curr}=A, D, B, L) ->
 
     {MovedA, MovedD, MovedB} = attacks:plain_attack({A, D, B}),
 
-    LogAfterAttack = case Curr of
-        {_, {damage, _}, _} -> [update_log(MovedA, MovedD, MovedB) | L];
-        _                   -> L 
-    end,
+    LogAfterAttack = [update_log(MovedA, MovedD, MovedB) | L],
 
 %    {PostA, PostD, PostB} = effect:apply_effects({MovedA, MovedD, MovedB}),
 
