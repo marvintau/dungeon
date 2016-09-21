@@ -18,7 +18,7 @@ update_log(#{curr_hand:={_, {_, AtkType}, _}}=Attack, Defense, Battle)  ->
         { effect_name, maps:get(effect_name, Battle)},
         { attack_type, AtkType},
         { action, maps:get(outcome, Battle) },
-        { damage, maps:get(damage, Battle) },
+        { def_damage, maps:get(def_damage, Battle) },
         { attacker_hp, maps:get(hp, Attack) },
         { defenser_hp, maps:get(hp, Defense) }
     ]}.
@@ -29,16 +29,24 @@ battle_loop(#{agility := A1} = P1, #{agility := A2} = P2) ->
     erlang:display('start new game'),
     % TODO: SHOULD BE MOVED TO AN ETS TABLE IN THE FUTURE.
     EffectList = [
-        {plain_attack, effect(effect:cond_always(), fun attacks:plain_attack/1)}
+%        {assault,       effect(effect:cond_always(), fun char_skills:assault/1)}
+%        {ice_storm,     effect(effect:cond_always(), fun char_skills:ice_storm/1},
+        {pierce_strike, effect(effect:cond_last_for(2), fun char_skills:pierce_strike/1)},
+        {shield_slam,   effect(effect:cond_always(), fun char_skills:shield_slam/1)}
     ],
 
     B = #{
         seq_no => 1,
-        damage => 0,
+        
+        def_damage => 0,  % damage taken by defenser
+        atk_damage => 0,  % damage taken by offenser
+        
         is_latter => false,
         rem_atk => 2,
         effect_name => null,
-        effect_action_list => EffectList
+        effect_action_list => EffectList,
+
+        status => []
     },
 
     case A1 > A2 of
@@ -84,14 +92,20 @@ battle_loop(A, D, #{rem_atk:=0}=B, L) ->
 
 battle_loop(#{curr_hand:=Curr}=A, D, B, L) ->
 
-    {NA, ND, NB} = effect:apply_effects({A, D, B}),
+%    {PreA, PreD, PreB} = effect:apply_effects({A, D, B}),
 
-    NewLog = case Curr of
-        {_, {damage, _}, _} -> [update_log(NA, ND, NB) | L];
-        _                   -> L
+%    LogAfterPre = [update_log(PreA, PreD, PreB) | L],
+
+    {MovedA, MovedD, MovedB} = attacks:plain_attack({A, D, B}),
+
+    LogAfterAttack = case Curr of
+        {_, {damage, _}, _} -> [update_log(MovedA, MovedD, MovedB) | L];
+        _                   -> L 
     end,
 
-    battle_loop(NA, ND, NB, NewLog).
+%    {PostA, PostD, PostB} = effect:apply_effects({MovedA, MovedD, MovedB}),
+
+    battle_loop(MovedA, MovedD, MovedB, LogAfterAttack).
 
 init_new_battle(Data) ->
 

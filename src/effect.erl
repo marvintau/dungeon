@@ -4,7 +4,7 @@
 
 -export([apply_effects/1]).
 -export([effect/2]).
--export([cond_always/0, cond_remaining_turns/1]).
+-export([cond_always/0, cond_last_for/1]).
 
 % Apply effect iterates over the effect table and apply the available
 % effects, and returns the final {A, D, B, L} after all effects are
@@ -53,5 +53,5 @@ effect(Condition, EffectAction) ->
 cond_always() ->
     fun(_) -> true end.
 
-cond_remaining_turns(Turns) ->
+cond_last_for(Turns) ->
     fun({_, _, #{seq_no:=SeqNo}, _}) -> SeqNo < Turns end.

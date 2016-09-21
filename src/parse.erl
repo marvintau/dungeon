@@ -27,7 +27,9 @@ parse_single_player(SinglePlayerData) ->
         prim_range => {PrimMin, PrimMax},
         secd_type  => weapon_attr(SecdType),
         secd_range => {SecdMin, SecdMax},
-        
+
+        damage_coeff => 1,
+
         armor      => Armor,
         hit        => Hit,
         critic     => Critic,

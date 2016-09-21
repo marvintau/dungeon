@@ -19,8 +19,6 @@ prepare_roulette_from(
     #{secd_type:=Secd, block:=Blo, dodge:=Dod}, _B
 ) ->
 
-    BasicAttack = 8, 
-
     {Dodge, Resist, Block} = case {PrimType, Secd} of
         
         {{_, magic}, _} ->
@@ -38,7 +36,7 @@ prepare_roulette_from(
             {0, 0, 0}
     end,
 
-    [BasicAttack + Hit, Critic, Dodge, Resist, Block].
+    [Hit, Critic, Dodge, Resist, Block].
 
 % --------------- PLAYER AS MAGE ------------------------------
 % Magic attack cannot be blocked, thus make sure that block has
@@ -85,11 +83,6 @@ single_attack(#{curr_hand:=CurrHand}, #{armor:=Armor}, Outcome) ->
             0
     end.
 
-% ================ CREATE LOG ENTRY FOR CURRENT  ======================
-
-% When the weapon type in the current hand is matched with no_damage, we may
-% determine that the current hand is secondary, thus we may directly assign the
-% next hand with primary parameters.
 
 plain_attack({
     #{curr_hand:={_, {no_damage, _}, _}, prim_range:=Range, prim_type:=Type}=A, D,
@@ -99,11 +92,8 @@ plain_attack({
     { A#{curr_hand := {prim, Type, Range}}, D, B#{rem_atk:= RemAtk - 1} };
 
 
-% In other cases, a damage will be dealt, thus we to figure out which is the
-% current hand, and next status.
-
 plain_attack({
-    #{curr_hand:=CH, prim_type:=PT, prim_range:=PR, secd_type:=ST, secd_range:=SR}=A,
+    #{curr_hand:=CH, prim_type:=PT, prim_range:=PR, secd_type:=ST, secd_range:=SR, damage_coeff:=DC}=A,
     D, #{rem_atk:=RemAtk}=B
  }) ->
 
@@ -112,7 +102,7 @@ plain_attack({
     NewBattle = B#{
         outcome => Outcome,
         rem_atk => RemAtk - 1,
-        damage => single_attack(A, D, Outcome)
+        def_damage => single_attack(A, D, Outcome) * DC
     },
 
     NewAttack = A#{
@@ -125,7 +115,7 @@ plain_attack({
     },
        
     NewDefense = D#{
-        hp := maps:get(hp, D) - maps:get(damage, NewBattle)
+        hp := maps:get(hp, D) - maps:get(def_damage, NewBattle)
     },
 
     % NextLog always records the Attacker's context before updated, and
