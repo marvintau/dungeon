@@ -1,7 +1,11 @@
 -module(attacks).
 -author('Yue Marvin Tao').
 
--export([plain_attack/1]).
+-export([plain_attack/3]).
+
+% ------------------------ ROTATE ROULETTE ----------------------------
+% get the random choice result according to the probability of each 
+% option.
 
 rotate(Roulette) ->
 
@@ -12,8 +16,12 @@ rotate(Roulette) ->
     ResultIndex = length(element(1, lists:splitwith(fun(X) -> X > Rand end, Cumulative))),
     lists:nth(ResultIndex, [block, resist, dodge, critic, attack]).
 
-% Preparing the roulette, might be affected by the buff or other conditions
-% specified in Battle Context
+
+% ----------------------- PREPARE ROULETTE ----------------------------
+% roulette is generated from the attributes of both offenser and defenser.
+% It may varied due to the different weapon in hand. The rule of getting
+%
+
 prepare_roulette_from(
     #{curr_hand:={_, PrimType, _}, resist:=Res, hit:=Hit, critic:=Critic},
     #{secd_type:=Secd, block:=Blo, dodge:=Dod}, _B
@@ -28,12 +36,7 @@ prepare_roulette_from(
             {Dod, 0, Blo};
 
         {{_, physical}, _} ->
-            {Dod, 0, 0};
-
-        % For the condition that supposed not to happen. should be avoided
-        % before rotating the roulette.
-        {_, _} ->
-            {0, 0, 0}
+            {Dod, 0, 0}
     end,
 
     [Hit, Critic, Dodge, Resist, Block].
@@ -84,41 +87,43 @@ single_attack(#{curr_hand:=CurrHand}, #{armor:=Armor}, Outcome) ->
     end.
 
 
-plain_attack({
-    #{curr_hand:={_, {no_damage, _}, _}, prim_range:=Range, prim_type:=Type}=A, D,
-    #{rem_atk:=RemAtk}=B
-}) ->
-    
-    { A#{curr_hand := {prim, Type, Range}}, D, B#{rem_atk:= RemAtk - 1} };
-
-
-plain_attack({
-    #{curr_hand:=CH, prim_type:=PT, prim_range:=PR, secd_type:=ST, secd_range:=SR, damage_coeff:=DC}=A,
-    D, #{rem_atk:=RemAtk}=B
- }) ->
-
-    Outcome = rotate(prepare_roulette_from(A, D, B)),
-
-    NewBattle = B#{
-        outcome => Outcome,
-        rem_atk => RemAtk - 1,
-        def_damage => single_attack(A, D, Outcome) * DC
-    },
-
-    NewAttack = A#{
+swap_hand(#{curr_hand:=CH, prim_type:=PT, prim_range:=PR, secd_type:=ST, secd_range:=SR}=A) ->
+    A#{
         curr_hand := case CH of
             {prim, _, _} ->
                 {secd, ST, SR};
             _ ->
                 {prim, PT, PR}
             end
+    }.
+ 
+perform_attack(#{damage_coeff:=DC}=A, D, #{remaining_attacks:=RemainingAttacks}=B) ->
+
+    Outcome = rotate(prepare_roulette_from(A, D, B)),
+
+    NewBattle = B#{
+        outcome => Outcome,
+        remaining_attacks => RemainingAttacks - 1,
+        def_damage => single_attack(A, D, Outcome) * DC 
     },
+
+    NewAttack = swap_hand(A), 
        
     NewDefense = D#{
         hp := maps:get(hp, D) - maps:get(def_damage, NewBattle)
     },
 
-    % NextLog always records the Attacker's context before updated, and
-    % Defenser's context after updated.
-
     {NewAttack, NewDefense, NewBattle}.
+
+
+plain_attack(#{id:=I1}=P1, P2, #{offenser:=Off}=B) when I1 == Off ->
+    erlang:display(ordinary),
+    perform_attack(P1, P2, B);
+plain_attack(P1, P2, B) ->
+    erlang:display(reversed),
+    {NewP2, NewP1, NewB} = perform_attack(P1, P2, B),
+    {NewP1, NewP2, NewB}.
+
+
+
+

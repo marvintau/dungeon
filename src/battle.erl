@@ -6,9 +6,7 @@
 
 -import(effect, [effect/2]).
 
-
-% ======================= MAIN BATTLE LOOP ============================
-% Entrance, providing a battle context.
+% ------------------- HELPER FUNCTION FOR LOGGING ---------------------
 
 update_log(#{curr_hand:={_, {_, AtkType}, _}}=Attack, Defense, Battle)  ->
     
@@ -24,82 +22,106 @@ update_log(#{curr_hand:={_, {_, AtkType}, _}}=Attack, Defense, Battle)  ->
     ]}.
 
 
-battle_loop(#{agility := A1} = P1, #{agility := A2} = P2) ->
 
-    erlang:display('start new game'),
-    % TODO: SHOULD BE MOVED TO AN ETS TABLE IN THE FUTURE.
+% ======================= MAIN BATTLE LOOP ============================
+
+% ------------------------- ENTRANCE --------------------------------
+% the outer loop doesn't distinguish the offensive and defensive. The
+% entrance of loop will generate the battle context. 
+
+battle_loop(P1, P2) ->
+
+    erlang:display('New battle started.'),
 
     B = #{
-        seq_no => 1,
+        seq_no => 0,
         
         def_damage => 0,  % damage taken by defenser
         atk_damage => 0,  % damage taken by offenser
         
-        is_defence_done => false,
-        rem_atk => 2,
+        % for round control
+        offenser => maps:get(id, P1),
+        defenser => maps:get(id, P2),
+        
+        % force to re-calculate who is offensive
+        round_control => to_recalc,
+        remaining_attacks => 0,
+        
+    
+        outcome => null,
+
         effect_name => null,
-        effect_action_list => EffectList,
+        effect_action_list => null,
 
         status => []
     },
 
-    case A1 > A2 of
-        true -> battle_loop(P1, P2, B, []);
-        _    -> battle_loop(P2, P1, B, [])
-    end.
+    battle_loop(P1, P2, B, []).
 
-% Condition of terminating: someone's HP dropped below zero.
-battle_loop(#{hp:=AH, id:=AI}, #{hp:=DH, id:=DI}, _, Log) when AH < 0 orelse DH < 0 ->
+
+
+% -------------------------- SWAP PLAYER ------------------------------
+% if offenser has made move, then let the defenser make move. If both
+% have made move, then calculate who is the next offenser in next round.
+
+% If one player consumes all his remainng attacks, the first loop will
+% be executed, with remaining attacks reset. Notably, the new remaining
+% attacks might be any number above 0, and should be reasonably reset
+% within the stuff. It doesn't take care of which player  
+
+swap(_, _, #{offenser:= Off, defenser:=Def, round_control:=to_swap}=B) ->
+    erlang:display(swapped),
+    B#{offenser:=Def, defenser:=Off, round_control:=to_recalc};
+
+swap(#{id:=I1, agility:=A1}, #{id:=I2, agility:=A2}, #{seq_no:=SeqNo, round_control:=to_recalc}=B) ->
+    
+    erlang:display(re_calculated),
+
+    {Off, Def} = case A1 > A2 of
+        true -> {I1, I2};
+        _    -> {I2, I1}
+    end,
+
+    B#{offenser:=Off, defenser:=Def, round_control:=to_swap, seq_no:=SeqNo+1}.
+
+% ------------------------- TERMINATION ------------------------------
+% The condition of terminating is one competitor's HP falls below zero.
+% When exiting the main loop, the log will be reversed to it's natural
+% order.
+
+battle_loop(#{hp:=HP1, id:=I1}, #{hp:=HP2, id:=I2}, _, Log) when HP1 < 0 orelse HP2 < 0 ->
 
     Winner = if
-        AH < 0 -> DI;
-        DH < 0 -> AI
+        HP1 < 0 -> I2;
+        HP2 < 0 -> I1
     end,
 
     {done, jiffy:encode({[
         {proc, lists:reverse(Log)}, {res, Winner}
     ]} )};
 
-
-battle_loop(
-    #{agility:=AG}=A, #{agility:=DG}=D,
-    #{is_defence_done:=true, rem_atk:=0, seq_no:=SeqNo}=B, L
-) ->
-
-    erlang:display('start new round'),
+% -------------------------- SWAP PLAYER ------------------------------
+battle_loop(P1, P2, #{remaining_attacks:=0} = B, L) ->
     
-    NewB = B#{ is_defence_done := false, rem_atk := 2, seq_no := SeqNo + 1},
-
-    case AG > DG of
-        true -> battle_loop(A, D, NewB, L);
-        _    -> battle_loop(D, A, NewB, L)
-    end;
+    SwappedB = swap(P1, P2, B),
+    battle_loop(P1, P2, SwappedB#{remaining_attacks:=2}, L);
 
 
-battle_loop(A, D, #{rem_atk:=0}=B, L) ->
+% ------------------- LOOP BODY THAT DO STUFF  -----------------------
+% In order to guarantee that there is no status dependency, all status
+% modification regarding attributes will be restored except HP, number
+% of remaining attacks current gamer in move.
 
-    erlang:display('swap in same round'),
+battle_loop(P1, P2, B, L) ->
 
-    battle_loop(D, A, B#{is_defence_done:=true, rem_atk:=2}, L);
+    erlang:display({new_move, maps:get(offenser, B)}),
+    {MovedP1, MovedP2, MovedB} = attacks:plain_attack(P1, P2, B),
+    LogAfterAttack = [update_log(MovedP1, MovedP2, MovedB) | L],
 
-% -------------- MAIN UNCONDITIONAL LOOP FOR BATTLE -------------------
-
-battle_loop(A, D, B, L) ->
-
-%    {PreA, PreD, PreB} = effect:apply_effects({A, D, B}),
-
-%    LogAfterPre = [update_log(PreA, PreD, PreB) | L],
-
-    {MovedA, MovedD, MovedB} = attacks:plain_attack({A, D, B}),
-
-    LogAfterAttack = [update_log(MovedA, MovedD, MovedB) | L],
-
-%    {PostA, PostD, PostB} = effect:apply_effects({MovedA, MovedD, MovedB}),
-
-    battle_loop(MovedA, MovedD, MovedB, LogAfterAttack).
+    battle_loop(MovedP1, MovedP2, MovedB, LogAfterAttack).
 
 init_new_battle(Data) ->
 
     {P1, P2} = parse:player_context_from_parsed_JSON(Data), 
     erlang:display('start.'),
-    battle_loop(P1#{status => [plain_attack]}, P2#{status => [plain_attack]}).
+    battle_loop(P1, P2).
