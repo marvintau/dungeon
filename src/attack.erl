@@ -1,4 +1,4 @@
--module(attacks).
+-module(attack).
 -author('Yue Marvin Tao').
 
 -export([plain_attack/3]).
@@ -23,11 +23,11 @@ rotate(Roulette) ->
 %
 
 prepare_roulette_from(
-    #{curr_hand:={_, PrimType, _}, resist:=Res, hit:=Hit, critic:=Critic},
+    #{curr_hand:={_, Curr, _}, resist:=Res, hit:=Hit, critic:=Critic},
     #{secd_type:=Secd, block:=Blo, dodge:=Dod}, _B
 ) ->
 
-    {Dodge, Resist, Block} = case {PrimType, Secd} of
+    {Dodge, Resist, Block} = case {Curr, Secd} of
         
         {{_, magic}, _} ->
             {0, Res, 0};
@@ -36,7 +36,9 @@ prepare_roulette_from(
             {Dod, 0, Blo};
 
         {{_, physical}, _} ->
-            {Dod, 0, 0}
+            {Dod, 0, 0};
+        _ ->             
+            {0, 0, 0}            
     end,
 
     [Hit, Critic, Dodge, Resist, Block].
@@ -117,13 +119,8 @@ perform_attack(#{damage_coeff:=DC}=A, D, #{remaining_attacks:=RemainingAttacks}=
 
 
 plain_attack(#{id:=I1}=P1, P2, #{offenser:=Off}=B) when I1 == Off ->
-    erlang:display(ordinary),
     perform_attack(P1, P2, B);
 plain_attack(P1, P2, B) ->
-    erlang:display(reversed),
     {NewP2, NewP1, NewB} = perform_attack(P1, P2, B),
     {NewP1, NewP2, NewB}.
-
-
-
 

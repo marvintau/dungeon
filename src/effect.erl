@@ -2,7 +2,6 @@
 
 -author('Yue Marvin Tao').
 
--export([apply_effects/1]).
 -export([effect/2]).
 -export([cond_always/0, cond_last_for/1]).
 
@@ -10,16 +9,6 @@
 % effects, and returns the final {A, D, B, L} after all effects are
 % applied.
 
-apply_single_effect({A, D, B}, {EffectName, EffectFunc}) ->
-    EffectFunc({A, D, B#{effect_name:=EffectName}}).
-
-apply_effects({A, D, B}, []) ->
-    {A, D, B};
-apply_effects({A, D, B}, [Effect | Rem]) ->
-    apply_effects(apply_single_effect({A, D, B}, Effect), Rem).
-
-apply_effects({A, D, #{effect_action_list:=EffectList}=B}) ->
-    apply_effects({A, D, B}, EffectList).
 
 % Effect returns an anonymous function that evaluated each time.
 % effect doesn't care about the conditions of applying effects,

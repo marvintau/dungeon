@@ -17,7 +17,7 @@ parse_single_player(SinglePlayerData) ->
     {[
       {_, ID}, {_, HP}, {_, PrimType}, {_, PrimMax}, {_, PrimMin}, {_, SecdType},
       {_, SecdMax}, {_, SecdMin}, {_, Armor}, {_, Hit}, {_, Critic}, {_, Dodge},
-      {_, Resist}, {_, Block}, {_, Agi}
+      {_, Resist}, {_, Block}, {_, Agi}, {_, Cast}
      ]} = SinglePlayerData,
 
     #{
@@ -38,7 +38,9 @@ parse_single_player(SinglePlayerData) ->
             block      => Block,
             agility    => Agi,
 
-            curr_hand   => {prim, weapon_attr(PrimType), {PrimMin, PrimMax}}
+            curr_hand   => {prim, weapon_attr(PrimType), {PrimMin, PrimMax}},
+
+            curr_cast => binary_to_atom(Cast, utf8)
            }.
 
 

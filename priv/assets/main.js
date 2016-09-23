@@ -17,7 +17,9 @@ $.setData = function () {
       $('#resist1').val("35"),
       $('#block1').val("35"),
       $('#agi1').val("50"),
-                  
+        
+      $('#cast1').val('shield_slam'),
+
       $('#id2').val("Bumberbatch"),
       $('#hp2').val("2700"),
       $('#prim_type2').val("physical"),
@@ -34,7 +36,10 @@ $.setData = function () {
       $('#dodge2').val("30"),
       $('#resist2').val("35"),
       $('#block2').val("0"),
-      $('#agi2').val("75")
+      $('#agi2').val("75"),
+
+      $('#cast2').val('pierce_strike')
+
 }
 
 
@@ -57,8 +62,9 @@ $.getData = function () {
             dodge : parseInt($('#dodge1').val()),
             resist : parseInt($('#resist1').val()),
             block : parseInt($('#block1').val()),
-            agility : parseInt($('#agi1').val())
+            agility : parseInt($('#agi1').val()),
                   
+            cast : $('#cast1').val()
         },
     
         player2 : {
@@ -78,8 +84,9 @@ $.getData = function () {
             dodge : parseInt($('#dodge2').val()),
             resist : parseInt($('#resist2').val()),
             block : parseInt($('#block2').val()),
-            agility : parseInt($('#agi2').val())
+            agility : parseInt($('#agi2').val()),
                   
+            cast : $('#cast2').val()
         }
      }    
 }

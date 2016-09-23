@@ -1,11 +1,15 @@
--module(char_skills).
+-module(cast).
 
 -author('Yue Marvin Tao').
 
--export([shield_slam/2, pierce_strike/2]).
+-export([shield_slam/1, pierce_strike/1, ice_storm/1]).
+-export([cast/3]).
 
 % A status entry in a list should conform to the format of:
 %
+
+shield_slam(B) ->
+    shield_slam(B, fun(_, _, _) -> true end).
 
 shield_slam(#{status:=Status}=Battle, CondFunc) ->
     Battle#{status:=[
@@ -23,6 +27,9 @@ shield_slam(#{status:=Status}=Battle, CondFunc) ->
         }
         
     | Status]}.
+
+pierce_strike(B) ->
+    pierce_strike(B, fun(_, _, _) -> true end).
 
 pierce_strike(#{status:=Status}=Battle, CondFunc) ->
     Battle#{status:=[
@@ -42,6 +49,9 @@ pierce_strike(#{status:=Status}=Battle, CondFunc) ->
 
     | Status]}.
 
+ice_storm(B) ->
+    ice_storm(B, fun(_, _, _) -> true end).
+
 ice_storm(#{status:=Status}=Battle, CondFunc) ->
     Battle#{status:=[
     
@@ -50,3 +60,15 @@ ice_storm(#{status:=Status}=Battle, CondFunc) ->
         }
 
     | Status]}.
+
+mount_cast(#{id:=I1, curr_cast:=Cast}=P1, P2, #{offenser:=Off}=B) when I1 == Off ->
+    apply(cast, Cast, [B]);
+mount_cast(P1, #{curr_cast:=Cast}=P2, B) ->
+    apply(cast, Cast, [B]).
+
+cast(#{id:=I1}=P1, P2, #{offenser:=Off}=B) when I1 == Off ->
+    perform_cast(P1, P2, B);
+cast(P1, P2, B) ->
+    {NewP2, NewP1, NewB} = perform_cast(P1, P2, B),
+    {NewP1, NewP2, NewB}.
+
