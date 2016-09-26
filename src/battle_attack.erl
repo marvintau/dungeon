@@ -1,4 +1,4 @@
--module(attack).
+-module(battle_attack).
 -author('Yue Marvin Tao').
 
 -export([plain_attack/3]).
@@ -18,7 +18,7 @@ rotate(Roulette) ->
 
 
 % ----------------------- PREPARE ROULETTE ----------------------------
-% roulette is generated from the attributes of both offenser and defenser.
+% roulette is generated from the attributes of both offender and defenser.
 % It may varied due to the different weapon in hand. The rule of getting
 %
 
@@ -118,7 +118,7 @@ perform_attack(#{damage_coeff:=DC}=A, D, #{remaining_attacks:=RemainingAttacks}=
     {NewAttack, NewDefense, NewBattle}.
 
 
-plain_attack(#{id:=I1}=P1, P2, #{offenser:=Off}=B) when I1 == Off ->
+plain_attack(#{id:=I1}=P1, P2, #{offender:=Off}=B) when I1 == Off ->
     perform_attack(P1, P2, B);
 plain_attack(P1, P2, B) ->
     {NewP2, NewP1, NewB} = perform_attack(P1, P2, B),

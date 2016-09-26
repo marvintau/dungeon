@@ -1,4 +1,4 @@
--module(parse).
+-module(battle_parse).
 
 -author('Yue Marvin Tao').
 

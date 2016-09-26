@@ -55,7 +55,7 @@ handle_post(Req, State) ->
         Data ->
             error_logger:info_report(Data),
 
-            {done, ResBody} = battle:init_new_battle(Data),
+            {done, ResBody} = battle_main:init_new_battle(Data),
             Res = cowboy_req:set_resp_body(ResBody, NextReq),
             {true, Res, State}
     end.

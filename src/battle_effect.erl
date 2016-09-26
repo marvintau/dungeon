@@ -1,4 +1,4 @@
--module(effect).
+-module(battle_effect).
 
 -author('Yue Marvin Tao').
 
