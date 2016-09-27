@@ -21,27 +21,40 @@ parse_single_player(SinglePlayerData) ->
      ]} = SinglePlayerData,
 
     #{
+
             id         => binary_to_atom(ID, utf8),
             hp         => HP,
-            prim_type  => weapon_attr(PrimType),
-            prim_range => {PrimMin, PrimMax},
-            secd_type  => weapon_attr(SecdType),
-            secd_range => {SecdMin, SecdMax},
+            rem_attacks => 2,
 
-            damage_coeff => 1,
+            prim_hand  => {prim, weapon_attr(PrimType), {PrimMin, PrimMax}},
+            secd_hand  => {secd, weapon_attr(SecdType), {SecdMin, SecdMax}},
+            curr_hand  => {prim, weapon_attr(PrimType), {PrimMin, PrimMax}},
 
-            armor      => Armor,
-            hit        => Hit,
-            critic     => Critic,
-            dodge      => Dodge,
-            resist     => Resist,
-            block      => Block,
-            agility    => Agi,
+            cast_list => [],
+            curr_cast => binary_to_atom(Cast, utf8),
 
-            curr_hand   => {prim, weapon_attr(PrimType), {PrimMin, PrimMax}},
+            curr_attr => #{
+                armor      => Armor,
+                hit        => Hit,
+                critic     => Critic,
+                dodge      => Dodge,
+                resist     => Resist,
+                block      => Block,
+                agility    => Agi
+            },
+           
+            orig_attr => #{
+                armor      => Armor,
+                hit        => Hit,
+                critic     => Critic,
+                dodge      => Dodge,
+                resist     => Resist,
+                block      => Block,
+                agility    => Agi
+            },
 
-            curr_cast => binary_to_atom(Cast, utf8)
-           }.
+            damage_coeff => 1
+        }.
 
 
 

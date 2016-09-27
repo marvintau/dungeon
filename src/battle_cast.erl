@@ -3,7 +3,7 @@
 -author('Yue Marvin Tao').
 
 -export([shield_slam/1, pierce_strike/1, ice_storm/1, assault/1]).
--export([cast/3]).
+-export([cast/2]).
 
 % A effects entry in a list should conform to the format of:
 
@@ -72,9 +72,6 @@ ice_storm(#{effects:=Effects, offender:=Off}=Battle, CondFunc) ->
 
 % Insert the cast of current offender into the list. It's only aware
 % of who is the current offender.
-cast(#{id:=I1, curr_cast:=Cast}, _, #{offender:=Off}=B) when I1 == Off ->
-    apply(?MODULE, Cast, [B]);
-cast(_, #{curr_cast:=Cast}, B) ->
-    apply(?MODULE, Cast, [B]).
+cast(Mover, Cast) -> apply(?MODULE, Cast, [Mover]).
 
 

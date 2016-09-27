@@ -23,74 +23,32 @@ update_log(#{curr_hand:={Which, {_, AtkType}, _}}=Attack, Defense, Battle)  ->
     ]}.
 
 
+% ------------- HELPER FUNCTION FOR CHOOSING NEW OFFENDER --------------
+
+toss(#{id:=I1, rem_attacks:=Rem1, curr_attr:=#{agility:=A1}}, #{id:=I2, rem_attacks:=Rem2, curr_attr:=#{agility:=A2}}) ->
+    case rand:uniform() * (A1 + A2) > A1 of
+        true -> {I2, prim, Rem2};
+        _    -> {I1, prim, Rem1}
+    end.
+
+% ----------- HELPER FUNCTION FOR SWAPPING OFFENDER/DEFENDER -----------
+
+swap(Mover, #{id:=I1, rem_attacks:=Rem1}, #{id:=I2, rem_attacks:=Rem2}) ->
+    case Mover == I1 of
+        true -> {I2, prim, Rem2};
+        _    -> {I1, prim, Rem1}
+    end.
+
 
 % ======================= MAIN BATTLE LOOP ============================
 
-% ------------------------- ENTRANCE --------------------------------
-% the outer loop doesn't distinguish the offensive and defensive. The
-% entrance of loop will generate the battle context. 
-
-loop(P1, P2) ->
-
-    B = #{
-        seq_no => 0,
-        
-        % plain attack control
-        outcome => null,
-        def_damage => 0,  % damage taken by defenser
-        atk_damage => 0,  % damage taken by offender
-        
-        % for round control
-        offender => maps:get(id, P1),
-        defenser => maps:get(id, P2),
-        
-        % force to re-calculate who is offensive, and
-        % make sure the first round is casting.
-        round_control => {attacking, to_recalc},
-        remaining_attacks => 0,
-        
-        effects => [] 
-    },
-
-    loop(P1, P2, B, []).
-
-
-
-% -------------------------- ROUND CONTROL ----------------------------
-% if the swapping mode is marked as to_recalc, which means it's on the
-% defender's move, and the current remaining attack is zero, not only
-% we need to recalculate the next offensive person, but also need to 
-% change the move type to casting.
-
-% If one player consumes all his remainng attacks, the first loop will
-% be executed, with remaining attacks reset. Notably, the new remaining
-% attacks might be any number above 0, and should be reasonably reset
-% within the stuff. It doesn't take care of which player  
-
-swap(_, _, #{offender:= Off, defenser:=Def, round_control:= {MoveType, to_swap}}=B) ->
-
-    B#{offender:=Def, defenser:=Off, round_control:= {MoveType, to_recalc}};
-
-swap(#{id:=I1, agility:=A1}, #{id:=I2, agility:=A2}, #{round_control:={_MoveType, to_recalc}}=B) ->
-    
-    {NewOff, NewDef} = case A1 > A2 of
-        true -> {I1, I2};
-        _    -> {I2, I1}
-    end,
-
-    B#{offender:=NewOff, defenser:=NewDef, round_control:={_MoveType, to_swap}}.
-
-
-loop(P1, P2, #{remaining_attacks:=0}=B, L) ->
-    SwappedB = swap(P1, P2, B),
-    loop(P1, P2, SwappedB#{remaining_attacks:=2}, L);
 
 % ------------------------- TERMINATION ------------------------------
 % The condition of terminating is one competitor's HP falls below zero.
 % When exiting the main loop, the log will be reversed to it's natural
 % order.
 
-loop(#{hp:=HP1, id:=I1}, #{hp:=HP2, id:=I2}, _, Log) when HP1 < 0 orelse HP2 < 0 ->
+loop(_, #{hp:=HP1, id:=I1}, #{hp:=HP2, id:=I2}, Log) when HP1 < 0 orelse HP2 < 0 ->
 
     Winner = if
         HP1 < 0 -> I2;
@@ -102,43 +60,112 @@ loop(#{hp:=HP1, id:=I1}, #{hp:=HP2, id:=I2}, _, Log) when HP1 < 0 orelse HP2 < 0
     ]} )};
 
 
+% ------------------ RECALCULATING NEW OFFENDER ----------------------
+% after defender consumes last chance of attack, increase the sequence
+% number, re-calculate the new offender with their agility, and assign
+% the new number of remaining attacks.
+
+% Moreover, since the player's attributes should be recalculated in the
+% new round, the attributes should be restored in this stage. Meanwhile,
+% both players will be restored to primary hand.
+
+loop(State={Seq, attacking, defensive, {_Mover, _Hand, 0}, Effects},
+     #{prim_hand:=PrimHand1, orig_attr:=Orig1}=P1,
+     #{prim_hand:=PrimHand2, orig_attr:=Orig2}=P2,
+     L) ->
+
+    erlang:display({tossing, State}),
+    
+    loop({Seq+1, settling, offensive, toss(P1, P2), Effects},
+         P1#{curr_hand:=PrimHand1, curr_attr:=Orig1},
+         P2#{curr_hand:=PrimHand2, curr_attr:=Orig2},
+         L);
+
+
+
+% ---------------- SWAPPING OFFENDER AND DEFENDER --------------------
+
+% if not the case above, first we need to determine the guy currently
+% moving is offender or defender. If the offender is moving, then we
+% simply change to defender without changing anything else. If defender,
+% we need to switch to the next phase.
+
+loop(State={Seq, MoveType, DefOff, {Mover, _Hand, 0}, Effects}, P1, P2, L) ->
+
+    erlang:display({swapping, State}),
+
+    NewDefOff = case DefOff of
+        defensive -> offensive;
+        _         -> defensive
+    end,
+
+    NewMoveType = case DefOff of
+        offensive -> MoveType;
+        _         ->
+            case MoveType of
+                settling -> casting;
+                casting -> attacking
+            end
+    end,
+    
+    loop({Seq, NewMoveType, NewDefOff, swap(Mover, P1, P2), Effects}, P1, P2, L);
+    
+
 % ------------------------ LOOP FOR ATTACK  ---------------------------
 % In order to guarantee that there is no status dependency, all status
 % modification regarding attributes will be restored except HP, number
 % of remaining attacks current gamer in move.
 
-loop(P1, P2, #{round_control:={attacking, _}}=B, L) ->
+loop(State={Seq, attacking, DefOff, {Mover, Hand, Rem}, Effects}, #{id:=I1, hp:=H1}=P1, #{id:=I2, hp:=H2}=P2, L) ->
 
-    erlang:display({maps:get(offender, B), make_plain_attack}),
+    erlang:display({attacking, State}),
 
-    % for player's context, only the change of HP and the weapon on
-    % current hand is saved for the next turn. All the attributes will
-    % be restored before going to the next turn.
-    {MovedP1, MovedP2, MovedB} = battle_attack:plain_attack(P1, P2, B),
-    #{hp:=NewHP1, curr_hand:=NewCurrHand1} = MovedP1,
-    #{hp:=NewHP2, curr_hand:=NewCurrHand2} = MovedP2,
+    {Outcome, Damage} = case Mover of
+        I1 -> battle_attack:get_final_damage(P1, P2);
+        _  -> battle_attack:get_final_damage(P2, P1)
+    end,
 
-    LogAfterAttack = [update_log(P1, MovedP2, MovedB) | L],
+    erlang:display({Outcome, Damage}),
 
-    loop(P1#{hp:=NewHP1, curr_hand:=NewCurrHand1},
-                P2#{hp:=NewHP2, curr_hand:=NewCurrHand2},
-                MovedB, LogAfterAttack);
+    {{Damage1, Damage2}, {NewHand1, NewHand2}, NewHand} = case {Mover, Hand} of
+        {I1, prim} -> {{0, Damage}, {maps:get(secd_hand, P1), maps:get(curr_hand, P2)}, secd};
+        {I1, secd} -> {{0, Damage}, {maps:get(prim_hand, P1), maps:get(curr_hand, P2)}, prim};
+        {I2, prim} -> {{Damage, 0}, {maps:get(curr_hand, P1), maps:get(secd_hand, P2)}, secd};
+        {I2, secd} -> {{Damage, 0}, {maps:get(curr_hand, P1), maps:get(secd_hand, P2)}, prim}
+    end,
+
+    % The effect of casting with regard to Outcome and Damage will be
+    % added here.
+
+    loop({Seq, attacking, DefOff, {Mover, NewHand, Rem-1}, Effects},
+        P1#{hp:=H1 - Damage1, curr_hand:= NewHand1},
+        P2#{hp:=H2 - Damage2, curr_hand:= NewHand2}, L);
 
 
 % ------------------------- LOOP FOR CAST -----------------------------
 
-loop(P1, P2, #{round_control:={casting, _}}=B, L) ->
+loop(State={Seq, casting, DefOff, {Mover, Hand,  _}, Effects}, P1, P2, L) ->
 
-    erlang:display({maps:get(offender, B), cast}),
+    erlang:display({casting, State}),
 
-    CastedB = battle_cast:cast(P1, P2, B),
+    loop({Seq, casting, DefOff, {Mover, Hand, 0}, Effects}, P1, P2, L);
 
-    loop(P1, P2, CastedB#{remaining_attacks:=0}, L).
+
+% ---------------------- LOOP FOR SETTLEMENT -----------------------------
+
+loop(State={Seq, settling, DefOff, {Mover, Hand,  _}, Effects}, P1, P2, L) ->
+
+    erlang:display({settling, State}),
+
+    loop({Seq, settling, DefOff, {Mover, Hand, 0}, Effects}, P1, P2, L).
+
+
 
 
 init_new_battle(Data) ->
 
-    erlang:display(yay),
+    erlang:display({battle, starts}),
 
-    {P1, P2} = battle_parse:player_context_from_parsed_JSON(Data), 
-    loop(P1, P2).
+    {P1, P2} = battle_parse:player_context_from_parsed_JSON(Data),
+
+    loop({0, attacking, defensive, {maps:get(id, P1), prim, 0}, []}, P1, P2, []). 

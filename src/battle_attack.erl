@@ -1,7 +1,7 @@
 -module(battle_attack).
 -author('Yue Marvin Tao').
 
--export([plain_attack/3]).
+-export([get_final_damage/2]).
 
 % ------------------------ ROTATE ROULETTE ----------------------------
 % get the random choice result according to the probability of each 
@@ -23,8 +23,8 @@ rotate(Roulette) ->
 %
 
 prepare_roulette_from(
-    #{curr_hand:={_, Curr, _}, resist:=Res, hit:=Hit, critic:=Critic},
-    #{secd_type:=Secd, block:=Blo, dodge:=Dod}, _B
+    #{curr_hand:={_, Curr, _}, curr_attr:=#{resist:=Res, hit:=Hit, critic:=Critic}},
+    #{secd_hand:=Secd, curr_attr:=#{block:=Blo, dodge:=Dod}}
 ) ->
 
     {Dodge, Resist, Block} = case {Curr, Secd} of
@@ -74,7 +74,7 @@ physical_damage(Random, _, Armor, {Lower, Upper}) ->
 % Calculates the damage with given character type, the upper and lower
 % damage of weapon, and outcome of roulette turning.
 
-single_attack(#{curr_hand:=CurrHand}, #{armor:=Armor}, Outcome) ->
+single_attack(#{curr_hand:=CurrHand}, #{curr_attr:=#{armor:=Armor}}, Outcome) ->
 
     Random = rand:uniform(),
 
@@ -89,38 +89,10 @@ single_attack(#{curr_hand:=CurrHand}, #{armor:=Armor}, Outcome) ->
     end.
 
 
-swap_hand(#{curr_hand:=CH, prim_type:=PT, prim_range:=PR, secd_type:=ST, secd_range:=SR}=A) ->
-    A#{
-        curr_hand := case CH of
-            {prim, _, _} ->
-                {secd, ST, SR};
-            _ ->
-                {prim, PT, PR}
-            end
-    }.
- 
-perform_attack(#{damage_coeff:=DC}=A, D, #{remaining_attacks:=RemainingAttacks}=B) ->
+get_final_damage(#{damage_coeff:=DC}=A, D) ->
 
-    Outcome = rotate(prepare_roulette_from(A, D, B)),
+    Outcome = rotate(prepare_roulette_from(A, D)),
 
-    NewBattle = B#{
-        outcome => Outcome,
-        remaining_attacks => RemainingAttacks - 1,
-        def_damage => single_attack(A, D, Outcome) * DC 
-    },
+    Damage  = single_attack(A, D, Outcome) * DC, 
 
-    NewAttack = swap_hand(A), 
-       
-    NewDefense = D#{
-        hp := maps:get(hp, D) - maps:get(def_damage, NewBattle)
-    },
-
-    {NewAttack, NewDefense, NewBattle}.
-
-
-plain_attack(#{id:=I1}=P1, P2, #{offender:=Off}=B) when I1 == Off ->
-    perform_attack(P1, P2, B);
-plain_attack(P1, P2, B) ->
-    {NewP2, NewP1, NewB} = perform_attack(P1, P2, B),
-    {NewP1, NewP2, NewB}.
-
+    {Outcome, Damage}.
