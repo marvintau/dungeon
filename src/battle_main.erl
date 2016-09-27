@@ -4,8 +4,6 @@
 
 -export([init_new_battle/1 ]).
 
--import(effect, [effect/2]).
-
 % ------------------- HELPER FUNCTION FOR LOGGING ---------------------
 
 update_log(#{curr_hand:={Which, {_, AtkType}, _}}=Attack, Defense, Battle)  ->
@@ -82,7 +80,6 @@ loop(State={Seq, attacking, defensive, {_Mover, _Hand, 0}, Effects},
          L);
 
 
-
 % ---------------- SWAPPING OFFENDER AND DEFENDER --------------------
 
 % if not the case above, first we need to determine the guy currently
@@ -116,30 +113,35 @@ loop(State={Seq, MoveType, DefOff, {Mover, _Hand, 0}, Effects}, P1, P2, L) ->
 % modification regarding attributes will be restored except HP, number
 % of remaining attacks current gamer in move.
 
-loop(State={Seq, attacking, DefOff, {Mover, Hand, Rem}, Effects}, #{id:=I1, hp:=H1}=P1, #{id:=I2, hp:=H2}=P2, L) ->
+loop(State={Seq, attacking, DefOff, {Mover, Hand, Rem}, Effects},
+     #{id:=I1, hp:=H1, prim_hand:=Prim1, secd_hand:=Secd1, curr_hand:=Curr1}=P1,
+     #{id:=I2, hp:=H2, prim_hand:=Prim2, secd_hand:=Secd2, curr_hand:=Curr2}=P2, L) ->
 
     erlang:display({attacking, State}),
 
-    {Outcome, Damage} = case Mover of
-        I1 -> battle_attack:get_final_damage(P1, P2);
-        _  -> battle_attack:get_final_damage(P2, P1)
+    {{Outcome1, DamageDealt1}, {Outcome2, DamageDealt2}} = case Mover of
+        I1 -> {battle_attack:get_final_damage(P1, P2), {null, 0}};
+        _  -> {{null, 0}, battle_attack:get_final_damage(P2, P1)}
     end,
 
-    erlang:display({Outcome, Damage}),
+    erlang:display({attacked, {Outcome1, DamageDealt1}, {Outcome2, DamageDealt2}}),
 
-    {{Damage1, Damage2}, {NewHand1, NewHand2}, NewHand} = case {Mover, Hand} of
-        {I1, prim} -> {{0, Damage}, {maps:get(secd_hand, P1), maps:get(curr_hand, P2)}, secd};
-        {I1, secd} -> {{0, Damage}, {maps:get(prim_hand, P1), maps:get(curr_hand, P2)}, prim};
-        {I2, prim} -> {{Damage, 0}, {maps:get(curr_hand, P1), maps:get(secd_hand, P2)}, secd};
-        {I2, secd} -> {{Damage, 0}, {maps:get(curr_hand, P1), maps:get(secd_hand, P2)}, prim}
+    AttackedP1 = P1#{damage_dealt:= DamageDealt1, hp:=H1 - DamageDealt2, outcome:=Outcome1},
+    AttackedP2 = P2#{damage_dealt:= DamageDealt2, hp:=H2 - DamageDealt1, outcome:=Outcome2},
+
+
+    {NewHand1, NewHand2, NewCurrHand} = case {Mover, Hand} of
+        {I1, prim} -> {Secd1, Curr2, secd};
+        {I1, secd} -> {Prim1, Curr2, prim};
+        {I2, prim} -> {Curr1, Prim2, secd};
+        {I2, secd} -> {Curr1, Secd2, prim}
     end,
 
     % The effect of casting with regard to Outcome and Damage will be
     % added here.
 
-    loop({Seq, attacking, DefOff, {Mover, NewHand, Rem-1}, Effects},
-        P1#{hp:=H1 - Damage1, curr_hand:= NewHand1},
-        P2#{hp:=H2 - Damage2, curr_hand:= NewHand2}, L);
+    loop({Seq, attacking, DefOff, {Mover, NewCurrHand, Rem-1}, Effects},
+        AttackedP1#{curr_hand:= NewHand1}, AttackedP2#{curr_hand:= NewHand2}, L);
 
 
 % ------------------------- LOOP FOR CAST -----------------------------
@@ -158,7 +160,6 @@ loop(State={Seq, settling, DefOff, {Mover, Hand,  _}, Effects}, P1, P2, L) ->
     erlang:display({settling, State}),
 
     loop({Seq, settling, DefOff, {Mover, Hand, 0}, Effects}, P1, P2, L).
-
 
 
 

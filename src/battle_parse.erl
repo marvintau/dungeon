@@ -40,7 +40,10 @@ parse_single_player(SinglePlayerData) ->
                 dodge      => Dodge,
                 resist     => Resist,
                 block      => Block,
-                agility    => Agi
+                agility    => Agi,
+                outcome    => null,
+                damage_dealt => 0
+
             },
            
             orig_attr => #{
@@ -50,8 +53,10 @@ parse_single_player(SinglePlayerData) ->
                 dodge      => Dodge,
                 resist     => Resist,
                 block      => Block,
-                agility    => Agi
-            },
+                agility    => Agi,
+                outcome    => null,
+                damage_dealt => 0
+             },
 
             damage_coeff => 1
         }.

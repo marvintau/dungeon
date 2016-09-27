@@ -2,76 +2,36 @@
 
 -author('Yue Marvin Tao').
 
--export([shield_slam/1, pierce_strike/1, ice_storm/1, assault/1]).
--export([cast/2]).
+-export([affect/4]).
 
 % A effects entry in a list should conform to the format of:
 
-assault(#{seq_no:=StartSeq}=B) ->
-    assault(B, fun(_, _, #{seq_no:=Seq}) -> Seq =< StartSeq + 1 end).
+% Modify attribute and return new player profile
+get_attr(AttrName, P) ->
+    #{curr_attr:=#{AttrName:=Value}} = P, Value.
 
-assault(#{effects:=Effects, offender:=Off}=Battle, CondFunc) ->
-    Battle#{effects:=[
-        {assualt_damage, pre, Off, CondFunc, fun(A, #{hp:=Hp}=D, B) ->
-            {A, D#{hp:=Hp - 100}, B} end
-        }
-    | Effects]}.
+set_attr(AttrName, Value, P) ->
+    P#{curr_attr:=#{AttrName=>Value}}.
 
-shield_slam(B) ->
-    shield_slam(B, fun(_, _, _) -> true end).
+affect({{value, Value}, {ToWhom, AttrName}}, #{id:=I1}=P1, _P2) when ToWhom==I1->
+    set_attr(AttrName, Value, P1);
+affect({{value, Value}, {_ToWhom, AttrName}}, _P1, P2) ->
+    set_attr(AttrName, Value, P2);
 
-shield_slam(#{effects:=Effects, offender:=Off}=Battle, CondFunc) ->
-    Battle#{effects:=[
-        {shield_slam_buff, pre, Off, CondFunc, fun({#{block:=Block} = A, D, B}) ->
-            {A#{block := Block + 15 }, D, B} end
-        },
-        
-        {shield_slam_damage, post, Off, CondFunc, fun({#{hp:=HP} = A, D, #{outcome:=Outcome} = B}) ->
-            ShieldDamage = case Outcome of
-                block -> 125;
-                _     -> 0
-            end,
+affect({{percentage, Percentage}, {FromWhom, OfAttrName}, {ToWhom, ToAttrName}}, #{id:=I1}=P1, #{id:=I2}=P2) ->
+    case {FromWhom, ToWhom} of
+        {I1, I1} -> {set_attr(ToAttrName, get_attr(OfAttrName, P1) * Percentage, P1), P2};
+        {I1, I2} -> {P1, set_attr(ToAttrName, get_attr(OfAttrName, P1) * Percentage, P2)};
+        {I2, I1} -> {set_attr(ToAttrName, get_attr(OfAttrName, P2) * Percentage, P1), P2};
+        {I2, I2} -> {P1, set_attr(ToAttrName, get_attr(OfAttrName, P1) * Percentage, P2)}
+    end.
 
-            {A#{hp:=HP - ShieldDamage}, D, B} end    
-        }
-        
-    | Effects]}.
 
-pierce_strike(B) ->
-    pierce_strike(B, fun(_, _, _) -> true end).
+affect({Name, Numerics, {Seq, Phase}}, {CurrSeq, CurrPhase, _, _, Effects}, P1, P2) when (Seq < CurrSeq) and (Phase == CurrPhase) ->
 
-pierce_strike(#{effects:=Effects, offender:=Off}=Battle, CondFunc) ->
-    Battle#{effects:=[
+    % Figure out how to log later on.
+    erlang:display({Name, Numerics, {Seq, Phase}}),
 
-        {pierce_strike_buff, pre, Off, CondFunc, fun({#{critic:=Critic}=A, D, B}) ->
-            {A#{critic := Critic + 10}, D, B} end
-        },
-
-        {pierce_strike_damage, post, Off, CondFunc, fun({A, #{hp:=HP} = D, #{outcome:=Outcome, damage:=Damage} = B}) ->
-            PierceDamage = case Outcome of
-                critic -> Damage * 1.5;
-                _ -> Damage
-            end,
-
-            {A, D#{hp:= HP - PierceDamage}, B} end
-        }
-
-    | Effects]}.
-
-ice_storm(B) ->
-    ice_storm(B, fun(_, _, _) -> true end).
-
-ice_storm(#{effects:=Effects, offender:=Off}=Battle, CondFunc) ->
-    Battle#{effects:=[
-    
-        {ice_storm, pre, Off, CondFunc, fun({A, D, B}) ->
-            {A#{attack:=0, critic := 100}, D#{block := 0, dodge := 0, resist :=0, curr_hand := {frozen, {no_damage, bare}, {0, 0}}}, B} end
-        }
-
-    | Effects]}.
-
-% Insert the cast of current offender into the list. It's only aware
-% of who is the current offender.
-cast(Mover, Cast) -> apply(?MODULE, Cast, [Mover]).
+    affect(Numerics, P1, P2).
 
 
