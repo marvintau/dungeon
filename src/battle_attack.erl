@@ -24,7 +24,7 @@ rotate(Roulette) ->
 
 prepare_roulette_from(
     #{curr_hand:={_, Curr, _}, curr_attr:=#{resist:=Res, hit:=Hit, critic:=Critic}},
-    #{secd_hand:=Secd, curr_attr:=#{block:=Blo, dodge:=Dod}}
+    #{secd_hand:={_, Secd, _}, curr_attr:=#{block:=Blo, dodge:=Dod}}
 ) ->
 
     {Dodge, Resist, Block} = case {Curr, Secd} of

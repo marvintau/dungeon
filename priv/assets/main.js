@@ -64,7 +64,7 @@ $.getData = function () {
             block : parseInt($('#block1').val()),
             agility : parseInt($('#agi1').val()),
                   
-            cast : $('#cast1').val()
+            cast_list : [$('#cast1-1').val(), $('#cast1-2').val(), $('#cast1-3').val()]
         },
     
         player2 : {
@@ -86,7 +86,7 @@ $.getData = function () {
             block : parseInt($('#block2').val()),
             agility : parseInt($('#agi2').val()),
                   
-            cast : $('#cast2').val()
+            cast_list : [$('#cast2-1').val(), $('#cast2-2').val(), $('#cast2-3').val()]
         }
      }    
 }

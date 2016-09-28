@@ -17,7 +17,7 @@ parse_single_player(SinglePlayerData) ->
     {[
       {_, ID}, {_, HP}, {_, PrimType}, {_, PrimMax}, {_, PrimMin}, {_, SecdType},
       {_, SecdMax}, {_, SecdMin}, {_, Armor}, {_, Hit}, {_, Critic}, {_, Dodge},
-      {_, Resist}, {_, Block}, {_, Agi}, {_, Cast}
+      {_, Resist}, {_, Block}, {_, Agi}, {_, CastList}
      ]} = SinglePlayerData,
 
     #{
@@ -30,8 +30,7 @@ parse_single_player(SinglePlayerData) ->
             secd_hand  => {secd, weapon_attr(SecdType), {SecdMin, SecdMax}},
             curr_hand  => {prim, weapon_attr(PrimType), {PrimMin, PrimMax}},
 
-            cast_list => [],
-            curr_cast => binary_to_atom(Cast, utf8),
+            cast_list => lists:map(fun(X) -> binary_to_atom(X, utf8) end, CastList),
 
             curr_attr => #{
                 armor      => Armor,

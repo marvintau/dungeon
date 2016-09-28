@@ -2,7 +2,7 @@
 
 -author('Yue Marvin Tao').
 
--export([affect/4]).
+-export([affect/4, apply_effects/3]).
 
 % A effects entry in a list should conform to the format of:
 
@@ -27,11 +27,16 @@ affect({{percentage, Percentage}, {FromWhom, OfAttrName}, {ToWhom, ToAttrName}},
     end.
 
 
-affect({Name, Numerics, {Seq, Phase}}, {CurrSeq, CurrPhase, _, _, Effects}, P1, P2) when (Seq < CurrSeq) and (Phase == CurrPhase) ->
-
-    % Figure out how to log later on.
-    erlang:display({Name, Numerics, {Seq, Phase}}),
+affect({Name, Numerics, {Seq, Phase}}, {CurrSeq, CurrPhase, _, _, _}, P1, P2) when (Seq < CurrSeq) and (Phase == CurrPhase) ->
 
     affect(Numerics, P1, P2).
 
 
+apply_effects({_, _, _, _, []}, P1, P2) -> {P1, P2};
+apply_effects({CurrSeq, CurrPhase, DefOff, MoveType, [EffectDescription | Remaining]}, P1, P2) ->
+    
+    erlang:display(EffectDescription),
+    
+    {AffectedP1, AffectedP2} = affect(EffectDescription, P1, P2),
+    
+    apply_effects({CurrSeq, CurrPhase, DefOff, MoveType, Remaining}, AffectedP1, AffectedP2).

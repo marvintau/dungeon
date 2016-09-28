@@ -23,7 +23,8 @@ update_log(#{curr_hand:={Which, {_, AtkType}, _}}=Attack, Defense, Battle)  ->
 
 % ------------- HELPER FUNCTION FOR CHOOSING NEW OFFENDER --------------
 
-toss(#{id:=I1, rem_attacks:=Rem1, curr_attr:=#{agility:=A1}}, #{id:=I2, rem_attacks:=Rem2, curr_attr:=#{agility:=A2}}) ->
+toss(#{id:=I1, rem_attacks:=Rem1, curr_attr:=#{agility:=A1}},
+     #{id:=I2, rem_attacks:=Rem2, curr_attr:=#{agility:=A2}}) ->
     case rand:uniform() * (A1 + A2) > A1 of
         true -> {I2, prim, Rem2};
         _    -> {I1, prim, Rem1}
@@ -72,7 +73,8 @@ loop(State={Seq, attacking, defensive, {_Mover, _Hand, 0}, Effects},
      #{prim_hand:=PrimHand2, orig_attr:=Orig2}=P2,
      L) ->
 
-    erlang:display({tossing, State}),
+     erlang:display({tossing, State}),
+     erlang:display(" "),
     
     loop({Seq+1, settling, offensive, toss(P1, P2), Effects},
          P1#{curr_hand:=PrimHand1, curr_attr:=Orig1},
@@ -114,8 +116,8 @@ loop(State={Seq, MoveType, DefOff, {Mover, _Hand, 0}, Effects}, P1, P2, L) ->
 % of remaining attacks current gamer in move.
 
 loop(State={Seq, attacking, DefOff, {Mover, Hand, Rem}, Effects},
-     #{id:=I1, hp:=H1, prim_hand:=Prim1, secd_hand:=Secd1, curr_hand:=Curr1}=P1,
-     #{id:=I2, hp:=H2, prim_hand:=Prim2, secd_hand:=Secd2, curr_hand:=Curr2}=P2, L) ->
+     #{id:=I1, hp:=H1, prim_hand:=Prim1, secd_hand:=Secd1, curr_hand:=Curr1, curr_attr:=Attr1}=P1,
+     #{id:=I2, hp:=H2, prim_hand:=Prim2, secd_hand:=Secd2, curr_hand:=Curr2, curr_attr:=Attr2}=P2, L) ->
 
     erlang:display({attacking, State}),
 
@@ -124,17 +126,17 @@ loop(State={Seq, attacking, DefOff, {Mover, Hand, Rem}, Effects},
         _  -> {{null, 0}, battle_attack:get_final_damage(P2, P1)}
     end,
 
-    erlang:display({attacked, {Outcome1, DamageDealt1}, {Outcome2, DamageDealt2}}),
+    erlang:display({attacked, {Curr1, Curr2}, {Outcome1, DamageDealt1}, {Outcome2, DamageDealt2}}),
 
-    AttackedP1 = P1#{damage_dealt:= DamageDealt1, hp:=H1 - DamageDealt2, outcome:=Outcome1},
-    AttackedP2 = P2#{damage_dealt:= DamageDealt2, hp:=H2 - DamageDealt1, outcome:=Outcome2},
+    AttackedP1 = P1#{curr_attr:=Attr1#{damage_dealt:= DamageDealt1, outcome:=Outcome1}, hp:=H1 - DamageDealt2},
+    AttackedP2 = P2#{curr_attr:=Attr2#{damage_dealt:= DamageDealt2, outcome:=Outcome2}, hp:=H2 - DamageDealt1},
 
 
     {NewHand1, NewHand2, NewCurrHand} = case {Mover, Hand} of
         {I1, prim} -> {Secd1, Curr2, secd};
         {I1, secd} -> {Prim1, Curr2, prim};
-        {I2, prim} -> {Curr1, Prim2, secd};
-        {I2, secd} -> {Curr1, Secd2, prim}
+        {I2, prim} -> {Curr1, Secd2, secd};
+        {I2, secd} -> {Curr1, Prim2, prim}
     end,
 
     % The effect of casting with regard to Outcome and Damage will be
