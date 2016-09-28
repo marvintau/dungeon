@@ -1,4 +1,12 @@
 
+var rand_choice(array){
+    return array[Math.floor(Math.random() * array.length)];
+}
+
+var perm(array){
+    
+}
+
 $.setData = function () {
       $('#id1').val("Benedict"),
       $('#hp1').val(3400),
