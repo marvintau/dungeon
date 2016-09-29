@@ -35,7 +35,7 @@ parse_single_player(SinglePlayerData) ->
             curr_attr => #{
                 armor      => Armor,
                 hit        => Hit,
-                critic     => Critic,
+                critical   => Critic,
                 dodge      => Dodge,
                 resist     => Resist,
                 block      => Block,
@@ -48,7 +48,7 @@ parse_single_player(SinglePlayerData) ->
             orig_attr => #{
                 armor      => Armor,
                 hit        => Hit,
-                critic     => Critic,
+                critical   => Critic,
                 dodge      => Dodge,
                 resist     => Resist,
                 block      => Block,

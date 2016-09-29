@@ -6,18 +6,17 @@
 
 % ------------------- HELPER FUNCTION FOR LOGGING ---------------------
 
-update_log(#{curr_hand:={Which, {_, AtkType}, _}}=Attack, Defense, Battle)  ->
+update_log({Seq, Stage, Role, {Mover, _, Rem}, _},
+           #{curr_attr:=#{outcome:=Outcome, damage_dealt:=Damage}=_, 
+             curr_hand:={Which, {_, AtkType}, _}}=O, D)  ->
     
     {[
-        { seq, maps:get(seq_no, Battle) }, { attacker, maps:get(id,Attack) },
-        { defenser, maps:get(id, Defense)},
-        %{ effect_name, maps:get(effect_name, Battle)},
-        { which_hand, Which},
-        { attack_type, AtkType},
-        { action, maps:get(outcome, Battle) },
-        { def_damage, maps:get(def_damage, Battle) },
-        { attacker_hp, maps:get(hp, Attack) },
-        { defenser_hp, maps:get(hp, Defense) }
+        { seq, Seq }, { offender, Mover }, {role, Role}, { defender, maps:get(id, D)},
+
+        { hand, Which}, { attack_type, AtkType}, {rem_atks, Rem},
+        { action, Outcome }, { damage, Damage },
+        { offender_hp, maps:get(hp, O) },
+        { defender_hp, maps:get(hp, D) }
     ]}.
 
 
@@ -121,16 +120,27 @@ loop(State={Seq, attacking, DefOff, {Mover, Hand, Rem}, Effects},
 
     erlang:display({attacking, State}),
 
-    {{Outcome1, DamageDealt1}, {Outcome2, DamageDealt2}} = case Mover of
-        I1 -> {battle_attack:get_final_damage(P1, P2), {null, 0}};
-        _  -> {{null, 0}, battle_attack:get_final_damage(P2, P1)}
+    {Outcome, Damage} = case Mover of
+        I1 -> battle_attack:get_final_damage(P1, P2);
+        _  -> battle_attack:get_final_damage(P2, P1)
     end,
 
-    erlang:display({attacked, {Curr1, Curr2}, {Outcome1, DamageDealt1}, {Outcome2, DamageDealt2}}),
+    erlang:display({attacked, Mover, {Curr1, Curr2}, {Outcome, Damage}}),
 
-    AttackedP1 = P1#{curr_attr:=Attr1#{damage_dealt:= DamageDealt1, outcome:=Outcome1}, hp:=H1 - DamageDealt2},
-    AttackedP2 = P2#{curr_attr:=Attr2#{damage_dealt:= DamageDealt2, outcome:=Outcome2}, hp:=H2 - DamageDealt1},
+    {MovedP1, MovedP2} = case Mover of
+        I1 -> { P1#{curr_attr:=Attr1#{damage_dealt:=Damage, outcome:=Outcome}},
+                P2#{hp:=H2 - Damage}
+        };
 
+        _  -> { P1#{hp:=H1 - Damage},
+                P2#{curr_attr:=Attr2#{damage_dealt:=Damage, outcome:=Outcome}}
+        }
+    end,
+
+    NewLogEntry = case Mover of
+        I1 -> update_log(State, MovedP1, MovedP2);
+        I2 -> update_log(State, MovedP2, MovedP1)
+    end,
 
     {NewHand1, NewHand2, NewCurrHand} = case {Mover, Hand} of
         {I1, prim} -> {Secd1, Curr2, secd};
@@ -143,7 +153,7 @@ loop(State={Seq, attacking, DefOff, {Mover, Hand, Rem}, Effects},
     % added here.
 
     loop({Seq, attacking, DefOff, {Mover, NewCurrHand, Rem-1}, Effects},
-        AttackedP1#{curr_hand:= NewHand1}, AttackedP2#{curr_hand:= NewHand2}, L);
+        MovedP1#{curr_hand:= NewHand1}, MovedP2#{curr_hand:= NewHand2}, [NewLogEntry| L]);
 
 
 % ------------------------- LOOP FOR CAST -----------------------------

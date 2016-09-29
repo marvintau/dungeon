@@ -9,12 +9,13 @@
 
 rotate(Roulette) ->
 
+    % reversed
     Cumulative = lists:foldl(fun(X, Rem) -> [X + hd(Rem) | Rem] end, [0], Roulette),
 
     Rand = rand:uniform() * hd(Cumulative),
     
     ResultIndex = length(element(1, lists:splitwith(fun(X) -> X > Rand end, Cumulative))),
-    lists:nth(ResultIndex, [block, resist, dodge, critic, attack]).
+    lists:nth(ResultIndex, [block, resist, dodge, critical, attack]).
 
 
 % ----------------------- PREPARE ROULETTE ----------------------------
@@ -23,7 +24,7 @@ rotate(Roulette) ->
 %
 
 prepare_roulette_from(
-    #{curr_hand:={_, Curr, _}, curr_attr:=#{resist:=Res, hit:=Hit, critic:=Critic}},
+    #{curr_hand:={_, Curr, _}, curr_attr:=#{resist:=Res, hit:=Hit, critical:=Critic}},
     #{secd_hand:={_, Secd, _}, curr_attr:=#{block:=Blo, dodge:=Dod}}
 ) ->
 
@@ -49,8 +50,8 @@ prepare_roulette_from(
 
 magic_damage(Random, resist, {Lower, _}) -> round(Random * Lower / 10);
 
-magic_damage(Random, critic, {Lower, Upper}) ->
-    round((Lower + Random * (Upper - Lower)) * 2);
+magic_damage(Random, critical, {Lower, Upper}) ->
+    round(2*(Lower + Random * (Upper - Lower)));
 
 magic_damage(Random, _, {Lower, Upper}) ->
     round(Lower + Random * (Upper - Lower)).
@@ -62,8 +63,12 @@ magic_damage(Random, _, {Lower, Upper}) ->
 
 physical_damage(_, dodge, _, _) -> 0;
 physical_damage(_, block, _, _) -> 0;
-physical_damage(Random, critic, Armor, {Lower, Upper}) ->
-    round((Lower + Random * (Upper - Lower)) * 2 * (1 - Armor * 0.0001));
+physical_damage(Random, critical, Armor, {Lower, Upper}) ->
+
+    erlang:display({critical, round((Lower + Random * (Upper - Lower)) * (1 - Armor * 0.0001))}),
+    erlang:display({critical, round(2*(Lower + Random * (Upper - Lower)) * (1 - Armor * 0.0001))}),
+
+    round(2*(Lower + Random * (Upper - Lower)) * (1 - Armor * 0.0001));
 
 physical_damage(Random, _, Armor, {Lower, Upper}) ->
     round(Lower + Random * (Upper - Lower) * (1 - Armor * 0.0001)).
