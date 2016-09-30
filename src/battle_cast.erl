@@ -109,9 +109,9 @@ cast(S, #{id:=I1, cast_list:=Cast1}=P1, #{id:=I2, cast_list:=Cast2}=P2) ->
 
     {_, _, _, {Mover, Hand, _}, EffectList} = S,
 
-    {CastName, NewCast1, NewCast2} = case Mover of
-        I1 -> {hd(Cast1), tl(Cast1), Cast2};
-        _  -> {hd(Cast2), Cast1, tl(Cast2)}
+    {CastName, CurrCast1, CurrCast2,  NewCast1, NewCast2} = case Mover of
+        I1 -> {hd(Cast1), hd(Cast1), null, tl(Cast1), Cast2};
+        _  -> {hd(Cast2), null, hd(Cast2), Cast1, tl(Cast2)}
     end,
 
     NewEffectList = case CastName of
@@ -120,6 +120,6 @@ cast(S, #{id:=I1, cast_list:=Cast1}=P1, #{id:=I2, cast_list:=Cast2}=P2) ->
     end,
 
     {yet_more_casts, setelement(4, setelement(5, S, NewEffectList), {Mover, Hand, 0}),
-     P1#{cast_list:=NewCast1}, P2#{cast_list:=NewCast2}}.
+     P1#{curr_cast:=CurrCast1, cast_list:=NewCast1}, P2#{curr_cast:=CurrCast2, cast_list:=NewCast2}}.
 
 
