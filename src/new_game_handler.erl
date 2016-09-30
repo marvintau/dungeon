@@ -10,6 +10,7 @@
 -export([handle_post/2]).
 
 init(Req, Opts) ->
+
     {cowboy_rest, Req, Opts}.
 
 allowed_methods(Req, Opts) ->

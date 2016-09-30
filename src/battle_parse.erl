@@ -24,12 +24,13 @@ parse_single_player(SinglePlayerData) ->
 
             id         => binary_to_atom(ID, utf8),
             hp         => HP,
-            rem_attacks => 2,
+            rem_moves  => 2,
 
             prim_hand  => {prim, weapon_attr(PrimType), {PrimMin, PrimMax}},
             secd_hand  => {secd, weapon_attr(SecdType), {SecdMin, SecdMax}},
             curr_hand  => {prim, weapon_attr(PrimType), {PrimMin, PrimMax}},
 
+            curr_cast => null,
             cast_list => lists:map(fun(X) -> binary_to_atom(X, utf8) end, CastList),
 
             curr_attr => #{

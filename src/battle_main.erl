@@ -6,24 +6,39 @@
 
 % ------------------- HELPER FUNCTION FOR LOGGING ---------------------
 
-update_log({Seq, Stage, Role, {Mover, _, Rem}, _},
+log_attack({Seq, Stage, Role, {Mover, _, Rem}, _},
            #{curr_attr:=#{outcome:=Outcome, damage_dealt:=Damage}=_, 
              curr_hand:={Which, {_, AtkType}, _}}=O, D)  ->
     
     {[
-        { seq, Seq }, { offender, Mover }, {role, Role}, { defender, maps:get(id, D)},
+        { seq, Seq }, {stage, Stage}, { offender, Mover }, {role, Role}, { defender, maps:get(id, D)},
 
-        { hand, Which}, { attack_type, AtkType}, {rem_atks, Rem},
-        { action, Outcome }, { damage, Damage },
+        { hand, Which}, { action, AtkType}, {rem_atks, Rem},
+        { outcome, Outcome }, { damage, Damage },
+        { offender_hp, maps:get(hp, O) },
+        { defender_hp, maps:get(hp, D) }
+    ]}.
+
+% casting doesn't make any direct damage or other effects. Logging
+% casting just for the convenience of playing animation.
+log_cast({Seq, Stage, Role, {Mover, _, _}, _},
+         #{curr_cast:=CastName}=O, D) ->
+    {[
+        { seq, Seq }, {stage, Stage}, { offender, Mover }, {role, Role}, { defender, maps:get(id, D)},
+
+        { hand, null}, { action, CastName}, {rem_atks, null},
+        { outcome, null }, { damage, null },
         { offender_hp, maps:get(hp, O) },
         { defender_hp, maps:get(hp, D) }
     ]}.
 
 
+
+
 % ------------- HELPER FUNCTION FOR CHOOSING NEW OFFENDER --------------
 
-toss(#{id:=I1, rem_attacks:=Rem1, curr_attr:=#{agility:=A1}},
-     #{id:=I2, rem_attacks:=Rem2, curr_attr:=#{agility:=A2}}) ->
+toss(#{id:=I1, rem_moves:=Rem1, curr_attr:=#{agility:=A1}},
+     #{id:=I2, rem_moves:=Rem2, curr_attr:=#{agility:=A2}}) ->
     case rand:uniform() * (A1 + A2) > A1 of
         true -> {I2, prim, Rem2};
         _    -> {I1, prim, Rem1}
@@ -31,7 +46,7 @@ toss(#{id:=I1, rem_attacks:=Rem1, curr_attr:=#{agility:=A1}},
 
 % ----------- HELPER FUNCTION FOR SWAPPING OFFENDER/DEFENDER -----------
 
-swap(Mover, #{id:=I1, rem_attacks:=Rem1}, #{id:=I2, rem_attacks:=Rem2}) ->
+swap(Mover, #{id:=I1, rem_moves:=Rem1}, #{id:=I2, rem_moves:=Rem2}) ->
     case Mover == I1 of
         true -> {I2, prim, Rem2};
         _    -> {I1, prim, Rem1}
@@ -138,8 +153,8 @@ loop(State={Seq, attacking, DefOff, {Mover, Hand, Rem}, Effects},
     end,
 
     NewLogEntry = case Mover of
-        I1 -> update_log(State, MovedP1, MovedP2);
-        I2 -> update_log(State, MovedP2, MovedP1)
+        I1 -> log_attack(State, MovedP1, MovedP2);
+        I2 -> log_attack(State, MovedP2, MovedP1)
     end,
 
     {NewHand1, NewHand2, NewCurrHand} = case {Mover, Hand} of
@@ -158,11 +173,22 @@ loop(State={Seq, attacking, DefOff, {Mover, Hand, Rem}, Effects},
 
 % ------------------------- LOOP FOR CAST -----------------------------
 
-loop(State={Seq, casting, DefOff, {Mover, Hand,  _}, Effects}, P1, P2, L) ->
+loop(State={_, casting, _, {Mover, _,  _}, _}, #{id:=I1}=P1, #{id:=I2}=P2, L) ->
 
+    erlang:display(''),
     erlang:display({casting, State}),
 
-    loop({Seq, casting, DefOff, {Mover, Hand, 0}, Effects}, P1, P2, L);
+    {NeededToLog, NewState, CastedP1, CastedP2} = battle_cast:cast(State, P1, P2),
+
+    NewLog = case {NeededToLog, Mover} of
+        {no_more_casts, _} -> L;
+        {yet_more_casts, I1} -> [log_cast(State, CastedP1, CastedP2) | L];
+        {yet_more_casts, I2} -> [log_cast(State, CastedP2, CastedP1) | L]
+    end,
+
+    erlang:display({casted, Mover, NewState}),
+
+    loop(NewState, CastedP1, CastedP2, NewLog);
 
 
 % ---------------------- LOOP FOR SETTLEMENT -----------------------------
@@ -176,6 +202,8 @@ loop(State={Seq, settling, DefOff, {Mover, Hand,  _}, Effects}, P1, P2, L) ->
 
 
 init_new_battle(Data) ->
+
+    battle_init:create_cast_table(),
 
     erlang:display({battle, starts}),
 

@@ -2,6 +2,7 @@
 
 -author('Yue Marvin Tao').
 
+-export([cast/3]).
 
 % A effects entry in a list should conform to the format of:
 
@@ -72,39 +73,53 @@ apply_effects(S, P1, P2) ->
     
     apply_effects(setelement(5, S, Remaining), AffectedP1, AffectedP2).
 
+% To set the player finally get modified
+assign_role(of_self, {Mover, I1, I2}) -> Mover;
+assign_role(of_opponent, {Mover, I1, I2}) when Mover == I1 -> I2;
+assign_role(of_opponent, {_, I1, _}) -> I1;
 
-assign_role(to_self, {Mover, I1, I2}) -> Mover;
-assign_role(to_opponent, {Mover, I1, I2}) when Mover == I1 -> I2;
-assign_role(to_opponent, {_, I1, _}) -> I1;
+% to create a complete data structure
+assign_role({role, What, Whom, Attr}, Movers) -> {role, What, assign_role(Whom, Movers), Attr};
 
-assign_role({What, Whom, Attr}, Movers) -> {What, assign_role(Whom, Movers), Attr};
-assign_role({direct, V, To}, Movers) -> {direct, V, assign_role(To, Movers)};
-assign_role({indirect, V, From, To}, Movers) -> {indirect, V, assign_role(From, Movers), assign_role(To, Movers)}.
+% to create even more complete data structure
+assign_role({direct, Op, To}, Movers) -> {direct, Op, assign_role(To, Movers)};
+assign_role({indirect, {Op, From}, To}, Movers) -> {indirect, {Op, assign_role(From, Movers)}, assign_role(To, Movers)}.
 
-
+% to assign the final sequence number
 assign_seq({Last, Phase, Outcome}, CurrSeq) -> {CurrSeq + Last, Phase, Outcome}.
 
+% wrap all the operations
 update_cast({Name, Cond, Spec}, {CurrSeq, _, _, {Mover, _, _}, _}, I1, I2) ->
     {Name, assign_seq(Cond, CurrSeq), assign_role(Spec, {Mover, I1, I2})}.
 
+
+get_cast(CastName) -> hd(ets:lookup(casts, CastName)).
+
+% the function that really applies a cast from player's cast table. It
+% fetches one cast, update the cast into its final form, and put it into
+% the effect list.
+
+cast(S, #{cast_list:=[]}=P1, #{cast_list:=[]}=P2) ->
+
+    {Mover, Hand, _} = element(4, S),
+
+    {no_more_casts, setelement(4, S, {Mover, Hand, 0}), P1, P2};
+
 cast(S, #{id:=I1, cast_list:=Cast1}=P1, #{id:=I2, cast_list:=Cast2}=P2) ->
 
-    {_, _, _, {Mover, _, _}, EffectList} = S,
+    {_, _, _, {Mover, Hand, _}, EffectList} = S,
 
-    {Cast, NewCast1, NewCast2} = case Mover of
+    {CastName, NewCast1, NewCast2} = case Mover of
         I1 -> {hd(Cast1), tl(Cast1), Cast2};
         _  -> {hd(Cast2), Cast1, tl(Cast2)}
     end,
 
-    NewEffectList = [update_cast(Cast, S, I1, I2) | EffectList],
+    NewEffectList = case CastName of
+        null -> EffectList;
+        _    -> [update_cast(get_cast(CastName), S, I1, I2) | EffectList]
+    end,
 
-    {setelement(5, NewEffectList, S), P1#{cast_list:=NewCast1}, P2#{cast_list:=NewCast2}}.
-
-create_cast_table() ->
-
-    AvailableCasts = [
-        {assault, {1, casting, nah}, {value, 1000, {to_hp, to_opponent, null}}}
-    ].
-
+    {yet_more_casts, setelement(4, setelement(5, S, NewEffectList), {Mover, Hand, 0}),
+     P1#{cast_list:=NewCast1}, P2#{cast_list:=NewCast2}}.
 
 
