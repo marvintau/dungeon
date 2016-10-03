@@ -62,17 +62,6 @@ make_effect(Effect, State, {#{id:=I1}=P1, P2}) ->
         _    -> {P1, P2}
     end.
 
-apply_effects({_, _, _, _, []}, P1, P2) -> {P1, P2};
-apply_effects(S, P1, P2) ->
-
-    [EffectDescription | Remaining] = element(5, S),
-    
-    erlang:display(EffectDescription),
-    
-    {AffectedP1, AffectedP2} = make_effect(EffectDescription, S, {P1, P2}),
-    
-    apply_effects(setelement(5, S, Remaining), AffectedP1, AffectedP2).
-
 % To set the player finally get modified
 assign_role(of_self, {Mover, I1, I2}) -> Mover;
 assign_role(of_opponent, {Mover, I1, I2}) when Mover == I1 -> I2;

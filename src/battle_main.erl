@@ -33,6 +33,15 @@ log_cast({Seq, Stage, Role, {Mover, _, _}, _},
     ]}.
 
 
+log_effect(Seq, Stage, Mover, Role, CastName, O, D) ->
+    {[
+        { seq, Seq }, {stage, Stage}, { offender, Mover }, {role, Role}, { defender, maps:get(id, D)},
+
+        { hand, null}, { action, CastName}, {rem_atks, null},
+        { outcome, null }, { damage, null },
+        { offender_hp, maps:get(hp, O) },
+        { defender_hp, maps:get(hp, D) }
+    ]}.
 
 
 % ------------- HELPER FUNCTION FOR CHOOSING NEW OFFENDER --------------
@@ -52,6 +61,19 @@ swap(Mover, #{id:=I1, rem_moves:=Rem1}, #{id:=I2, rem_moves:=Rem2}) ->
         _    -> {I1, prim, Rem1}
     end.
 
+
+apply_effects({_, _, _, _, []}, P1, P2, Log) -> {P1, P2, Log};
+apply_effects(S, P1, P2, Log) ->
+
+    [EffectDescription | Remaining] = element(5, S),
+    
+    erlang:display(EffectDescription),
+    
+    {AffectedP1, AffectedP2} = battle_cast:make_effect(EffectDescription, S, {P1, P2}),
+
+    
+    
+    apply_effects(setelement(5, S, Remaining), AffectedP1, AffectedP2, Log).
 
 % ======================= MAIN BATTLE LOOP ============================
 
@@ -180,7 +202,7 @@ loop(State={_, casting, _, {Mover, _,  _}, _}, #{id:=I1}=P1, #{id:=I2}=P2, L) ->
 
     {NeededToLog, NewState, CastedP1, CastedP2} = battle_cast:cast(State, P1, P2),
 
-    NewLog = case {NeededToLog, Mover} of
+    LogCasted = case {NeededToLog, Mover} of
         {no_more_casts, _} -> L;
         {yet_more_casts, I1} -> [log_cast(State, CastedP1, CastedP2) | L];
         {yet_more_casts, I2} -> [log_cast(State, CastedP2, CastedP1) | L]
@@ -188,7 +210,8 @@ loop(State={_, casting, _, {Mover, _,  _}, _}, #{id:=I1}=P1, #{id:=I2}=P2, L) ->
 
     erlang:display({casted, Mover, NewState}),
 
-    loop(NewState, CastedP1, CastedP2, NewLog);
+
+    loop(NewState, CastedP1, CastedP2, LogCasted);
 
 
 % ---------------------- LOOP FOR SETTLEMENT -----------------------------
