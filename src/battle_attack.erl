@@ -64,10 +64,6 @@ magic_damage(Random, _, {Lower, Upper}) ->
 physical_damage(_, dodge, _, _) -> 0;
 physical_damage(_, block, _, _) -> 0;
 physical_damage(Random, critical, Armor, {Lower, Upper}) ->
-
-    erlang:display({critical, round((Lower + Random * (Upper - Lower)) * (1 - Armor * 0.0001))}),
-    erlang:display({critical, round(2*(Lower + Random * (Upper - Lower)) * (1 - Armor * 0.0001))}),
-
     round(2*(Lower + Random * (Upper - Lower)) * (1 - Armor * 0.0001));
 
 physical_damage(Random, _, Armor, {Lower, Upper}) ->

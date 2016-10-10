@@ -51,7 +51,6 @@ handle_post(Req, State) ->
 
     case jiffy:decode(ReqBody) of
         {[{<<"foo">>, <<"bar">>}]} ->
-            erlang:display("received"),
             {true, Req, State};
         Data ->
             error_logger:info_report(Data),
