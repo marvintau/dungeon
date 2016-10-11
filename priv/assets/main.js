@@ -20,7 +20,7 @@ var perm = function(array) {
 }
 
 $.setData = function () {
-    $('#id1').val("Benedict");
+    $('#id1').val("Maxim the Warrior");
     $('#hp1').val(3400);
     $('#prim_type1').val("physical");
     $('#prim_max_1').val("235");
@@ -43,7 +43,7 @@ $.setData = function () {
     $('#cast1-2').val(NewCasts[1]);
     $('#cast1-3').val(NewCasts[2]);
 
-    $('#id2').val("Bumberbatch");
+    $('#id2').val("Scarlett the Rogue");
     $('#hp2').val("2700");
     $('#prim_type2').val("physical");
     $('#prim_max_2').val("205");

@@ -48,7 +48,7 @@ apply_effect({indirect, {Op, {role, FromWhat, FromWhom, AttrName}}, To},
 
 
 apply_effect(Effect, State, {#{id:=I1}=P1, P2}) ->
-
+    
     {_Name, {Seq, Mover, Phase, Outcome}, Specs} = Effect,
 
     {CurrSeq, CurrPhase, _, {CurrMover, _, _}, _} = State,
@@ -61,11 +61,11 @@ apply_effect(Effect, State, {#{id:=I1}=P1, P2}) ->
         end
     end,
    
-    case (Seq > CurrSeq) and (Phase == CurrPhase) and (OutcomeMatches == true) of
+    case (Phase == CurrPhase) and (OutcomeMatches == true) of
         true -> case {Phase, CurrMover, Mover} of
-            {casting, Same, Same}    -> apply_effect(Specs, {P1, P2});
-            {attacking, Same, Same}  -> apply_effect(Specs, {P1, P2});
-            {settling, offensive, _} -> apply_effect(Specs, {P1, P2});
+            {casting, Same, Same}   when (Seq > CurrSeq)   -> apply_effect(Specs, {P1, P2});
+            {attacking, Same, Same} when (Seq > CurrSeq)   -> apply_effect(Specs, {P1, P2});
+            {settling, I1, _}       when (Seq+1 > CurrSeq) -> apply_effect(Specs, {P1, P2});
             _ -> {not_affected, P1, P2}
         end;
         _    -> {not_affected, P1, P2}

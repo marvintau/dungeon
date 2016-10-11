@@ -33,7 +33,12 @@ log_cast({Seq, Stage, Role, {Mover, _, _}, _},
     ]}.
 
 
-log_effect({Seq, Stage, Role, {Mover, _, _}, _}, {EffectName, _, _}, O, D) ->
+log_effect({Seq, Stage, Role, {Mover, _, _}, _}, {EffectName, _, _}, #{id:=I1} = P1, P2) ->
+
+    {O, D} = case Mover of
+        I1 -> {P1, P2};
+        _  -> {P2, P1}
+    end,
 
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, {role, Role}, { defender, maps:get(id, D)},
@@ -217,7 +222,9 @@ loop(State={_, casting, _, {Mover, _,  _}, _}, #{id:=I1}=P1, #{id:=I2}=P2, L) ->
 
 loop(State={Seq, settling, DefOff, {Mover, Hand,  _}, Effects}, P1, P2, L) ->
 
-    loop({Seq, settling, DefOff, {Mover, Hand, 0}, Effects}, P1, P2, L).
+    {AffectedP1, AffectedP2, LogAffected} = apply_effects(State, P1, P2, L),
+    
+    loop({Seq, settling, DefOff, {Mover, Hand, 0}, Effects}, AffectedP1, AffectedP2, LogAffected).
 
 
 
