@@ -7,6 +7,17 @@
 create_cast_table() ->
 
     AvailableCasts = [
+        
+        {talisman_of_death, [
+            {talisman_of_death_effect, {1, casting, nah}, {direct, {times, 0.85}, {role, to_hp, of_opponent, null}}, 1}
+        ]},
+
+        {talisman_of_spellshrouding, [
+            {talisman_of_spellshrouding_effect, {1, casting, nah}, {direct, {add, 100}, {role, to_attr, of_self, resist}}, 1}
+        ]},
+
+        
+
         {assault, [
                    {assault_effect, {1, casting, nah}, {direct, {add, -1}, {role, to_hp, of_opponent, null}}, 1},
                    {assault_effect, {2, settling, nah}, {direct, {add, -1}, {role, to_hp, of_opponent, null}}, 1}

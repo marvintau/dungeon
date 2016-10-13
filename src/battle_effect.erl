@@ -11,20 +11,39 @@ get_attr(AttrName, P) ->
     #{curr_attr:=#{AttrName:=Value}} = P, Value.
 
 set_attr({set, Value}, AttrName, P) -> P#{curr_attr:=#{AttrName=>Value}};
+
+set_attr({add, {Low, High}}, AttrName, P) ->
+    Original = get_attr(AttrName, P),
+    Incremental = round(Low + rand:uniform() * (High - Low)),
+    P#{curr_attr:=#{AttrName => Original + Incremental}};
 set_attr({add, Incremental}, AttrName, P) ->
     Original = get_attr(AttrName, P),
     P#{curr_attr:=#{AttrName => Original + Incremental}};
+
 set_attr({times, Ratio}, AttrName, P) ->
     Original = get_attr(AttrName, P),
-    P#{curr_attr:=#{AttrName => Original * Ratio}};
+    P#{curr_attr:=#{AttrName => round(Original * Ratio)}};
+
+set_attr({linear, {Low, High}, Ratio}, AttrName, P) ->
+    Original = get_attr(AttrName, P),
+    Incremental = round(Low + rand:uniform() * (High - Low)),
+    P#{curr_attr:=#{AttrName => Original + round(Incremental * Ratio)}};
 set_attr({linear, Incremental, Ratio}, AttrName, P) ->
     Original = get_attr(AttrName, P),
-    P#{curr_attr:=#{AttrName => Original + Incremental * Ratio}}.
+    P#{curr_attr:=#{AttrName => Original + round(Incremental * Ratio)}}.
 
 set_hp({set, Value}, P) -> P#{hp:=Value};
+
+set_hp({add, {Low, High}}, #{hp:=Hp}=P) -> P#{hp:=Hp + round(Low + rand:uniform() * (High - Low))};
 set_hp({add, Incremental}, #{hp:=Hp}=P) -> P#{hp:=Hp + Incremental};
-set_hp({times, Ratio}, #{hp:=Hp}=P) -> P#{hp:=Hp * Ratio};
-set_hp({linear, Incremental, Ratio}, #{hp:=Hp}=P) -> P#{hp:=Hp + Incremental * Ratio}.
+
+set_hp({times, {Low, High}}, #{hp:=Hp}=P) -> P#{hp:=round(Hp * (Low + rand:uniform() * (High - Low)))};
+set_hp({times, Ratio}, #{hp:=Hp}=P) -> P#{hp:= round(Hp * Ratio)};
+
+set_hp({linear, {Low, High}, Ratio}, #{hp:=Hp}=P) -> 
+    Incremental = round(Low + rand:uniform() + (High - Low)),
+    P#{hp:=Hp + round(Incremental * Ratio)};
+set_hp({linear, Incremental, Ratio}, #{hp:=Hp}=P) -> P#{hp:=Hp + round(Incremental * Ratio)}.
 
 % apply_effect: the wrapper function to apply the effects over the player context, and
 % mark whether the context is modified. If modified, the function returns {affected, P1, P2},
@@ -51,7 +70,7 @@ apply_effect({indirect, {Op, {role, FromWhat, FromWhom, AttrName}}, To},
 
 apply_effect(Effect, State, {#{id:=I1}=P1, P2}) ->
     
-    {_Name, {Seq, Mover, Phase, Outcome}, Specs, _Prob} = Effect,
+    {_Name, {Seq, Mover, Phase, Outcome}, Specs, ProbOutcome} = Effect,
 
     {CurrSeq, CurrPhase, _, {CurrMover, _, _}, _} = State,
 
@@ -63,13 +82,14 @@ apply_effect(Effect, State, {#{id:=I1}=P1, P2}) ->
         end
     end,
    
-    case (Phase == CurrPhase) and (OutcomeMatches == true) of
+    case (Phase == CurrPhase) and (OutcomeMatches == true) and (ProbOutcome == cast_successful) of
         true -> case {Phase, CurrMover, Mover} of
             {casting, Same, Same}   when (Seq > CurrSeq)   -> apply_effect(Specs, {P1, P2});
             {attacking, Same, Same} when (Seq > CurrSeq)   -> apply_effect(Specs, {P1, P2});
             {settling, I1, _}       when (Seq+1 > CurrSeq) -> apply_effect(Specs, {P1, P2});
             _ -> {not_affected, P1, P2}
         end;
+        
         _    -> {not_affected, P1, P2}
     end.
 

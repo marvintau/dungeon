@@ -30,7 +30,6 @@ parse_single_player(SinglePlayerData) ->
             secd_hand  => {secd, weapon_attr(SecdType), {SecdMin, SecdMax}},
             curr_hand  => {prim, weapon_attr(PrimType), {PrimMin, PrimMax}},
 
-            curr_cast => null,
             cast_list => lists:map(fun(X) -> binary_to_atom(X, utf8) end, CastList),
 
             curr_attr => #{
