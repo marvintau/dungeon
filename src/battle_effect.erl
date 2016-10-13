@@ -3,7 +3,7 @@
 
 -author('Yue Marvin Tao').
 
--export([apply_effect/3]).
+-export([apply_effects/4]).
 % A effects entry in a list should conform to the format of:
 
 % Modify attribute and return new player profile
@@ -16,13 +16,15 @@ set_attr({add, Incremental}, AttrName, P) ->
     P#{curr_attr:=#{AttrName => Original + Incremental}};
 set_attr({times, Ratio}, AttrName, P) ->
     Original = get_attr(AttrName, P),
-    P#{curr_attr:=#{AttrName => Original * Ratio}}.
-
+    P#{curr_attr:=#{AttrName => Original * Ratio}};
+set_attr({linear, Incremental, Ratio}, AttrName, P) ->
+    Original = get_attr(AttrName, P),
+    P#{curr_attr:=#{AttrName => Original + Incremental * Ratio}}.
 
 set_hp({set, Value}, P) -> P#{hp:=Value};
 set_hp({add, Incremental}, #{hp:=Hp}=P) -> P#{hp:=Hp + Incremental};
-set_hp({times, Ratio}, #{hp:=Hp}=P) -> P#{hp:=Hp * Ratio}.
-
+set_hp({times, Ratio}, #{hp:=Hp}=P) -> P#{hp:=Hp * Ratio};
+set_hp({linear, Incremental, Ratio}, #{hp:=Hp}=P) -> P#{hp:=Hp + Incremental * Ratio}.
 
 % apply_effect: the wrapper function to apply the effects over the player context, and
 % mark whether the context is modified. If modified, the function returns {affected, P1, P2},
@@ -49,7 +51,7 @@ apply_effect({indirect, {Op, {role, FromWhat, FromWhom, AttrName}}, To},
 
 apply_effect(Effect, State, {#{id:=I1}=P1, P2}) ->
     
-    {_Name, {Seq, Mover, Phase, Outcome}, Specs} = Effect,
+    {_Name, {Seq, Mover, Phase, Outcome}, Specs, _Prob} = Effect,
 
     {CurrSeq, CurrPhase, _, {CurrMover, _, _}, _} = State,
 
@@ -70,5 +72,42 @@ apply_effect(Effect, State, {#{id:=I1}=P1, P2}) ->
         end;
         _    -> {not_affected, P1, P2}
     end.
+
+
+log({Seq, Stage, Role, {Mover, _, _}, _}, {EffectName, _, _, _}, #{id:=I1} = P1, P2) ->
+
+    {O, D} = case Mover of
+        I1 -> {P1, P2};
+        _  -> {P2, P1}
+    end,
+
+    {[
+        { seq, Seq }, {stage, Stage}, { offender, Mover }, {role, Role}, { defender, maps:get(id, D)},
+
+        { hand, null}, { action, EffectName}, {rem_atks, null},
+        { outcome, null }, { damage, null },
+        { offender_hp, maps:get(hp, O) },
+        { defender_hp, maps:get(hp, D) }
+    ]}.
+
+
+% When applying effects, the effect list doesn't change. For every turn,
+% we just check whether the effect description meets the condition, and
+% apply. Hence here we only change the player context.
+
+apply_effects({_, _, _, _, []}, P1, P2, Log) -> {P1, P2, Log};
+apply_effects(S, P1, P2, Log) ->
+
+    [EffectDescription | Remaining] = element(5, S),
+   
+    {NewP1, NewP2, NewLog} =
+    case apply_effect(EffectDescription, S, {P1, P2}) of
+        {affected, AffectedP1, AffectedP2} ->
+            {AffectedP1, AffectedP2, [log(S, EffectDescription, AffectedP1, AffectedP2) | Log]};
+        {not_affected, NotAffectedP1, NotAffectedP2} ->
+            {NotAffectedP1, NotAffectedP2, Log}
+    end,
+    
+    apply_effects(setelement(5, S, Remaining), NewP1, NewP2, NewLog).
 
 

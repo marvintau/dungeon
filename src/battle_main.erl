@@ -6,48 +6,8 @@
 
 % ------------------- HELPER FUNCTION FOR LOGGING ---------------------
 
-log_attack({Seq, Stage, Role, {Mover, _, Rem}, _},
-           #{curr_attr:=#{outcome:=Outcome, damage_dealt:=Damage}=_, 
-             curr_hand:={Which, {_, AtkType}, _}}=O, D)  ->
-    
-    {[
-        { seq, Seq }, {stage, Stage}, { offender, Mover }, {role, Role}, { defender, maps:get(id, D)},
-
-        { hand, Which}, { action, AtkType}, {rem_atks, Rem},
-        { outcome, Outcome }, { damage, Damage },
-        { offender_hp, maps:get(hp, O) },
-        { defender_hp, maps:get(hp, D) }
-    ]}.
-
 % casting doesn't make any direct damage or other effects. Logging
 % casting just for the convenience of playing animation.
-log_cast({Seq, Stage, Role, {Mover, _, _}, _},
-         #{curr_cast:=CastName}=O, D) ->
-    {[
-        { seq, Seq }, {stage, Stage}, { offender, Mover }, {role, Role}, { defender, maps:get(id, D)},
-
-        { hand, null}, { action, CastName}, {rem_atks, null},
-        { outcome, null }, { damage, null },
-        { offender_hp, maps:get(hp, O) },
-        { defender_hp, maps:get(hp, D) }
-    ]}.
-
-
-log_effect({Seq, Stage, Role, {Mover, _, _}, _}, {EffectName, _, _}, #{id:=I1} = P1, P2) ->
-
-    {O, D} = case Mover of
-        I1 -> {P1, P2};
-        _  -> {P2, P1}
-    end,
-
-    {[
-        { seq, Seq }, {stage, Stage}, { offender, Mover }, {role, Role}, { defender, maps:get(id, D)},
-
-        { hand, null}, { action, EffectName}, {rem_atks, null},
-        { outcome, null }, { damage, null },
-        { offender_hp, maps:get(hp, O) },
-        { defender_hp, maps:get(hp, D) }
-    ]}.
 
 
 % ------------- HELPER FUNCTION FOR CHOOSING NEW OFFENDER --------------
@@ -67,25 +27,6 @@ swap(Mover, #{id:=I1, rem_moves:=Rem1}, #{id:=I2, rem_moves:=Rem2}) ->
         _    -> {I1, prim, Rem1}
     end.
 
-
-% When applying effects, the effect list doesn't change. For every turn,
-% we just check whether the effect description meets the condition, and
-% apply. Hence here we only change the player context.
-
-apply_effects({_, _, _, _, []}, P1, P2, Log) -> {P1, P2, Log};
-apply_effects(S, P1, P2, Log) ->
-
-    [EffectDescription | Remaining] = element(5, S),
-   
-    {NewP1, NewP2, NewLog} =
-    case battle_effect:apply_effect(EffectDescription, S, {P1, P2}) of
-        {affected, AffectedP1, AffectedP2} ->
-            {AffectedP1, AffectedP2, [log_effect(S, EffectDescription, AffectedP1, AffectedP2) | Log]};
-        {not_affected, NotAffectedP1, NotAffectedP2} ->
-            {NotAffectedP1, NotAffectedP2, Log}
-    end,
-    
-    apply_effects(setelement(5, S, Remaining), NewP1, NewP2, NewLog).
 
 % ======================= MAIN BATTLE LOOP ============================
 
@@ -116,7 +57,7 @@ loop(_, #{hp:=HP1, id:=I1}, #{hp:=HP2, id:=I2}, Log) when HP1 < 0 orelse HP2 < 0
 % new round, the attributes should be restored in this stage. Meanwhile,
 % both players will be restored to primary hand.
 
-loop(State={Seq, attacking, defensive, {_Mover, _Hand, 0}, Effects},
+loop({Seq, attacking, defensive, {_Mover, _Hand, 0}, Effects},
      #{prim_hand:=PrimHand1, orig_attr:=Orig1}=P1,
      #{prim_hand:=PrimHand2, orig_attr:=Orig2}=P2,
      L) ->
@@ -134,7 +75,7 @@ loop(State={Seq, attacking, defensive, {_Mover, _Hand, 0}, Effects},
 % simply change to defender without changing anything else. If defender,
 % we need to switch to the next phase.
 
-loop(State={Seq, MoveType, DefOff, {Mover, _Hand, 0}, Effects}, P1, P2, L) ->
+loop({Seq, MoveType, DefOff, {Mover, _Hand, 0}, Effects}, P1, P2, L) ->
 
     NewDefOff = case DefOff of
         defensive -> offensive;
@@ -158,62 +99,22 @@ loop(State={Seq, MoveType, DefOff, {Mover, _Hand, 0}, Effects}, P1, P2, L) ->
 % modification regarding attributes will be restored except HP, number
 % of remaining attacks current gamer in move.
 
-loop(State={Seq, attacking, DefOff, {Mover, Hand, Rem}, Effects},
-     #{id:=I1, hp:=H1, prim_hand:=Prim1, secd_hand:=Secd1, curr_hand:=Curr1, curr_attr:=Attr1}=P1,
-     #{id:=I2, hp:=H2, prim_hand:=Prim2, secd_hand:=Secd2, curr_hand:=Curr2, curr_attr:=Attr2}=P2, L) ->
+loop(S={_, attacking, _, _, _}, P1, P2, L) ->
 
-    {Outcome, Damage} = case Mover of
-        I1 -> battle_attack:get_final_damage(P1, P2);
-        _  -> battle_attack:get_final_damage(P2, P1)
-    end,
+    {MovedState, MovedP1, MovedP2, MovedLog} = battle_attack:attack(S, P1, P2, L),
 
-    {MovedP1, MovedP2} = case Mover of
-        I1 -> { P1#{curr_attr:=Attr1#{damage_dealt:=Damage, outcome:=Outcome}},
-                P2#{hp:=H2 - Damage}
-        };
+    {AffectedP1, AffectedP2, AffectedLog} = battle_effect:apply_effects(MovedState, MovedP1, MovedP2, MovedLog),
 
-        _  -> { P1#{hp:=H1 - Damage},
-                P2#{curr_attr:=Attr2#{damage_dealt:=Damage, outcome:=Outcome}}
-        }
-    end,
-
-    NewLogEntry = case Mover of
-        I1 -> log_attack(State, MovedP1, MovedP2);
-        I2 -> log_attack(State, MovedP2, MovedP1)
-    end,
-
-    % NewHand only affects the State context
-
-    {NewHand1, NewHand2, NewCurrHand} = case {Mover, Hand} of
-        {I1, prim} -> {Secd1, Curr2, secd};
-        {I1, secd} -> {Prim1, Curr2, prim};
-        {I2, prim} -> {Curr1, Secd2, secd};
-        {I2, secd} -> {Curr1, Prim2, prim}
-    end,
-
-    % The effect of casting with regard to Outcome and Damage will be
-    % added here.
-
-    {AffectedP1, AffectedP2, AffectedLog} = apply_effects(State, MovedP1, MovedP2, [NewLogEntry| L] ),
-
-    loop({Seq, attacking, DefOff, {Mover, NewCurrHand, Rem-1}, Effects},
-        AffectedP1#{curr_hand:= NewHand1}, AffectedP2#{curr_hand:= NewHand2}, AffectedLog);
+    loop(MovedState, AffectedP1, AffectedP2, AffectedLog);
 
 
 % ------------------------- LOOP FOR CAST -----------------------------
 
-loop(State={_, casting, _, {Mover, _,  _}, _}, #{id:=I1}=P1, #{id:=I2}=P2, L) ->
+loop(State={_, casting, _, _, _}, P1, P2, L) ->
 
-    {NeededToLog, NewState, CastedP1, CastedP2} = battle_cast:cast(State, P1, P2),
+    {NewState, CastedP1, CastedP2, LogCasted} = battle_cast:cast(State, P1, P2, L),
 
-    LogCasted = case {NeededToLog, Mover} of
-        {no_more_casts, _} -> L;
-        {yet_more_casts, I1} -> [log_cast(State, CastedP1, CastedP2) | L];
-        {yet_more_casts, I2} -> [log_cast(State, CastedP2, CastedP1) | L]
-    end,
-
-
-    {AffectedP1, AffectedP2, LogAffected} = apply_effects(NewState, CastedP1, CastedP2, LogCasted),
+    {AffectedP1, AffectedP2, LogAffected} = battle_effect:apply_effects(NewState, CastedP1, CastedP2, LogCasted),
 
     loop(NewState, AffectedP1, AffectedP2, LogAffected);
 
@@ -222,7 +123,7 @@ loop(State={_, casting, _, {Mover, _,  _}, _}, #{id:=I1}=P1, #{id:=I2}=P2, L) ->
 
 loop(State={Seq, settling, DefOff, {Mover, Hand,  _}, Effects}, P1, P2, L) ->
 
-    {AffectedP1, AffectedP2, LogAffected} = apply_effects(State, P1, P2, L),
+    {AffectedP1, AffectedP2, LogAffected} = battle_effect:apply_effects(State, P1, P2, L),
     
     loop({Seq, settling, DefOff, {Mover, Hand, 0}, Effects}, AffectedP1, AffectedP2, LogAffected).
 
