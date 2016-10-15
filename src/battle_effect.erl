@@ -8,6 +8,7 @@
 
 % Modify attribute and return new player profile
 get_attr(AttrName, P) ->
+    erlang:display(AttrName),
     #{curr_attr:=#{AttrName:=Value}} = P, Value.
 
 set_attr({set, Value}, AttrName, P) -> P#{curr_attr:=#{AttrName=>Value}};
@@ -45,32 +46,74 @@ set_hp({linear, {Low, High}, Ratio}, #{hp:=Hp}=P) ->
     P#{hp:=Hp + round(Incremental * Ratio)};
 set_hp({linear, Incremental, Ratio}, #{hp:=Hp}=P) -> P#{hp:=Hp + round(Incremental * Ratio)}.
 
+
+get_player_by_id(Who, #{id:=I1}=P1, #{id:=I2}=P2) ->
+    case Who of
+        I1 -> P1;
+        I2 -> P2
+    end.
+
+get_react_outcome(React, ID, P1, P2) ->
+    Rand = rand:uniform() * 100,
+    
+    case React of
+        resistable -> case (Rand > get_attr(resist, get_player_by_id(ID, P1, P2))) of
+            true -> {ok, none};
+            _ -> {not_affected, resisted}
+        end;
+
+        absorbable -> {affected, absorbed};
+        none -> {ok, none}
+    end.
+
 % apply_effect: the wrapper function to apply the effects over the player context, and
 % mark whether the context is modified. If modified, the function returns {affected, P1, P2},
 % otherwise {not_affected, P1, P2}
 
-apply_effect({direct, Op, {role, ToWhat, ToWhom, AttrName}}, {#{id:=I1}=P1, #{id:=I2}=P2}) ->
-    case {ToWhat, ToWhom} of
-        {to_hp, I1} -> {affected, set_hp(Op, P1), P2};
-        {to_hp, I2} -> {affected, P1, set_hp(Op, P2)};
-        {to_attr, I1} -> {affected, set_attr(Op, AttrName, P1), P2};
-        {to_attr, I2} -> {affected, P1, set_attr(Op, AttrName, P2)}
+apply_effect({direct, Op, {role, to_hp, ToWhom, _}}, React, {#{id:=I1}=P1, #{id:=I2}=P2}) ->
+   
+    FinalReact = get_react_outcome(React, ToWhom, P1, P2),
+
+    case {FinalReact, ToWhom} of
+        {{not_affected, Reaction}, _} -> {{not_affected, Reaction}, P1, P2};
+
+        {{affected, absorbed}, I1} ->
+            #{hp:=Hp} = NewP1 = set_hp(Op, P1),
+            {affected, NewP1#{hp:=round(Hp * (1 - get_attr(armor, P1)/10000))}, P2};
+
+        {{affected, absorbed}, I2} ->
+            #{hp:=Hp} = NewP2 = set_hp(Op, P2),
+            {affected, P1, NewP2#{hp:=round(Hp * (1 - get_attr(armor, P2)/10000))}};
+
+        {_, I1} -> {affected, set_hp(Op, P1), P2};
+        {_, I2} -> {affected, P1, set_hp(Op, P2)}
+    end;
+
+apply_effect({direct, Op, {role, to_attr, ToWhom, AttrName}}, React, {#{id:=I1}=P1, #{id:=I2}=P2}) ->
+    
+    FinalReact = get_react_outcome(React, ToWhom, P1, P2),
+    erlang:display(FinalReact),
+
+    case {FinalReact, ToWhom} of
+        {{not_affected, Reaction}, _} -> {{not_affected, Reaction}, P1, P2};
+        {_, I1} -> {affected, set_attr(Op, AttrName, P1), P2};
+        {_, I2} -> {affected, P1, set_attr(Op, AttrName, P2)}
     end;
 
 
-apply_effect({indirect, {Op, {role, FromWhat, FromWhom, AttrName}}, To},
+apply_effect({indirect, {Op, {role, FromWhat, FromWhom, AttrName}}, To}, React,
             {#{id:=I1, hp:=H1}=P1, #{id:=I2, hp:=H2}=P2}) ->
     case {FromWhat, FromWhom} of
-        {from_hp, I1} -> apply_effect({direct, {Op, H1}, To}, {P1, P2});
-        {from_hp, I2} -> apply_effect({direct, {Op, H2}, To}, {P1, P2});
-        {from_attr, I1} -> apply_effect({direct, {Op, get_attr(AttrName, P1)}, To}, {P1, P2});
-        {from_attr, I2} -> apply_effect({direct, {Op, get_attr(AttrName, P1)}, To}, {P1, P2})
-    end.
+        {from_hp, I1} -> apply_effect({direct, {Op, H1}, To}, React, {P1, P2});
+        {from_hp, I2} -> apply_effect({direct, {Op, H2}, To}, React, {P1, P2});
+        {from_attr, I1} -> apply_effect({direct, {Op, get_attr(AttrName, P1)}, To}, React, {P1, P2});
+        {from_attr, I2} -> apply_effect({direct, {Op, get_attr(AttrName, P1)}, To}, React, {P1, P2})
+    end;
 
 
 apply_effect(Effect, State, {#{id:=I1}=P1, P2}) ->
     
-    {_Name, {Seq, Mover, Phase, Outcome}, Specs, ProbOutcome} = Effect,
+    {_Name, {Seq, Mover, Phase, Outcome}, Specs, ProbOutcome, React} = Effect,
 
     {CurrSeq, CurrPhase, _, {CurrMover, _, _}, _} = State,
 
@@ -81,20 +124,20 @@ apply_effect(Effect, State, {#{id:=I1}=P1, P2}) ->
             _  -> Outcome == get_attr(outcome, P2)
         end
     end,
-   
+
     case (Phase == CurrPhase) and (OutcomeMatches == true) and (ProbOutcome == cast_successful) of
         true -> case {Phase, CurrMover, Mover} of
-            {casting, Same, Same}   when (Seq > CurrSeq)   -> apply_effect(Specs, {P1, P2});
-            {attacking, Same, Same} when (Seq > CurrSeq)   -> apply_effect(Specs, {P1, P2});
-            {settling, I1, _}       when (Seq+1 > CurrSeq) -> apply_effect(Specs, {P1, P2});
-            _ -> {not_affected, P1, P2}
+            {casting, Same, Same}   when (Seq > CurrSeq)   -> apply_effect(Specs, React, {P1, P2});
+            {attacking, Same, Same} when (Seq > CurrSeq)   -> apply_effect(Specs, React, {P1, P2});
+            {settling, I1, _}       when (Seq+1 > CurrSeq) -> apply_effect(Specs, React, {P1, P2});
+            _ -> {{not_affected, not_correct_stage}, P1, P2}
         end;
         
-        _    -> {not_affected, P1, P2}
+        _    -> {{not_affected, not_correct_round}, P1, P2}
     end.
 
 
-log({Seq, Stage, Role, {Mover, _, _}, _}, {EffectName, _, _, _}, #{id:=I1} = P1, P2) ->
+log({Seq, Stage, Role, {Mover, _, _}, _}, {EffectName, _, _, _, _}, ReactOutcome, #{id:=I1} = P1, P2) ->
 
     {O, D} = case Mover of
         I1 -> {P1, P2};
@@ -105,7 +148,7 @@ log({Seq, Stage, Role, {Mover, _, _}, _}, {EffectName, _, _, _}, #{id:=I1} = P1,
         { seq, Seq }, {stage, Stage}, { offender, Mover }, {role, Role}, { defender, maps:get(id, D)},
 
         { hand, null}, { action, EffectName}, {rem_atks, null},
-        { outcome, null }, { damage, null },
+        { outcome, ReactOutcome }, { damage, null },
         { offender_hp, maps:get(hp, O) },
         { defender_hp, maps:get(hp, D) }
     ]}.
@@ -123,9 +166,14 @@ apply_effects(S, P1, P2, Log) ->
     {NewP1, NewP2, NewLog} =
     case apply_effect(EffectDescription, S, {P1, P2}) of
         {affected, AffectedP1, AffectedP2} ->
-            {AffectedP1, AffectedP2, [log(S, EffectDescription, AffectedP1, AffectedP2) | Log]};
-        {not_affected, NotAffectedP1, NotAffectedP2} ->
+            NextLog = [log(S, EffectDescription, null, AffectedP1, AffectedP2) | Log],
+            {AffectedP1, AffectedP2, NextLog};
+        {{not_affected, React}, NotAffectedP1, NotAffectedP2} when (React==resist) or (React==block) ->
+            NextLog = [log(S, EffectDescription, React, NotAffectedP1, NotAffectedP2) | Log],
+            {NotAffectedP1, NotAffectedP2, NextLog};
+        {{not_affected, _}, NotAffectedP1, NotAffectedP2} ->
             {NotAffectedP1, NotAffectedP2, Log}
+
     end,
     
     apply_effects(setelement(5, S, Remaining), NewP1, NewP2, NewLog).

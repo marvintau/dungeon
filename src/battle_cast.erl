@@ -30,14 +30,14 @@ condition({Last, Phase, Outcome}, Mover, CurrSeq) -> {CurrSeq + Last, Mover, Pha
 % latter function is the actual entrance that takes cast name as argument, and
 % find the specification in database, and re-interpret it with battle context.
 
-parse_cast_effect({Name, Cond, Spec, Prob}, {CurrSeq, _, _, {Mover, _, _}, _}, I1, I2) ->
+parse_cast_effect({Name, Cond, Spec, Prob, React}, {CurrSeq, _, _, {Mover, _, _}, _}, I1, I2) ->
 
     Outcome = case rand:uniform() > Prob of
         true -> cast_failed;
         _    -> cast_successful
     end,
 
-    {Name, condition(Cond, Mover, CurrSeq), role(Spec, {Mover, I1, I2}), Outcome}.
+    {Name, condition(Cond, Mover, CurrSeq), role(Spec, {Mover, I1, I2}), Outcome, React}.
 
 get_effect_list({_Name, List}, S, I1, I2) ->
     lists:map(fun(Spec) -> parse_cast_effect(Spec, S, I1, I2) end, List).
@@ -108,7 +108,7 @@ cast(S, #{id:=I1, cast_list:=Cast1}=P1, #{id:=I2, cast_list:=Cast2}=P2, L) ->
     NewEffectList = lists:append(CurrEffectList, EffectList),
 
     LogMounted = lists:append(lists:map(
-        fun({Name, _, _, Outcome}) -> log_ordered(casted_effect, {Name, Outcome}, S, P1, P2) end,
+        fun({Name, _, _, Outcome, _}) -> log_ordered(casted_effect, {Name, Outcome}, S, P1, P2) end,
         CurrEffectList), LogCasted),
 
     {setelement(4, setelement(5, S, NewEffectList), {Mover, Hand, 0}),
