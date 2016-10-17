@@ -10,7 +10,7 @@
 -export([handle_post/2]).
 
 init(Req, Opts) ->
-
+    battle_db:init_table(),
     {cowboy_rest, Req, Opts}.
 
 allowed_methods(Req, Opts) ->
@@ -53,8 +53,6 @@ handle_post(Req, State) ->
         {[{<<"foo">>, <<"bar">>}]} ->
             {true, Req, State};
         Data ->
-            error_logger:info_report(Data),
-
             {done, ResBody} = battle_main:init_new_battle(Data),
             Res = cowboy_req:set_resp_body(ResBody, NextReq),
             {true, Res, State}

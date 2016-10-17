@@ -131,8 +131,6 @@ loop(State={Seq, settling, DefOff, {Mover, Hand,  _}, Effects}, P1, P2, L) ->
 
 init_new_battle(Data) ->
 
-    battle_init:create_cast_table(),
-
     {P1, P2} = battle_parse:player_context_from_parsed_JSON(Data),
 
     loop({0, attacking, defensive, {maps:get(id, P1), prim, 0}, []}, P1, P2, []). 

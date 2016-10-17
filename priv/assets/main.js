@@ -38,7 +38,7 @@ $.setData = function () {
     $('#block1').val("35");
     $('#agi1').val("50");
 
-    NewCasts = perm(['assault', 'heal', 'steal']);
+    NewCasts = perm(['burning_powder', 'talisman_of_death', 'attack_command', 'combat_sense']);
     $('#cast1-1').val(NewCasts[0]);
     $('#cast1-2').val(NewCasts[1]);
     $('#cast1-3').val(NewCasts[2]);
@@ -61,7 +61,7 @@ $.setData = function () {
     $('#block2').val("0");
     $('#agi2').val("75");
 
-    NewCasts = perm(['assault', 'heal', 'steal']);
+    NewCasts = perm(['burning_powder', 'talisman_of_death', 'attack_command', 'combat_sense']);
     $('#cast2-1').val(NewCasts[0]);
     $('#cast2-2').val(NewCasts[1]);
     $('#cast2-3').val(NewCasts[2]);

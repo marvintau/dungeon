@@ -23,7 +23,13 @@ role({direct, Op, To}, Movers) -> {direct, Op, role(To, Movers)};
 role({indirect, {Op, From}, To}, Movers) -> {indirect, {Op, role(From, Movers)}, role(To, Movers)}.
 
 % to assign the sequence number of terminal condition, and the cast initiator.
-condition({Last, Phase, Outcome}, Mover, CurrSeq) -> {CurrSeq + Last, Mover, Phase, Outcome}.
+
+% If the cast effects in the current round, then the Start (sequential number
+% of starting) should be 0, and the Last (the rounds that the effect of cast
+% last for) should be 1.
+
+condition({Start, Last, Phase, Outcome}, Mover, CurrSeq) ->
+    {CurrSeq + Start, CurrSeq + Start + Last, Mover, Phase, Outcome}.
 
 % wrap all the operations. A mapping from original description of an effect
 % along with the current state, to a final form of effect description. The
@@ -52,7 +58,7 @@ log(cast, CastName, {Seq, Stage, Role, {Mover, _, _}, _}, O, D) ->
         { seq, Seq }, {stage, Stage}, { offender, Mover },
         { role, Role}, { defender, maps:get(id, D)},
         { hand, null}, { action, CastName}, {rem_atks, null},
-        { outcome, null }, { damage, null },
+        { outcome, cast }, { damage, null },
         { offender_hp, maps:get(hp, O) },
         { defender_hp, maps:get(hp, D) }
     ]};

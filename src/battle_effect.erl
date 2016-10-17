@@ -8,38 +8,42 @@
 
 % Modify attribute and return new player profile
 get_attr(AttrName, P) ->
-    erlang:display(AttrName),
     #{curr_attr:=#{AttrName:=Value}} = P, Value.
 
-set_attr({set, Value}, AttrName, P) -> P#{curr_attr:=#{AttrName=>Value}};
+set_attr({set, Value}, AttrName, #{curr_attr:=Attr}=P) ->
+    P#{curr_attr:=Attr#{AttrName:=Value}};
 
-set_attr({add, {Low, High}}, AttrName, P) ->
+set_attr({add, {Low, High}}, AttrName, #{curr_attr:=Attr}=P) ->
     Original = get_attr(AttrName, P),
     Incremental = round(Low + rand:uniform() * (High - Low)),
-    P#{curr_attr:=#{AttrName => Original + Incremental}};
-set_attr({add, Incremental}, AttrName, P) ->
+    P#{curr_attr:=Attr#{AttrName := Original + Incremental}};
+set_attr({add, Incremental}, AttrName, #{curr_attr:=Attr}=P) ->
     Original = get_attr(AttrName, P),
-    P#{curr_attr:=#{AttrName => Original + Incremental}};
+    P#{curr_attr:=Attr#{AttrName := Original + Incremental}};
 
-set_attr({times, Ratio}, AttrName, P) ->
+set_attr({times, Ratio}, AttrName, #{curr_attr:=Attr}=P) ->
     Original = get_attr(AttrName, P),
-    P#{curr_attr:=#{AttrName => round(Original * Ratio)}};
+    P#{curr_attr:=Attr#{AttrName := round(Original * Ratio)}};
 
-set_attr({linear, {Low, High}, Ratio}, AttrName, P) ->
+set_attr({linear, {Low, High}, Ratio}, AttrName, #{curr_attr:=Attr}=P) ->
     Original = get_attr(AttrName, P),
     Incremental = round(Low + rand:uniform() * (High - Low)),
-    P#{curr_attr:=#{AttrName => Original + round(Incremental * Ratio)}};
-set_attr({linear, Incremental, Ratio}, AttrName, P) ->
+    P#{curr_attr:=Attr#{AttrName := Original + round(Incremental * Ratio)}};
+set_attr({linear, Incremental, Ratio}, AttrName, #{curr_attr:=Attr}=P) ->
     Original = get_attr(AttrName, P),
-    P#{curr_attr:=#{AttrName => Original + round(Incremental * Ratio)}}.
+    P#{curr_attr:=Attr#{AttrName := Original + round(Incremental * Ratio)}}.
 
 set_hp({set, Value}, P) -> P#{hp:=Value};
 
-set_hp({add, {Low, High}}, #{hp:=Hp}=P) -> P#{hp:=Hp + round(Low + rand:uniform() * (High - Low))};
-set_hp({add, Incremental}, #{hp:=Hp}=P) -> P#{hp:=Hp + Incremental};
+set_hp({add, {Low, High}}, #{hp:=Hp}=P) ->
+    P#{hp:=Hp + round(Low + rand:uniform() * (High - Low))};
+set_hp({add, Incremental}, #{hp:=Hp}=P) ->
+    P#{hp:=Hp + Incremental};
 
-set_hp({times, {Low, High}}, #{hp:=Hp}=P) -> P#{hp:=round(Hp * (Low + rand:uniform() * (High - Low)))};
-set_hp({times, Ratio}, #{hp:=Hp}=P) -> P#{hp:= round(Hp * Ratio)};
+set_hp({times, {Low, High}}, #{hp:=Hp}=P) ->
+    P#{hp:=round(Hp * (Low + rand:uniform() * (High - Low)))};
+set_hp({times, Ratio}, #{hp:=Hp}=P) ->
+    P#{hp:= round(Hp * Ratio)};
 
 set_hp({linear, {Low, High}, Ratio}, #{hp:=Hp}=P) -> 
     Incremental = round(Low + rand:uniform() + (High - Low)),
@@ -65,6 +69,11 @@ get_react_outcome(React, ID, P1, P2) ->
         absorbable -> {affected, absorbed};
         none -> {ok, none}
     end.
+
+check_condition({StartingSeq, TerminalSeq, Mover, Phase, _}, CurrSeq, CurrPhase, CurrMover, OutcomeMatches) ->
+    (CurrSeq >= StartingSeq) and (CurrSeq < TerminalSeq) and (Mover == CurrMover) and (Phase == CurrPhase) and OutcomeMatches.
+check_condition(EffectCond, {CurrSeq, CurrPhase, _, {CurrMover, _, _}, _}, OutcomeMatches) ->
+    check_condition(EffectCond, CurrSeq, CurrPhase, CurrMover, OutcomeMatches).
 
 % apply_effect: the wrapper function to apply the effects over the player context, and
 % mark whether the context is modified. If modified, the function returns {affected, P1, P2},
@@ -92,7 +101,6 @@ apply_effect({direct, Op, {role, to_hp, ToWhom, _}}, React, {#{id:=I1}=P1, #{id:
 apply_effect({direct, Op, {role, to_attr, ToWhom, AttrName}}, React, {#{id:=I1}=P1, #{id:=I2}=P2}) ->
     
     FinalReact = get_react_outcome(React, ToWhom, P1, P2),
-    erlang:display(FinalReact),
 
     case {FinalReact, ToWhom} of
         {{not_affected, Reaction}, _} -> {{not_affected, Reaction}, P1, P2};
@@ -112,10 +120,10 @@ apply_effect({indirect, {Op, {role, FromWhat, FromWhom, AttrName}}, To}, React,
 
 
 apply_effect(Effect, State, {#{id:=I1}=P1, P2}) ->
-    
-    {_Name, {Seq, Mover, Phase, Outcome}, Specs, ProbOutcome, React} = Effect,
 
-    {CurrSeq, CurrPhase, _, {CurrMover, _, _}, _} = State,
+    {_Name, EffectCond = {_, _, _, Phase, Outcome}, Specs, ProbOutcome, React} = Effect,
+
+    {_CurrSeq, _CurrPhase, _, {CurrMover, _, _}, _} = State,
 
     OutcomeMatches = case Outcome of
         nah -> true;
@@ -125,15 +133,18 @@ apply_effect(Effect, State, {#{id:=I1}=P1, P2}) ->
         end
     end,
 
-    case (Phase == CurrPhase) and (OutcomeMatches == true) and (ProbOutcome == cast_successful) of
-        true -> case {Phase, CurrMover, Mover} of
-            {casting, Same, Same}   when (Seq > CurrSeq)   -> apply_effect(Specs, React, {P1, P2});
-            {attacking, Same, Same} when (Seq > CurrSeq)   -> apply_effect(Specs, React, {P1, P2});
-            {settling, I1, _}       when (Seq+1 > CurrSeq) -> apply_effect(Specs, React, {P1, P2});
-            _ -> {{not_affected, not_correct_stage}, P1, P2}
+    case check_condition(EffectCond, State, OutcomeMatches) and (ProbOutcome == cast_successful) of
+        true -> case Phase of
+            
+            settling when CurrMover == I1 ->
+                apply_effect(Specs, React, {P1, P2});
+
+            _ ->
+                apply_effect(Specs, React, {P1, P2})
+            
         end;
         
-        _    -> {{not_affected, not_correct_round}, P1, P2}
+        _    -> {{not_affected, not_correct_cond}, P1, P2}
     end.
 
 
@@ -166,7 +177,7 @@ apply_effects(S, P1, P2, Log) ->
     {NewP1, NewP2, NewLog} =
     case apply_effect(EffectDescription, S, {P1, P2}) of
         {affected, AffectedP1, AffectedP2} ->
-            NextLog = [log(S, EffectDescription, null, AffectedP1, AffectedP2) | Log],
+            NextLog = [log(S, EffectDescription, effect, AffectedP1, AffectedP2) | Log],
             {AffectedP1, AffectedP2, NextLog};
         {{not_affected, React}, NotAffectedP1, NotAffectedP2} when (React==resist) or (React==block) ->
             NextLog = [log(S, EffectDescription, React, NotAffectedP1, NotAffectedP2) | Log],
