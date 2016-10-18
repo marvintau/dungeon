@@ -15,16 +15,16 @@
 toss(#{id:=I1, rem_moves:=Rem1, curr_attr:=#{agility:=A1}},
      #{id:=I2, rem_moves:=Rem2, curr_attr:=#{agility:=A2}}) ->
     case rand:uniform() * (A1 + A2) > A1 of
-        true -> {I2, prim, Rem2};
-        _    -> {I1, prim, Rem1}
+        true -> {I2, Rem2};
+        _    -> {I1, Rem1}
     end.
 
 % ----------- HELPER FUNCTION FOR SWAPPING OFFENDER/DEFENDER -----------
 
 swap(Mover, #{id:=I1, rem_moves:=Rem1}, #{id:=I2, rem_moves:=Rem2}) ->
     case Mover == I1 of
-        true -> {I2, prim, Rem2};
-        _    -> {I1, prim, Rem1}
+        true -> {I2, Rem2};
+        _    -> {I1, Rem1}
     end.
 
 
@@ -57,7 +57,7 @@ loop(_, #{hp:=HP1, id:=I1}, #{hp:=HP2, id:=I2}, Log) when HP1 < 0 orelse HP2 < 0
 % new round, the attributes should be restored in this stage. Meanwhile,
 % both players will be restored to primary hand.
 
-loop({Seq, attacking, defensive, {_Mover, _Hand, 0}, Effects},
+loop({Seq, attacking, defensive, {_Mover, 0}, Effects},
      #{prim_hand:=PrimHand1, orig_attr:=Orig1}=P1,
      #{prim_hand:=PrimHand2, orig_attr:=Orig2}=P2,
      L) ->
@@ -75,7 +75,7 @@ loop({Seq, attacking, defensive, {_Mover, _Hand, 0}, Effects},
 % simply change to defender without changing anything else. If defender,
 % we need to switch to the next phase.
 
-loop({Seq, MoveType, DefOff, {Mover, _Hand, 0}, Effects}, P1, P2, L) ->
+loop({Seq, MoveType, DefOff, {Mover, 0}, Effects}, P1, P2, L) ->
 
     NewDefOff = case DefOff of
         defensive -> offensive;
@@ -121,11 +121,11 @@ loop(State={_, casting, _, _, _}, P1, P2, L) ->
 
 % ---------------------- LOOP FOR SETTLEMENT -----------------------------
 
-loop(State={Seq, settling, DefOff, {Mover, Hand,  _}, Effects}, P1, P2, L) ->
+loop(State={Seq, settling, DefOff, {Mover, _}, Effects}, P1, P2, L) ->
 
     {AffectedP1, AffectedP2, LogAffected} = battle_effect:apply_effects(State, P1, P2, L),
     
-    loop({Seq, settling, DefOff, {Mover, Hand, 0}, Effects}, AffectedP1, AffectedP2, LogAffected).
+    loop({Seq, settling, DefOff, {Mover, 0}, Effects}, AffectedP1, AffectedP2, LogAffected).
 
 
 
@@ -133,4 +133,4 @@ init_new_battle(Data) ->
 
     {P1, P2} = battle_parse:player_context_from_parsed_JSON(Data),
 
-    loop({0, attacking, defensive, {maps:get(id, P1), prim, 0}, []}, P1, P2, []). 
+    loop({0, attacking, defensive, {maps:get(id, P1), 0}, []}, P1, P2, []). 

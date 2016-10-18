@@ -36,7 +36,7 @@ condition({Start, Last, Phase, Outcome}, Mover, CurrSeq) ->
 % latter function is the actual entrance that takes cast name as argument, and
 % find the specification in database, and re-interpret it with battle context.
 
-parse_cast_effect({Name, Cond, Spec, Prob, React}, {CurrSeq, _, _, {Mover, _, _}, _}, I1, I2) ->
+parse_cast_effect({Name, Cond, Spec, Prob, React}, {CurrSeq, _, _, {Mover, _}, _}, I1, I2) ->
 
     Outcome = case rand:uniform() > Prob of
         true -> cast_failed;
@@ -53,7 +53,7 @@ get_effect_list_from_name(Name, S, I1, I2) ->
 
 
 
-log(cast, CastName, {Seq, Stage, Role, {Mover, _, _}, _}, O, D) ->
+log(cast, CastName, {Seq, Stage, Role, {Mover, _}, _}, O, D) ->
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover },
         { role, Role}, { defender, maps:get(id, D)},
@@ -63,7 +63,7 @@ log(cast, CastName, {Seq, Stage, Role, {Mover, _, _}, _}, O, D) ->
         { defender_hp, maps:get(hp, D) }
     ]};
 
-log(casted_effect, {EffectName, Outcome}, {Seq, Stage, Role, {Mover, _, _}, _}, O, D) ->
+log(casted_effect, {EffectName, Outcome}, {Seq, Stage, Role, {Mover, _}, _}, O, D) ->
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover },
         { role, Role}, { defender, maps:get(id, D)},
@@ -75,7 +75,7 @@ log(casted_effect, {EffectName, Outcome}, {Seq, Stage, Role, {Mover, _, _}, _}, 
 
 log_ordered(cast, CastName, S, #{id:=I1}=P1, P2) ->
 
-    {Mover, _, _} = element(4, S),
+    {Mover, _} = element(4, S),
 
     case Mover of
         I1 -> log(cast, CastName, S, P1, P2);
@@ -84,7 +84,7 @@ log_ordered(cast, CastName, S, #{id:=I1}=P1, P2) ->
 
 log_ordered(casted_effect, EffectName, S, #{id:=I1}=P1, P2) ->
 
-    {Mover, _, _} = element(4, S),
+    {Mover, _} = element(4, S),
 
     case Mover of
         I1 -> log(casted_effect, EffectName, S, P1, P2);
@@ -93,13 +93,13 @@ log_ordered(casted_effect, EffectName, S, #{id:=I1}=P1, P2) ->
 
 cast(S, #{cast_list:=[]}=P1, #{cast_list:=[]}=P2, L) ->
 
-    {Mover, Hand, _} = element(4, S),
+    {Mover, _} = element(4, S),
 
-    {setelement(4, S, {Mover, Hand, 0}), P1, P2, L};
+    {setelement(4, S, {Mover, 0}), P1, P2, L};
 
 cast(S, #{id:=I1, cast_list:=Cast1}=P1, #{id:=I2, cast_list:=Cast2}=P2, L) ->
 
-    {_, _, _, {Mover, Hand, _}, EffectList} = S,
+    {_, _, _, {Mover, _}, EffectList} = S,
 
     {CastName,  RemCasts1, RemCasts2} = case Mover of
         I1 -> {hd(Cast1), tl(Cast1), Cast2};
@@ -117,5 +117,5 @@ cast(S, #{id:=I1, cast_list:=Cast1}=P1, #{id:=I2, cast_list:=Cast2}=P2, L) ->
         fun({Name, _, _, Outcome, _}) -> log_ordered(casted_effect, {Name, Outcome}, S, P1, P2) end,
         CurrEffectList), LogCasted),
 
-    {setelement(4, setelement(5, S, NewEffectList), {Mover, Hand, 0}),
+    {setelement(4, setelement(5, S, NewEffectList), {Mover, 0}),
      P1#{cast_list:=RemCasts1}, P2#{cast_list:=RemCasts2}, LogMounted}.

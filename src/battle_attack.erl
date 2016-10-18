@@ -85,7 +85,7 @@ damage(#{curr_hand:=CurrHand, damage_coeff:=Coeff}=A, #{curr_attr:=#{armor:=Armo
     {attack, Outcome, Damage * Coeff}.
 
 
-log({Seq, Stage, Role, {Mover, _, Rem}, _},
+log({Seq, Stage, Role, {Mover, Rem}, _},
            #{curr_attr:=#{outcome:=Outcome, damage_dealt:=Damage}=_, 
              curr_hand:={Which, AtkType, _}}=O, D)  ->
     
@@ -106,7 +106,7 @@ attack(S, #{curr_attr:=CurrAttr}=A, #{hp:=H2}=D) ->
     {NextA, NextD, NextLog}.
 
 attack(
-  S = {_, _, _, {Mover, Hand, RemainingMoves}, _},
+  S = {_, _, _, {Mover, RemainingMoves}, _},
   #{id:=I1, curr_hand:={Hand1, _, _}=Curr1, prim_hand:=Prim1, secd_hand:=Secd1} = P1,
   #{id:=I2, curr_hand:={Hand2, _, _}=Curr2, prim_hand:=Prim2, secd_hand:=Secd2} = P2, L) ->
 
@@ -122,7 +122,7 @@ attack(
         {I2, _, secd} -> {Curr1, Prim2}
     end,
 
-    { setelement(4, S, {Mover, Hand, RemainingMoves-1}),
+    { setelement(4, S, {Mover, RemainingMoves-1}),
       NextP1#{curr_hand:=NewCurr1},
       NextP2#{curr_hand:=NewCurr2},
       [ NextLog | L ]

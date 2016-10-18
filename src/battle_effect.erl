@@ -72,7 +72,7 @@ get_react_outcome(React, ID, P1, P2) ->
 
 check_condition({StartingSeq, TerminalSeq, Mover, Phase, _}, CurrSeq, CurrPhase, CurrMover, OutcomeMatches) ->
     (CurrSeq >= StartingSeq) and (CurrSeq < TerminalSeq) and (Mover == CurrMover) and (Phase == CurrPhase) and OutcomeMatches.
-check_condition(EffectCond, {CurrSeq, CurrPhase, _, {CurrMover, _, _}, _}, OutcomeMatches) ->
+check_condition(EffectCond, {CurrSeq, CurrPhase, _, {CurrMover, _}, _}, OutcomeMatches) ->
     check_condition(EffectCond, CurrSeq, CurrPhase, CurrMover, OutcomeMatches).
 
 % apply_effect: the wrapper function to apply the effects over the player context, and
@@ -123,7 +123,7 @@ apply_effect(Effect, State, {#{id:=I1}=P1, P2}) ->
 
     {_Name, EffectCond = {_, _, _, Phase, Outcome}, Specs, ProbOutcome, React} = Effect,
 
-    {_CurrSeq, _CurrPhase, _, {CurrMover, _, _}, _} = State,
+    {_CurrSeq, _CurrPhase, _, {CurrMover, _}, _} = State,
 
     OutcomeMatches = case Outcome of
         nah -> true;
@@ -148,7 +148,7 @@ apply_effect(Effect, State, {#{id:=I1}=P1, P2}) ->
     end.
 
 
-log({Seq, Stage, Role, {Mover, _, _}, _}, {EffectName, _, _, _, _}, ReactOutcome, #{id:=I1} = P1, P2) ->
+log({Seq, Stage, Role, {Mover, _}, _}, {EffectName, _, _, _, _}, ReactOutcome, #{id:=I1} = P1, P2) ->
 
     {O, D} = case Mover of
         I1 -> {P1, P2};
