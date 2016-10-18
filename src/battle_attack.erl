@@ -107,22 +107,22 @@ attack(S, #{curr_attr:=CurrAttr}=A, #{hp:=H2}=D) ->
 
 attack(
   S = {_, _, _, {Mover, Hand, RemainingMoves}, _},
-  #{id:=I1, curr_hand:=Curr1, prim_hand:=Prim1, secd_hand:=Secd1} = P1,
-  #{id:=I2, curr_hand:=Curr2, prim_hand:=Prim2, secd_hand:=Secd2} = P2, L) ->
+  #{id:=I1, curr_hand:={Hand1, _, _}=Curr1, prim_hand:=Prim1, secd_hand:=Secd1} = P1,
+  #{id:=I2, curr_hand:={Hand2, _, _}=Curr2, prim_hand:=Prim2, secd_hand:=Secd2} = P2, L) ->
 
     {NextP1, NextP2, NextLog} = case Mover of
         I1 -> attack(S, P1, P2);
         _ ->  {New2, New1, NewLog} = attack(S, P2, P1), {New1, New2, NewLog}
     end,
 
-    {NewCurr1, NewCurr2, NewHand} = case {Mover, Hand} of
-        {I1, prim} -> {Secd1, Curr2, secd};
-        {I1, secd} -> {Prim1, Curr2, prim};
-        {I2, prim} -> {Curr1, Secd2, secd};
-        {I2, secd} -> {Curr1, Prim2, prim}
+    {NewCurr1, NewCurr2} = case {Mover, Hand1, Hand2} of
+        {I1, prim, _} -> {Secd1, Curr2};
+        {I1, secd, _} -> {Prim1, Curr2};
+        {I2, _, prim} -> {Curr1, Secd2};
+        {I2, _, secd} -> {Curr1, Prim2}
     end,
 
-    { setelement(4, S, {Mover, NewHand, RemainingMoves-1}),
+    { setelement(4, S, {Mover, Hand, RemainingMoves-1}),
       NextP1#{curr_hand:=NewCurr1},
       NextP2#{curr_hand:=NewCurr2},
       [ NextLog | L ]
