@@ -75,8 +75,8 @@ calculate_damage(_, _, _, _) -> 0.
 % damage of weapon, and outcome of roulette turning.
 
 log({Seq, Stage, Role, {Mover, Rem}, _},
-           #{curr_attr:=#{outcome:=Outcome, damage_dealt:=Damage}=_, 
-             curr_hand:={Which, AtkType, _}}=O, D)  ->
+    #{curr_hand:={Which, AtkType, _}}=O,
+    #{curr_attr:=#{outcome:=Outcome, damage_taken:=Damage}}=D)  ->
     
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, {role, Role}, { defender, maps:get(id, D)},
@@ -97,10 +97,9 @@ attack(S,
 
     Damage = calculate_damage(AttackType, Outcome, DamageRange, Armor) * DamageCoeff,
 
-    NextA = A#{curr_attr:=CurrAttr#{damage_dealt:=Damage, outcome:=Outcome}},
-    NextD = D#{hp:=H2 - Damage},
-    NextLog = log(S, NextA, NextD),
-    {NextA, NextD, NextLog}.
+    NextD = D#{curr_attr:=CurrAttr#{damage_taken:=Damage, outcome:=Outcome}, hp:=H2 - Damage},
+    NextLog = log(S, A, NextD),
+    {A, NextD, NextLog}.
 
 attack(
   S = {_, _, _, {Mover, RemainingMoves}, _},

@@ -33,7 +33,7 @@ parse_single_player(SinglePlayerData) ->
                 block      => Block,
                 agility    => Agi,
                 outcome    => null,
-                damage_dealt => 0
+                damage_taken => 0
 
             },
            
@@ -46,7 +46,7 @@ parse_single_player(SinglePlayerData) ->
                 block      => Block,
                 agility    => Agi,
                 outcome    => null,
-                damage_dealt => 0
+                damage_taken => 0
              },
 
             damage_coeff => 1
