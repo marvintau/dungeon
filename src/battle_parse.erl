@@ -4,14 +4,6 @@
 
 -export([player_context_from_parsed_JSON/1]).
 
-weapon_attr(Weapon) ->
-    case binary_to_atom(Weapon, utf8) of
-        physical -> {damage, physical};
-        mage -> {damage, mage};
-        shield -> {no_damage, shield};
-        bare -> {no_damage, bare}
-    end.
-
 parse_single_player(SinglePlayerData) ->
 
     {[
@@ -26,9 +18,9 @@ parse_single_player(SinglePlayerData) ->
             hp         => HP,
             rem_moves  => 2,
 
-            prim_hand  => {prim, weapon_attr(PrimType), {PrimMin, PrimMax}},
-            secd_hand  => {secd, weapon_attr(SecdType), {SecdMin, SecdMax}},
-            curr_hand  => {prim, weapon_attr(PrimType), {PrimMin, PrimMax}},
+            prim_hand  => {prim, binary_to_atom(PrimType, utf8), {PrimMin, PrimMax}},
+            secd_hand  => {secd, binary_to_atom(SecdType, utf8), {SecdMin, SecdMax}},
+            curr_hand  => {prim, binary_to_atom(PrimType, utf8), {PrimMin, PrimMax}},
 
             cast_list => lists:map(fun(X) -> binary_to_atom(X, utf8) end, CastList),
 

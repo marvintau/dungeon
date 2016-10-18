@@ -32,13 +32,13 @@ prepare_roulette_from(
 
     {Dodge, Resist, Block} = case {Curr, Secd} of
         
-        {{_, magic}, _} ->
+        {magic, _} ->
             {0, Res, 0};
         
-        {{_, physical}, {_, shield}} ->
+        {physical, shield} ->
             {Dod, 0, Blo};
 
-        {{_, physical}, _} ->
+        {physical, _} ->
             {Dod, 0, 0};
         _ ->             
             {0, 0, 0}            
@@ -78,22 +78,16 @@ damage(#{curr_hand:=CurrHand, damage_coeff:=Coeff}=A, #{curr_attr:=#{armor:=Armo
 
     Outcome = rotate(prepare_roulette_from(A, D)),
     
-    Damage = case CurrHand of
+    {_, AttackType, DamageRange} = CurrHand,
 
-        {_, {_, magic}, DamageRange} ->
-            calculate_damage(magic, Outcome, DamageRange, Armor);
-        {_, {_, physical}, DamageRange} ->
-            calculate_damage(physical, Outcome, DamageRange, Armor);
-        _ ->
-            0
-    end,
+    Damage = calculate_damage(AttackType, Outcome, DamageRange, Armor),
 
     {attack, Outcome, Damage * Coeff}.
 
 
 log({Seq, Stage, Role, {Mover, _, Rem}, _},
            #{curr_attr:=#{outcome:=Outcome, damage_dealt:=Damage}=_, 
-             curr_hand:={Which, {_, AtkType}, _}}=O, D)  ->
+             curr_hand:={Which, AtkType, _}}=O, D)  ->
     
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, {role, Role}, { defender, maps:get(id, D)},
