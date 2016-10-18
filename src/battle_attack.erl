@@ -50,27 +50,24 @@ prepare_roulette_from(
 % Magic attack cannot be blocked, thus make sure that block has
 % been set 0 before turning the roulette.
 
-magic_damage(Random, resist, {Lower, _}) -> round(Random * Lower / 10);
+calculate_damage(magic, resist, {Lower, _}, _Armor) ->
+    round(rand:uniform() * Lower / 10);
 
-magic_damage(Random, critical, {Lower, Upper}) ->
-    round(2*(Lower + Random * (Upper - Lower)));
+calculate_damage(magic, critical, {Lower, Upper}, _Armor) ->
+    round(2*(Lower + rand:uniform() * (Upper - Lower)));
 
-magic_damage(Random, _, {Lower, Upper}) ->
-    round(Lower + Random * (Upper - Lower)).
+calculate_damage(magic, _, {Lower, Upper}, _Armor) ->
+    round(Lower + rand:uniform() * (Upper - Lower));
 
+calculate_damage(physical, dodge, _, _) -> 0;
+calculate_damage(physical, block, _, _) -> 0;
+calculate_damage(physical, critical, {Lower, Upper}, Armor) ->
+    round(2*(Lower + rand:uniform() * (Upper - Lower)) * (1 - Armor * 0.0001));
 
-% --------------- PLAYER AS NON-MAGE --------------------------
-% Physical attack cannot be resisted, make sure that resist has
-% been ser 0 before turning the roulette.
+calculate_damage(physical, _, {Lower, Upper}, Armor) ->
+    round(Lower + rand:uniform() * (Upper - Lower) * (1 - Armor * 0.0001));
 
-physical_damage(_, dodge, _, _) -> 0;
-physical_damage(_, block, _, _) -> 0;
-physical_damage(Random, critical, Armor, {Lower, Upper}) ->
-    round(2*(Lower + Random * (Upper - Lower)) * (1 - Armor * 0.0001));
-
-physical_damage(Random, _, Armor, {Lower, Upper}) ->
-    round(Lower + Random * (Upper - Lower) * (1 - Armor * 0.0001)).
-
+calculate_damage(_, _, _, _) -> 0.
 
 % ============= SINGLE ATTACK DAMAGE CALCULATION ======================
 
@@ -84,9 +81,9 @@ damage(#{curr_hand:=CurrHand, damage_coeff:=Coeff}=A, #{curr_attr:=#{armor:=Armo
     Damage = case CurrHand of
 
         {_, {_, magic}, DamageRange} ->
-            magic_damage(rand:uniform(), Outcome, DamageRange);
+            calculate_damage(magic, Outcome, DamageRange, Armor);
         {_, {_, physical}, DamageRange} ->
-            physical_damage(rand:uniform(), Outcome, Armor, DamageRange);
+            calculate_damage(physical, Outcome, DamageRange, Armor);
         _ ->
             0
     end,
