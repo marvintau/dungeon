@@ -10,46 +10,45 @@
 get_attr(AttrName, P) ->
     #{curr_attr:=#{AttrName:=Value}} = P, Value.
 
+rand_from_interval({Low, High}) ->
+    Low + rand:uniform() * (High - Low);
+rand_from_interval(SingleValue) -> SingleValue.
+
 set_attr({set, Value}, AttrName, #{curr_attr:=Attr}=P) ->
     P#{curr_attr:=Attr#{AttrName:=Value}};
 
-set_attr({add, {Low, High}}, AttrName, #{curr_attr:=Attr}=P) ->
-    Original = get_attr(AttrName, P),
-    Incremental = round(Low + rand:uniform() * (High - Low)),
-    P#{curr_attr:=Attr#{AttrName := Original + Incremental}};
 set_attr({add, Incremental}, AttrName, #{curr_attr:=Attr}=P) ->
     Original = get_attr(AttrName, P),
-    P#{curr_attr:=Attr#{AttrName := Original + Incremental}};
+    P#{curr_attr:=Attr#{AttrName := round(Original + rand_from_interval(Incremental))}};
 
 set_attr({times, Ratio}, AttrName, #{curr_attr:=Attr}=P) ->
     Original = get_attr(AttrName, P),
-    P#{curr_attr:=Attr#{AttrName := round(Original * Ratio)}};
+    P#{curr_attr:=Attr#{AttrName := round(Original * rand_from_interval(Ratio))}};
 
-set_attr({linear, {Low, High}, Ratio}, AttrName, #{curr_attr:=Attr}=P) ->
-    Original = get_attr(AttrName, P),
-    Incremental = round(Low + rand:uniform() * (High - Low)),
-    P#{curr_attr:=Attr#{AttrName := Original + round(Incremental * Ratio)}};
 set_attr({linear, Incremental, Ratio}, AttrName, #{curr_attr:=Attr}=P) ->
     Original = get_attr(AttrName, P),
-    P#{curr_attr:=Attr#{AttrName := Original + round(Incremental * Ratio)}}.
+    P#{curr_attr:=Attr#{AttrName := Original + round(rand_from_interval(Incremental) * Ratio)}}.
 
-set_hp({set, Value}, P) -> P#{hp:=Value};
+set_hp({set, Value}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
+    P#{hp:=Value, curr_attr:=Attrs#{damage_taken:=Hp - Value}};
 
-set_hp({add, {Low, High}}, #{hp:=Hp}=P) ->
-    P#{hp:=Hp + round(Low + rand:uniform() * (High - Low))};
-set_hp({add, Incremental}, #{hp:=Hp}=P) ->
-    P#{hp:=Hp + Incremental};
+set_hp({add, Incremental}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
+    FinalInc = rand_from_interval(Incremental),
+    P#{hp:=Hp + FinalInc, 
+       curr_attr:=Attrs#{damage_taken:=FinalInc}};
 
-set_hp({times, {Low, High}}, #{hp:=Hp}=P) ->
-    P#{hp:=round(Hp * (Low + rand:uniform() * (High - Low)))};
-set_hp({times, Ratio}, #{hp:=Hp}=P) ->
-    P#{hp:= round(Hp * Ratio)};
+set_hp({times, Ratio}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
+    FinalInc = round(Hp * rand_from_interval(Ratio)),
+    P#{hp:= Hp - FinalInc, curr_attr:=Attrs#{damage_taken:=FinalInc}};
 
-set_hp({linear, {Low, High}, Ratio}, #{hp:=Hp}=P) -> 
-    Incremental = round(Low + rand:uniform() + (High - Low)),
-    P#{hp:=Hp + round(Incremental * Ratio)};
-set_hp({linear, Incremental, Ratio}, #{hp:=Hp}=P) -> P#{hp:=Hp + round(Incremental * Ratio)}.
+set_hp({linear, Incremental, Ratio}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
+    FinalInc = round(rand_from_interval(Incremental) * Ratio),
+    P#{hp:=Hp - FinalInc, curr_attr:=Attrs#{damage_taken:=FinalInc}}.
 
+compensate_armor(#{hp:=Hp, curr_attr:=Attrs}=P) ->
+    #{armor:=Armor, damage_taken:=Damage} = Attrs,
+    NewDamage = Damage * (1 - Armor/10000),
+    P#{hp:=Hp + (Damage - NewDamage), curr_attr:=Attrs#{damage_taken:=NewDamage}}.
 
 get_player_by_id(Who, #{id:=I1}=P1, #{id:=I2}=P2) ->
     case Who of
@@ -87,12 +86,10 @@ apply_effect({direct, Op, {role, to_hp, ToWhom, _}}, React, {#{id:=I1}=P1, #{id:
         {{not_affected, Reaction}, _} -> {{not_affected, Reaction}, P1, P2};
 
         {{affected, absorbed}, I1} ->
-            #{hp:=Hp} = NewP1 = set_hp(Op, P1),
-            {affected, NewP1#{hp:=round(Hp * (1 - get_attr(armor, P1)/10000))}, P2};
+            {affected, compensate_armor(set_hp(Op, P1)), P2};
 
         {{affected, absorbed}, I2} ->
-            #{hp:=Hp} = NewP2 = set_hp(Op, P2),
-            {affected, P1, NewP2#{hp:=round(Hp * (1 - get_attr(armor, P2)/10000))}};
+            {affected, P1, compensate_armor(set_hp(Op, P2))};
 
         {_, I1} -> {affected, set_hp(Op, P1), P2};
         {_, I2} -> {affected, P1, set_hp(Op, P2)}
