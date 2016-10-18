@@ -74,17 +74,6 @@ calculate_damage(_, _, _, _) -> 0.
 % Calculates the damage with given character type, the upper and lower
 % damage of weapon, and outcome of roulette turning.
 
-damage(#{curr_hand:=CurrHand, damage_coeff:=Coeff}=A, #{curr_attr:=#{armor:=Armor}}=D) ->
-
-    Outcome = rotate(prepare_roulette_from(A, D)),
-    
-    {_, AttackType, DamageRange} = CurrHand,
-
-    Damage = calculate_damage(AttackType, Outcome, DamageRange, Armor),
-
-    {attack, Outcome, Damage * Coeff}.
-
-
 log({Seq, Stage, Role, {Mover, Rem}, _},
            #{curr_attr:=#{outcome:=Outcome, damage_dealt:=Damage}=_, 
              curr_hand:={Which, AtkType, _}}=O, D)  ->
@@ -98,8 +87,16 @@ log({Seq, Stage, Role, {Mover, Rem}, _},
         { defender_hp, maps:get(hp, D) }
     ]}.
 
-attack(S, #{curr_attr:=CurrAttr}=A, #{hp:=H2}=D) ->
-    {attack, Outcome, Damage} = damage(A, D),
+attack(S,
+       #{curr_hand:=CurrHand, curr_attr:=CurrAttr, damage_coeff:=DamageCoeff}=A,
+       #{curr_attr:=#{armor:=Armor}, hp:=H2}=D) ->
+
+    Outcome = rotate(prepare_roulette_from(A, D)),
+    
+    {_, AttackType, DamageRange} = CurrHand,
+
+    Damage = calculate_damage(AttackType, Outcome, DamageRange, Armor) * DamageCoeff,
+
     NextA = A#{curr_attr:=CurrAttr#{damage_dealt:=Damage, outcome:=Outcome}},
     NextD = D#{hp:=H2 - Damage},
     NextLog = log(S, NextA, NextD),
