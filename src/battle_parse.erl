@@ -22,7 +22,8 @@ parse_single_player(SinglePlayerData) ->
             secd_hand  => {secd, binary_to_atom(SecdType, utf8), {SecdMin, SecdMax}},
             curr_hand  => {prim, binary_to_atom(PrimType, utf8), {PrimMin, PrimMax}},
 
-            cast_list => lists:map(fun(X) -> binary_to_atom(X, utf8) end, CastList),
+            casts => lists:map(fun(X) -> binary_to_atom(X, utf8) end, CastList),
+            effects => [],
 
             curr_attr => #{
                 armor      => Armor,

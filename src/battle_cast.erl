@@ -24,22 +24,22 @@ role({indirect, {Op, From}, To}, Movers) -> {indirect, {Op, role(From, Movers)},
 % of starting) should be 0, and the Last (the rounds that the effect of cast
 % last for) should be 1.
 
-condition({Start, Last, Phase, Outcome}, Mover, CurrSeq) ->
-    {CurrSeq + Start, CurrSeq + Start + Last, Mover, Phase, Outcome}.
+condition({Start, Last, Phase, Outcome}, CurrSeq) ->
+    {CurrSeq + Start, CurrSeq + Start + Last, Phase, Outcome}.
 
 % wrap all the operations. A mapping from original description of an effect
 % along with the current state, to a final form of effect description. The
 % latter function is the actual entrance that takes cast name as argument, and
 % find the specification in database, and re-interpret it with battle context.
 
-parse_cast_effect({Name, Cond, Trans, Prob, React}, {CurrSeq, _, _, {Mover, _}, _}, O, D) ->
+parse_cast_effect({Name, Cond, Trans, Prob, React}, {CurrSeq, _, _, _, _}, O, D) ->
 
     Outcome = case rand:uniform() > Prob of
         true -> cast_failed;
         _    -> cast_successful
     end,
 
-    {Name, condition(Cond, Mover, CurrSeq), role(Trans, {O, D}), Outcome, React}.
+    {Name, condition(Cond, CurrSeq), role(Trans, {O, D}), Outcome, React}.
 
 get_effect_list({_Name, List}, S, O, D) ->
     lists:map(fun(Spec) -> parse_cast_effect(Spec, S, O, D) end, List).
@@ -71,17 +71,17 @@ log(casted, {EffectName, Outcome}, {Seq, Stage, Role, {Mover, _}, _}, O, D) ->
 
 
 
-cast_single(S, #{cast_list:=[]}=O, D, L) ->
+cast_single(S, #{casts:=[]}=O, D, L) ->
     
     {Mover, _} = element(4, S),
     {setelement(4, S, {Mover, 0}), O, D, L};
 
-cast_single(S, #{cast_list:=[null | _]}=O, D, L) ->
+cast_single(S, #{casts:=[null | _]}=O, D, L) ->
     {Mover, _} = element(4, S),
     {setelement(4, S, {Mover, 0}), O, D, L};
 
-cast_single(S = {_, _, _,  _, MountedEffects},
-            #{id:=OffenderID, cast_list:=[CastName | RemainingCasts]}=O, 
+cast_single(S = {_, _, _,  _, _},
+            #{id:=OffenderID, casts:=[CastName | RemainingCasts], effects:=Effects}=O, 
             #{id:=DefenderID}=D, L) ->
 
     CurrEffects = get_effect_list_from_name(CastName, S, OffenderID, DefenderID),
@@ -89,8 +89,7 @@ cast_single(S = {_, _, _,  _, MountedEffects},
     LogMounting = [log(casted, {Name, Outcome}, S, O, D) || {Name, _, _, Outcome, _} <- CurrEffects],
     NewLog = lists:append(LogMounting, [LogCasting | L]),
 
-    {setelement(5, S, lists:append(MountedEffects, CurrEffects)), 
-     O#{cast_list:=RemainingCasts}, D, NewLog}.
+    {S, O#{casts:=RemainingCasts, effects:=lists:append(CurrEffects, Effects)}, D, NewLog}.
 
 cast(S = {_, _, _, {Mover, _}, _}, #{id:=I1}=P1, #{id:=I2}=P2, L) ->
 
