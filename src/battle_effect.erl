@@ -71,7 +71,7 @@ get_react_outcome(React, ID, P1, P2) ->
 
 check_condition({StartingSeq, TerminalSeq, Phase, _}, CurrSeq, CurrPhase, OutcomeMatches) ->
     (CurrSeq >= StartingSeq) and (CurrSeq < TerminalSeq) and (Phase == CurrPhase) and OutcomeMatches.
-check_condition(EffectCond, {CurrSeq, CurrPhase, _, _, _}, OutcomeMatches) ->
+check_condition(EffectCond, {CurrSeq, CurrPhase, _, _}, OutcomeMatches) ->
     check_condition(EffectCond, CurrSeq, CurrPhase, OutcomeMatches).
 
 % apply_effect: the wrapper function to apply the effects over the player context, and
@@ -133,7 +133,7 @@ apply_effect(Effect, State, {O, D}) ->
     end.
 
 
-log({Seq, Stage, Role, {Mover, _}, _}, {EffectName, _, _, _, _}, ReactOutcome, O, D) ->
+log({Seq, Stage, Role, {Mover, _}}, {EffectName, _, _, _, _}, ReactOutcome, O, D) ->
 
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, {role, Role}, { defender, maps:get(id, D)},
@@ -169,7 +169,7 @@ effect_single(S, #{effects:=[EffectSpec | Remaining]} = O, D, Log) ->
     effect_single(S, EffectedOffender#{effects:=Remaining}, EffectedDefender, NewLog).
 
 
-apply_effects(S = {_, _, _, {Mover, _}, _},
+apply_effects(S = {_, _, _, {Mover, _}},
               #{id:=I1, effects:=OrigEffects1}=P1,
               #{id:=I2, effects:=OrigEffects2}=P2, Log) ->
 

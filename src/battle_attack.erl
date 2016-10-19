@@ -74,7 +74,7 @@ calculate_damage(_, _, _, _) -> 0.
 % Calculates the damage with given character type, the upper and lower
 % damage of weapon, and outcome of roulette turning.
 
-log({Seq, Stage, Role, {Mover, Rem}, _},
+log({Seq, Stage, Role, {Mover, Rem}},
     #{curr_hand:={Which, AtkType, _}}=O,
     #{curr_attr:=#{outcome:=Outcome, damage_taken:=Damage}}=D)  ->
     
@@ -106,7 +106,7 @@ attack(S,
     NextLog = log(S, A, NextD),
     {NextA, NextD, NextLog}.
 
-attack(S = {_, _, _, {Mover, RemainingMoves}, _}, #{id:=I1} = P1, P2, L) ->
+attack(S = {_, _, _, {Mover, RemainingMoves}}, #{id:=I1} = P1, P2, L) ->
 
     {NextP1, NextP2, NextLog} = case Mover of
         I1 -> attack(S, P1, P2);
