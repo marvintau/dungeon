@@ -88,7 +88,8 @@ log({Seq, Stage, Role, {Mover, Rem}, _},
     ]}.
 
 attack(S,
-       #{curr_hand:=CurrHand, curr_attr:=CurrAttr, damage_coeff:=DamageCoeff}=A,
+       #{curr_hand:={HandType, _, _}=CurrHand, prim_hand:=PrimHand, secd_hand:=SecdHand,
+         curr_attr:=CurrAttr, damage_coeff:=DamageCoeff}=A,
        #{curr_attr:=#{armor:=Armor}, hp:=H2}=D) ->
 
     Outcome = rotate(prepare_roulette_from(A, D)),
@@ -97,29 +98,21 @@ attack(S,
 
     Damage = calculate_damage(AttackType, Outcome, DamageRange, Armor) * DamageCoeff,
 
+    NextA = case HandType of
+        prim -> A#{curr_hand:=SecdHand};
+        secd -> A#{curr_hand:=PrimHand}
+    end,
     NextD = D#{curr_attr:=CurrAttr#{damage_taken:=Damage, outcome:=Outcome}, hp:=H2 - Damage},
     NextLog = log(S, A, NextD),
-    {A, NextD, NextLog}.
+    {NextA, NextD, NextLog}.
 
-attack(
-  S = {_, _, _, {Mover, RemainingMoves}, _},
-  #{id:=I1, curr_hand:={Hand1, _, _}=Curr1, prim_hand:=Prim1, secd_hand:=Secd1} = P1,
-  #{id:=I2, curr_hand:={Hand2, _, _}=Curr2, prim_hand:=Prim2, secd_hand:=Secd2} = P2, L) ->
+attack(S = {_, _, _, {Mover, RemainingMoves}, _}, #{id:=I1} = P1, P2, L) ->
 
     {NextP1, NextP2, NextLog} = case Mover of
         I1 -> attack(S, P1, P2);
         _ ->  {New2, New1, NewLog} = attack(S, P2, P1), {New1, New2, NewLog}
     end,
 
-    {NewCurr1, NewCurr2} = case {Mover, Hand1, Hand2} of
-        {I1, prim, _} -> {Secd1, Curr2};
-        {I1, secd, _} -> {Prim1, Curr2};
-        {I2, _, prim} -> {Curr1, Secd2};
-        {I2, _, secd} -> {Curr1, Prim2}
-    end,
-
-    { setelement(4, S, {Mover, RemainingMoves-1}),
-      NextP1#{curr_hand:=NewCurr1},
-      NextP2#{curr_hand:=NewCurr2},
+    { setelement(4, S, {Mover, RemainingMoves-1}), NextP1, NextP2,
       [ NextLog | L ]
     }. 
