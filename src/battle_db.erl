@@ -23,13 +23,13 @@ create_cast_table() ->
         ]},
 
         {burning_powder, [
-            {burning_powder, {0, 1, casting, nah}, {direct, {times, 0.99}, {role, to_hp, of_opponent, null}}, 1, none},
-            {burning_powder, {1, 3, settling, nah}, {direct, {times, 0.99}, {role, to_hp, of_opponent, null}}, 1, none},
-            {burning_powder, {4, 1, settling, nah}, {direct, {times, 0.95}, {role, to_hp, of_opponent, null}}, 1, none}
+            {burning_powder, {0, 1, casting, nah}, {direct, {times, 0.01}, {role, to_hp, of_opponent, null}}, 1, none},
+            {burning_powder, {1, 3, settling, nah}, {direct, {times, 0.01}, {role, to_hp, of_opponent, null}}, 1, none},
+            {burning_powder, {4, 1, settling, nah}, {direct, {times, 0.05}, {role, to_hp, of_opponent, null}}, 1, none}
         ]},
 
         {talisman_of_death, [
-            {talisman_of_death_effect, {0, 1, casting, nah}, {direct, {times, 0.85}, {role, to_hp, of_opponent, null}}, 1, resistable}
+            {talisman_of_death_effect, {0, 1, casting, nah}, {direct, {times, 0.15}, {role, to_hp, of_opponent, null}}, 1, resistable}
         ]},
 
         {talisman_of_spellshrouding, [
