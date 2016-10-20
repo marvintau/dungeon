@@ -12,20 +12,17 @@
 
 % ------------- HELPER FUNCTION FOR CHOOSING NEW OFFENDER --------------
 
-toss(#{id:=I1, curr_attr:=#{agility:=A1}},
-     #{id:=I2, curr_attr:=#{agility:=A2}}) ->
-    case rand:uniform() * (A1 + A2) > A1 of
-        true -> I2;
-        _    -> I1
+toss(#{id:=A, curr_attr:=#{agility:=AgiA}},
+     #{id:=B, curr_attr:=#{agility:=AgiB}}) ->
+    case rand:uniform() * (AgiA + AgiB) > AgiA of
+        true -> B;
+        _    -> A
     end.
 
 % ----------- HELPER FUNCTION FOR SWAPPING OFFENDER/DEFENDER -----------
 
-swap(Mover, #{id:=I1}, #{id:=I2}) ->
-    case Mover == I1 of
-        true -> I2;
-        _    -> I1
-    end.
+swap(Mover, #{id:=Mover}, #{id:=B}) -> B;
+swap(Mover, #{id:=A}, #{id:=Mover}) -> A.
 
 
 trans(Action, S={_, _, Mover}, #{id:=I1}=P1, #{id:=I2}=P2, L) ->
@@ -69,10 +66,10 @@ loop({Seq, attacking, _Mover},
      #{rem_moves:=0, prim_hand:=PrimHand2, orig_attr:=Orig2}=P2,
      L) ->
 
-    loop({Seq+1, settling, toss(P1, P2)},
-         P1#{rem_moves:=2, curr_hand:=PrimHand1, curr_attr:=Orig1},
-         P2#{rem_moves:=2, curr_hand:=PrimHand2, curr_attr:=Orig2},
-         L);
+    NewP1 = P1#{rem_moves:=2, curr_hand:=PrimHand1, curr_attr=>Orig1},
+    NewP2 = P2#{rem_moves:=2, curr_hand:=PrimHand2, curr_attr=>Orig2},
+
+    loop({Seq+1, settling, toss(NewP1, NewP2)}, NewP1, NewP2, L);
 
 
 % ---------------- SWAPPING OFFENDER AND DEFENDER --------------------

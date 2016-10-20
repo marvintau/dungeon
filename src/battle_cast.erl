@@ -24,8 +24,8 @@ role({indirect, {Op, From}, To}, Movers) -> {indirect, {Op, role(From, Movers)},
 % of starting) should be 0, and the Last (the rounds that the effect of cast
 % last for) should be 1.
 
-condition({Start, Last, Phase, Outcome}, CurrSeq) ->
-    {CurrSeq + Start, CurrSeq + Start + Last, Phase, Outcome}.
+condition({Start, Last, Phase}, CurrSeq) ->
+    {CurrSeq + Start, CurrSeq + Start + Last, Phase}.
 
 % wrap all the operations. A mapping from original description of an effect
 % along with the current state, to a final form of effect description. The

@@ -89,12 +89,12 @@ log({Seq, Stage, Mover},
 
 attack(S,
        #{curr_hand:={HandType, AttackType, DamageRange}, prim_hand:=PrimHand, secd_hand:=SecdHand,
-         curr_attr:=CurrAttr, damage_coeff:=DamageCoeff, rem_moves:=RemMoves}=A,
+         curr_attr:=#{damage_coeff:=DamageCoeff, damage_addon:=DamageAddon}=CurrAttr, rem_moves:=RemMoves}=A,
        #{curr_attr:=#{armor:=Armor}, hp:=H2}=D, L) ->
 
     Outcome = rotate(prepare_roulette_from(A, D)),
     
-    Damage = calculate_damage(AttackType, Outcome, DamageRange, Armor) * DamageCoeff,
+    Damage = calculate_damage(AttackType, Outcome, DamageRange, Armor) * DamageCoeff + DamageAddon,
 
     NextA = case HandType of
         prim -> A#{curr_hand:=SecdHand};

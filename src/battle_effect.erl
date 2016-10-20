@@ -17,38 +17,44 @@ rand_from_interval(SingleValue) -> SingleValue.
 set_attr({set, Value}, AttrName, #{curr_attr:=Attr}=P) ->
     P#{curr_attr:=Attr#{AttrName:=Value}};
 
-set_attr({add, Incremental}, AttrName, #{curr_attr:=Attr}=P) ->
+set_attr({add, Inc}, AttrName, #{curr_attr:=Attr}=P) ->
     Original = get_attr(AttrName, P),
-    P#{curr_attr:=Attr#{AttrName := round(Original + rand_from_interval(Incremental))}};
+    P#{curr_attr:=Attr#{AttrName := round(Original + rand_from_interval(Inc))}};
 
 set_attr({times, Ratio}, AttrName, #{curr_attr:=Attr}=P) ->
     Original = get_attr(AttrName, P),
-    P#{curr_attr:=Attr#{AttrName := round(Original * rand_from_interval(Ratio))}};
+    Inc = round(Original * rand_from_interval(Ratio)), 
+    P#{curr_attr:=Attr#{AttrName := Original + Inc}};
 
-set_attr({linear, Incremental, Ratio}, AttrName, #{curr_attr:=Attr}=P) ->
+set_attr({linear, Inc, Ratio}, AttrName, #{curr_attr:=Attr}=P) ->
     Original = get_attr(AttrName, P),
-    P#{curr_attr:=Attr#{AttrName := Original + round(rand_from_interval(Incremental) * Ratio)}}.
+    P#{curr_attr:=Attr#{AttrName := Original + round(rand_from_interval(Inc) * Ratio)}}.
 
 set_hp({set, Value}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
     P#{hp:=Value, curr_attr:=Attrs#{damage_taken:=Hp - Value}};
 
-set_hp({add, Incremental}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
-    FinalInc = rand_from_interval(Incremental),
-    P#{hp:=Hp + FinalInc, 
+set_hp({add, Inc}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
+    FinalInc = rand_from_interval(Inc),
+    P#{hp:=Hp - FinalInc, 
        curr_attr:=Attrs#{damage_taken:=FinalInc}};
 
 set_hp({times, Ratio}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
     FinalInc = round(Hp * rand_from_interval(Ratio)),
     P#{hp:= Hp - FinalInc, curr_attr:=Attrs#{damage_taken:=FinalInc}};
 
-set_hp({linear, Incremental, Ratio}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
-    FinalInc = round(rand_from_interval(Incremental) * Ratio),
+set_hp({linear, Inc, Ratio}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
+    FinalInc = round(rand_from_interval(Inc) * Ratio),
     P#{hp:=Hp - FinalInc, curr_attr:=Attrs#{damage_taken:=FinalInc}}.
 
 compensate_armor(#{hp:=Hp, curr_attr:=Attrs}=P) ->
     #{armor:=Armor, damage_taken:=Damage} = Attrs,
     NewDamage = Damage * (1 - Armor/10000),
     P#{hp:=Hp + (Damage - NewDamage), curr_attr:=Attrs#{damage_taken:=NewDamage}}.
+
+
+set_rem_moves({set, Value}, P) ->
+    P#{rem_moves:=Value}.
+
 
 get_player_by_id(Who, #{id:=I1}=P1, #{id:=I2}=P2) ->
     case Who of
@@ -69,10 +75,10 @@ get_react_outcome(React, ID, P1, P2) ->
         none -> {ok, none}
     end.
 
-check_condition({StartingSeq, TerminalSeq, Phase, _}, CurrSeq, CurrPhase, OutcomeMatches) ->
-    (CurrSeq >= StartingSeq) and (CurrSeq < TerminalSeq) and (Phase == CurrPhase) and OutcomeMatches.
-check_condition(EffectCond, {CurrSeq, CurrPhase, _}, OutcomeMatches) ->
-    check_condition(EffectCond, CurrSeq, CurrPhase, OutcomeMatches).
+check_condition({StartingSeq, TerminalSeq, Phase}, CurrSeq, CurrPhase) ->
+    (CurrSeq >= StartingSeq) and (CurrSeq < TerminalSeq) and (Phase == CurrPhase).
+check_condition(EffectCond, {CurrSeq, CurrPhase, _}) ->
+    check_condition(EffectCond, CurrSeq, CurrPhase).
 
 % apply_effect: the wrapper function to apply the effects over the player context, and
 % mark whether the context is modified. If modified, the function returns {affected, P1, P2},
@@ -105,6 +111,16 @@ apply_effect({direct, Op, {role, to_attr, ToWhom, AttrName}}, React, {#{id:=I1}=
         {_, I2} -> {affected, P1, set_attr(Op, AttrName, P2)}
     end;
 
+apply_effect({direct, Op, {role, to_rem_moves, ToWhom, _}}, React, {#{id:=I1}=P1, #{id:=I2}=P2}) ->
+    
+    FinalReact = get_react_outcome(React, ToWhom, P1, P2),
+
+    case {FinalReact, ToWhom} of
+        {{not_affected, Reaction}, _} -> {{not_affected, Reaction}, P1, P2};
+        {_, I1} -> {affected, set_rem_moves(Op, P1), P2};
+        {_, I2} -> {affected, P1, set_rem_moves(Op, P2)}
+    end;
+
 
 apply_effect({indirect, {Op, {role, FromWhat, FromWhom, AttrName}}, To}, React,
             {#{id:=I1, hp:=H1}=P1, #{id:=I2, hp:=H2}=P2}) ->
@@ -118,14 +134,9 @@ apply_effect({indirect, {Op, {role, FromWhat, FromWhom, AttrName}}, To}, React,
 
 apply_effect(Effect, State, {O, D}) ->
 
-    {_Name, EffectCond = {_, _, _Phase, Outcome}, Specs, ProbOutcome, React} = Effect,
+    {_Name, EffectCond = {_, _, _Phase}, Specs, ProbOutcome, React} = Effect,
 
-    OutcomeMatches = case Outcome of
-        nah -> true;
-        _   -> Outcome == get_attr(outcome, O)
-    end,
-
-    case check_condition(EffectCond, State, OutcomeMatches) and (ProbOutcome == cast_successful) of
+    case check_condition(EffectCond, State) and (ProbOutcome == cast_successful) of
         
         true -> apply_effect(Specs, React, {O, D});
         

@@ -14,44 +14,33 @@ parse_single_player(SinglePlayerData) ->
 
     #{
 
-            id         => binary_to_atom(ID, utf8),
-            hp         => HP,
-            rem_moves  => 0,
+        id         => binary_to_atom(ID, utf8),
+        hp         => HP,
+        rem_moves  => 0,
 
-            prim_hand  => {prim, binary_to_atom(PrimType, utf8), {PrimMin, PrimMax}},
-            secd_hand  => {secd, binary_to_atom(SecdType, utf8), {SecdMin, SecdMax}},
-            curr_hand  => {prim, binary_to_atom(PrimType, utf8), {PrimMin, PrimMax}},
+        prim_hand  => {prim, binary_to_atom(PrimType, utf8), {PrimMin, PrimMax}},
+        secd_hand  => {secd, binary_to_atom(SecdType, utf8), {SecdMin, SecdMax}},
+        curr_hand  => {prim, binary_to_atom(PrimType, utf8), {PrimMin, PrimMax}},
 
-            casts => lists:map(fun(X) -> binary_to_atom(X, utf8) end, CastList),
-            effects => [],
+        casts => lists:map(fun(X) -> binary_to_atom(X, utf8) end, CastList),
+        effects => [],
 
-            curr_attr => #{
-                armor      => Armor,
-                hit        => Hit,
-                critical   => Critic,
-                dodge      => Dodge,
-                resist     => Resist,
-                block      => Block,
-                agility    => Agi,
-                outcome    => null,
-                damage_taken => 0
+        orig_attr => #{
+            status     => none,
+            armor      => Armor,
+            hit        => Hit,
+            critical   => Critic,
+            dodge      => Dodge,
+            resist     => Resist,
+            block      => Block,
+            agility    => Agi,
+            outcome    => null,
+            damage_coeff => 1,
+            damage_addon => 0,
+            damage_taken => 0
 
-            },
-           
-            orig_attr => #{
-                armor      => Armor,
-                hit        => Hit,
-                critical   => Critic,
-                dodge      => Dodge,
-                resist     => Resist,
-                block      => Block,
-                agility    => Agi,
-                outcome    => null,
-                damage_taken => 0
-             },
-
-            damage_coeff => 1
-        }.
+        }
+    }.
 
 
 
