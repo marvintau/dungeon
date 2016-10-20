@@ -3,7 +3,7 @@
 
 -author('Yue Marvin Tao').
 
--export([apply_effects/4]).
+-export([effect/4]).
 % A effects entry in a list should conform to the format of:
 
 % Modify attribute and return new player profile
@@ -71,7 +71,7 @@ get_react_outcome(React, ID, P1, P2) ->
 
 check_condition({StartingSeq, TerminalSeq, Phase, _}, CurrSeq, CurrPhase, OutcomeMatches) ->
     (CurrSeq >= StartingSeq) and (CurrSeq < TerminalSeq) and (Phase == CurrPhase) and OutcomeMatches.
-check_condition(EffectCond, {CurrSeq, CurrPhase, _, _}, OutcomeMatches) ->
+check_condition(EffectCond, {CurrSeq, CurrPhase, _}, OutcomeMatches) ->
     check_condition(EffectCond, CurrSeq, CurrPhase, OutcomeMatches).
 
 % apply_effect: the wrapper function to apply the effects over the player context, and
@@ -133,13 +133,13 @@ apply_effect(Effect, State, {O, D}) ->
     end.
 
 
-log({Seq, Stage, Role, {Mover, _}}, {EffectName, _, _, _, _}, ReactOutcome, O, D) ->
+log({Seq, Stage, Mover}, {EffectName, _, _, _, _}, ReactOutcome, O, D) ->
 
     {[
-        { seq, Seq }, {stage, Stage}, { offender, Mover }, {role, Role}, { defender, maps:get(id, D)},
+        { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, D)},
 
-        { hand, null}, { action, EffectName}, {rem_atks, null},
-        { outcome, ReactOutcome }, { damage, null },
+        { hand, null}, { action, EffectName},
+        { outcome, ReactOutcome }, { damage, maps:get(damage_taken, maps:get(curr_attr, D)) },
         { offender_hp, maps:get(hp, O) },
         { defender_hp, maps:get(hp, D) }
     ]}.
@@ -149,9 +149,14 @@ log({Seq, Stage, Role, {Mover, _}}, {EffectName, _, _, _, _}, ReactOutcome, O, D
 % we just check whether the effect description meets the condition, and
 % apply. Hence here we only change the player context.
 
-effect_single(_S, #{effects:=[]}=O, D, Log) ->
+
+effect(S, #{effects:=Effects}=O, D, Log) ->
+    effect(S, O, D, Log, Effects).
+
+effect(_S, O, D, Log, []) ->
     {O, D, Log};
-effect_single(S, #{effects:=[EffectSpec | Remaining]} = O, D, Log) ->
+
+effect(S, O, D, Log, [EffectSpec| Remaining]) ->
 
     {EffectedOffender, EffectedDefender, NewLog} =
     case apply_effect(EffectSpec, S, {O, D}) of
@@ -166,17 +171,5 @@ effect_single(S, #{effects:=[EffectSpec | Remaining]} = O, D, Log) ->
 
     end,
      
-    effect_single(S, EffectedOffender#{effects:=Remaining}, EffectedDefender, NewLog).
+    effect(S, EffectedOffender, EffectedDefender, NewLog, Remaining).
 
-
-apply_effects(S = {_, _, _, {Mover, _}},
-              #{id:=I1, effects:=OrigEffects1}=P1,
-              #{id:=I2, effects:=OrigEffects2}=P2, Log) ->
-
-    {EffectedP1, EffectedP2, EffectedLog} = case Mover of
-        I1 -> effect_single(S, P1, P2, Log);
-        I2  -> {NewP2, NewP1, NewLog} = effect_single(S, P2, P1, Log), {NewP1, NewP2, NewLog}
-    end,
-
-    {EffectedP1#{effects:=OrigEffects1},
-     EffectedP2#{effects:=OrigEffects2}, EffectedLog}.

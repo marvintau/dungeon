@@ -29,11 +29,11 @@ create_cast_table() ->
         ]},
 
         {talisman_of_death, [
-            {talisman_of_death_effect, {0, 1, casting, nah}, {direct, {times, 0.15}, {role, to_hp, of_opponent, null}}, 1, resistable}
+            {talisman_of_death, {0, 1, casting, nah}, {direct, {times, 0.15}, {role, to_hp, of_opponent, null}}, 1, resistable}
         ]},
 
         {talisman_of_spellshrouding, [
-            {talisman_of_spellshrouding_effect, {0, 1, casting, nah}, {direct, {add, 100}, {role, to_attr, of_self, resist}}, 1, none}
+            {talisman_of_spellshrouding, {0, 1, casting, nah}, {direct, {add, 100}, {role, to_attr, of_self, resist}}, 1, none}
         ]}
 
         

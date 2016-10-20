@@ -74,28 +74,26 @@ calculate_damage(_, _, _, _) -> 0.
 % Calculates the damage with given character type, the upper and lower
 % damage of weapon, and outcome of roulette turning.
 
-log({Seq, Stage, Role, {Mover, Rem}},
-    #{curr_hand:={Which, AtkType, _}}=O,
+log({Seq, Stage, Mover},
+    #{curr_hand:={Which, WeaponType, _}}=O,
     #{curr_attr:=#{outcome:=Outcome, damage_taken:=Damage}}=D)  ->
     
     {[
-        { seq, Seq }, {stage, Stage}, { offender, Mover }, {role, Role}, { defender, maps:get(id, D)},
+        { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, D)},
 
-        { hand, Which}, { action, AtkType}, {rem_atks, Rem},
+        { hand, Which}, { action, WeaponType},
         { outcome, Outcome }, { damage, Damage },
         { offender_hp, maps:get(hp, O) },
         { defender_hp, maps:get(hp, D) }
     ]}.
 
 attack(S,
-       #{curr_hand:={HandType, _, _}=CurrHand, prim_hand:=PrimHand, secd_hand:=SecdHand,
-         curr_attr:=CurrAttr, damage_coeff:=DamageCoeff}=A,
-       #{curr_attr:=#{armor:=Armor}, hp:=H2}=D) ->
+       #{curr_hand:={HandType, AttackType, DamageRange}, prim_hand:=PrimHand, secd_hand:=SecdHand,
+         curr_attr:=CurrAttr, damage_coeff:=DamageCoeff, rem_moves:=RemMoves}=A,
+       #{curr_attr:=#{armor:=Armor}, hp:=H2}=D, L) ->
 
     Outcome = rotate(prepare_roulette_from(A, D)),
     
-    {_, AttackType, DamageRange} = CurrHand,
-
     Damage = calculate_damage(AttackType, Outcome, DamageRange, Armor) * DamageCoeff,
 
     NextA = case HandType of
@@ -103,16 +101,6 @@ attack(S,
         secd -> A#{curr_hand:=PrimHand}
     end,
     NextD = D#{curr_attr:=CurrAttr#{damage_taken:=Damage, outcome:=Outcome}, hp:=H2 - Damage},
-    NextLog = log(S, A, NextD),
-    {NextA, NextD, NextLog}.
-
-attack(S = {_, _, _, {Mover, RemainingMoves}}, #{id:=I1} = P1, P2, L) ->
-
-    {NextP1, NextP2, NextLog} = case Mover of
-        I1 -> attack(S, P1, P2);
-        _ ->  {New2, New1, NewLog} = attack(S, P2, P1), {New1, New2, NewLog}
-    end,
-
-    { setelement(4, S, {Mover, RemainingMoves-1}), NextP1, NextP2,
-      [ NextLog | L ]
-    }. 
+    NextLog = [log(S, A, NextD) | L],
+    
+    {NextA#{rem_moves:=RemMoves-1}, NextD, NextLog}.

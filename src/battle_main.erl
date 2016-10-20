@@ -12,21 +12,28 @@
 
 % ------------- HELPER FUNCTION FOR CHOOSING NEW OFFENDER --------------
 
-toss(#{id:=I1, rem_moves:=Rem1, curr_attr:=#{agility:=A1}},
-     #{id:=I2, rem_moves:=Rem2, curr_attr:=#{agility:=A2}}) ->
+toss(#{id:=I1, curr_attr:=#{agility:=A1}},
+     #{id:=I2, curr_attr:=#{agility:=A2}}) ->
     case rand:uniform() * (A1 + A2) > A1 of
-        true -> {I2, Rem2};
-        _    -> {I1, Rem1}
+        true -> I2;
+        _    -> I1
     end.
 
 % ----------- HELPER FUNCTION FOR SWAPPING OFFENDER/DEFENDER -----------
 
-swap(Mover, #{id:=I1, rem_moves:=Rem1}, #{id:=I2, rem_moves:=Rem2}) ->
+swap(Mover, #{id:=I1}, #{id:=I2}) ->
     case Mover == I1 of
-        true -> {I2, Rem2};
-        _    -> {I1, Rem1}
+        true -> I2;
+        _    -> I1
     end.
 
+
+trans(Action, S={_, _, Mover}, #{id:=I1}=P1, #{id:=I2}=P2, L) ->
+    
+    case Mover of
+        I1 -> Action(S, P1, P2, L);
+        I2 -> {NewP2, NewP1, NewLog} = Action(S, P2, P1, L), {NewP1, NewP2, NewLog}
+    end.
 
 % ======================= MAIN BATTLE LOOP ============================
 
@@ -57,14 +64,14 @@ loop(_, #{hp:=HP1, id:=I1}, #{hp:=HP2, id:=I2}, Log) when HP1 < 0 orelse HP2 < 0
 % new round, the attributes should be restored in this stage. Meanwhile,
 % both players will be restored to primary hand.
 
-loop({Seq, attacking, defensive, {_Mover, 0}},
-     #{prim_hand:=PrimHand1, orig_attr:=Orig1}=P1,
-     #{prim_hand:=PrimHand2, orig_attr:=Orig2}=P2,
+loop({Seq, attacking, _Mover},
+     #{rem_moves:=0, prim_hand:=PrimHand1, orig_attr:=Orig1}=P1,
+     #{rem_moves:=0, prim_hand:=PrimHand2, orig_attr:=Orig2}=P2,
      L) ->
 
-    loop({Seq+1, settling, offensive, toss(P1, P2)},
-         P1#{curr_hand:=PrimHand1, curr_attr:=Orig1},
-         P2#{curr_hand:=PrimHand2, curr_attr:=Orig2},
+    loop({Seq+1, settling, toss(P1, P2)},
+         P1#{rem_moves:=2, curr_hand:=PrimHand1, curr_attr:=Orig1},
+         P2#{rem_moves:=2, curr_hand:=PrimHand2, curr_attr:=Orig2},
          L);
 
 
@@ -75,57 +82,63 @@ loop({Seq, attacking, defensive, {_Mover, 0}},
 % simply change to defender without changing anything else. If defender,
 % we need to switch to the next phase.
 
-loop({Seq, MoveType, DefOff, {Mover, 0}}, P1, P2, L) ->
+loop({Seq, Stage, Mover}, #{rem_moves:=0}=P1, #{rem_moves:=0}=P2, L) ->
 
-    NewDefOff = case DefOff of
-        defensive -> offensive;
-        _         -> defensive
-    end,
-
-    NewMoveType = case DefOff of
-        offensive -> MoveType;
-        _         ->
-            case MoveType of
-                settling -> casting;
-                casting -> attacking
-            end
+    NewStage = case Stage of
+        settling -> casting;
+        casting -> attacking
     end,
     
-    loop({Seq, NewMoveType, NewDefOff, swap(Mover, P1, P2)}, P1, P2, L);
+    loop({Seq, NewStage, swap(Mover, P1, P2)}, P1#{rem_moves:=2}, P2#{rem_moves:=2}, L);
     
+loop({Seq, Stage, Mover}, #{id:=Mover, rem_moves:=0}=P1, P2, L) ->
+    loop({Seq, Stage, swap(Mover, P1, P2)}, P1, P2, L);
+
+loop({Seq, Stage, Mover}, P1, #{id:=Mover, rem_moves:=0}=P2, L) ->
+    loop({Seq, Stage, swap(Mover, P1, P2)}, P1, P2, L);
+
+
 
 % ------------------------ LOOP FOR ATTACK  ---------------------------
 % In order to guarantee that there is no status dependency, all status
 % modification regarding attributes will be restored except HP, number
 % of remaining attacks current gamer in move.
 
-loop(S={_, attacking, _, _}, P1, P2, L) ->
+loop(S={_, attacking, _}, A, B, L) ->
 
-    {MovedState, MovedP1, MovedP2, MovedLog} = battle_attack:attack(S, P1, P2, L),
+    {AttackA, AttackB, AttackLog} = trans(fun(State, O, D, Log) ->
+        {MovedO, MovedD, MovedLog} = battle_attack:attack(State, O, D, Log),
+        battle_effect:effect(State, MovedO, MovedD, MovedLog)
+    end, S, A, B, L),
 
-    {AffectedP1, AffectedP2, AffectedLog} = battle_effect:apply_effects(MovedState, MovedP1, MovedP2, MovedLog),
-
-    loop(MovedState, AffectedP1, AffectedP2, AffectedLog);
+    loop(S, AttackA, AttackB, AttackLog);
 
 
 % ------------------------- LOOP FOR CAST -----------------------------
 
-loop(State={_, casting, _, _}, P1, P2, L) ->
+loop(S={_, casting, _}, A, B, L) ->
 
-    {NewState, CastedP1, CastedP2, LogCasted} = battle_cast:cast(State, P1, P2, L),
+    {CastA, CastB, CastLog} = trans(fun(State, O, D, Log) ->
+        
+        {MovedO, MovedD, MovedLog} = battle_cast:cast(State, O, D, Log),
+        battle_effect:effect(State, MovedO, MovedD, MovedLog)
 
-    {AffectedP1, AffectedP2, LogAffected} = battle_effect:apply_effects(NewState, CastedP1, CastedP2, LogCasted),
+    end, S, A, B, L),
 
-    loop(NewState, AffectedP1, AffectedP2, LogAffected);
+    loop(S, CastA, CastB, CastLog);
 
 
 % ---------------------- LOOP FOR SETTLEMENT -----------------------------
 
-loop(State={Seq, settling, DefOff, {Mover, _}}, P1, P2, L) ->
+loop(S={_, settling, _}, A, B, L) ->
 
-    {AffectedP1, AffectedP2, LogAffected} = battle_effect:apply_effects(State, P1, P2, L),
-    
-    loop({Seq, settling, DefOff, {Mover, 0}}, AffectedP1, AffectedP2, LogAffected).
+    {SettleO, SettleD, SettleLog} = trans(fun(State, O, D, Log) ->
+
+        battle_effect:effect(State, O#{rem_moves:=0}, D, Log)
+
+    end, S, A, B, L),
+
+    loop(S, SettleO, SettleD, SettleLog).
 
 
 
@@ -133,4 +146,4 @@ init_new_battle(Data) ->
 
     {P1, P2} = battle_parse:player_context_from_parsed_JSON(Data),
 
-    loop({0, attacking, defensive, {maps:get(id, P1), 0}}, P1, P2, []). 
+    loop({0, attacking, maps:get(id, P1)}, P1, P2, []). 

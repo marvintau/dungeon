@@ -16,7 +16,7 @@ parse_single_player(SinglePlayerData) ->
 
             id         => binary_to_atom(ID, utf8),
             hp         => HP,
-            rem_moves  => 2,
+            rem_moves  => 0,
 
             prim_hand  => {prim, binary_to_atom(PrimType, utf8), {PrimMin, PrimMax}},
             secd_hand  => {secd, binary_to_atom(SecdType, utf8), {SecdMin, SecdMax}},
