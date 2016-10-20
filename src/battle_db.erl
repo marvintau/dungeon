@@ -19,7 +19,7 @@ create_cast_table() ->
         ]},
 
         {attack_command, [
-            {attack_command, {0, 1, casting, nah}, {direct, {linear, {23, 109}, -1}, {role, to_hp, of_opponent, null}}, 1, none}
+            {attack_command, {0, 1, casting, nah}, {direct, {linear, {23, 109}, 1}, {role, to_hp, of_opponent, null}}, 1, none}
         ]},
 
         {burning_powder, [
