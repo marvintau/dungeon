@@ -32,42 +32,27 @@ condition({Start, Last, Phase}, CurrSeq) ->
 % latter function is the actual entrance that takes cast name as argument, and
 % find the specification in database, and re-interpret it with battle context.
 
-parse_cast_effect({Name, Cond, Trans, Prob, React}, {CurrSeq, _, _}, O, D) ->
+parse_single_effect({Name, Cond, Trans, React}, {CurrSeq, _, _}, O, D) ->
 
-    Outcome = case rand:uniform() > Prob of
-        true -> cast_failed;
-        _    -> cast_successful
-    end,
+    {Name, condition(Cond, CurrSeq), role(Trans, {O, D}), React}.
 
-    {Name, condition(Cond, CurrSeq), role(Trans, {O, D}), Outcome, React}.
+parse_effects({_Name, Prob, List}, S, O, D) ->
+    case rand:uniform() < Prob of
+        true -> {success, lists:map(fun(Spec) -> parse_single_effect(Spec, S, O, D) end, List)};
+        _ -> {failed, none}
+    end.
 
-get_effect_list({_Name, List}, S, O, D) ->
-    lists:map(fun(Spec) -> parse_cast_effect(Spec, S, O, D) end, List).
+parse_cast(Name, S, O, D) ->
+    parse_effects(hd(ets:lookup(casts, Name)), S, O, D).
 
-get_effect_list_from_name(Name, S, O, D) ->
-    get_effect_list(hd(ets:lookup(casts, Name)), S, O, D).
-
-
-
-log(casting, CastName, {Seq, Stage, Mover}, O, D) ->
+log(CastName, Outcome, {Seq, Stage, Mover}, O, D) ->
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, D)},
         { hand, null}, { action, CastName},
-        { outcome, cast }, { damage, null },
-        { offender_hp, maps:get(hp, O) },
-        { defender_hp, maps:get(hp, D) }
-    ]};
-
-log(casted, {EffectName, Outcome}, {Seq, Stage, Mover}, O, D) ->
-    {[
-        { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, D)},
-        { hand, null}, { action, EffectName},
         { outcome, Outcome }, { damage, null },
         { offender_hp, maps:get(hp, O) },
         { defender_hp, maps:get(hp, D) }
     ]}.
-
-
 
 cast(_S, #{casts:=[]}=O, D, L) ->
     {O#{rem_moves:=0}, D, L};
@@ -75,12 +60,16 @@ cast(_S, #{casts:=[]}=O, D, L) ->
 cast(_S, #{casts:=[null | _]}=O, D, L) ->
     {O#{rem_moves:=0}, D, L};
 
-cast(S, #{id:=OffenderID, casts:=[CastName | RemainingCasts], effects:=Effects}=O, 
-        #{id:=DefenderID}=D, L) ->
+cast(S, #{id:=Off, casts:=[CastName | RemainingCasts], effects:=ExistingEffects}=O, 
+        #{id:=Def}=D, L) ->
 
-    CurrEffects = get_effect_list_from_name(CastName, S, OffenderID, DefenderID),
-    LogCasting = log(casting, CastName, S, O, D), 
-    LogMounting = [log(casted, {Name, Outcome}, S, O, D) || {Name, _, _, Outcome, _} <- CurrEffects],
-    NewLog = lists:append(LogMounting, [LogCasting | L]),
+    {NewEffects, NewLog} = case parse_cast(CastName, S, Off, Def) of
+        {success, CurrEffects} ->
+            Log = [log(CastName, success, S, O, D) | L],
+            Effects = lists:append(CurrEffects, ExistingEffects),
+            {Effects, Log};
+        {failed, _} ->
+            {ExistingEffects, L}
+    end,
 
-    {O#{rem_moves:=0, casts:=RemainingCasts, effects:=lists:append(CurrEffects, Effects)}, D, NewLog}.
+    {O#{rem_moves:=0, casts:=RemainingCasts, effects:=NewEffects}, D, NewLog}.

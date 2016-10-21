@@ -122,21 +122,21 @@ apply_effect({direct, Op, {role, to_rem_moves, ToWhom, _}}, React, {#{id:=I1}=P1
     end;
 
 
-apply_effect({indirect, {Op, {role, FromWhat, FromWhom, AttrName}}, To}, React,
+apply_effect({indirect, {linear, {role, FromWhat, FromWhom, AttrName}, Ratio}, To}, React,
             {#{id:=I1, hp:=H1}=P1, #{id:=I2, hp:=H2}=P2}) ->
     case {FromWhat, FromWhom} of
-        {from_hp, I1} -> apply_effect({direct, {Op, H1}, To}, React, {P1, P2});
-        {from_hp, I2} -> apply_effect({direct, {Op, H2}, To}, React, {P1, P2});
-        {from_attr, I1} -> apply_effect({direct, {Op, get_attr(AttrName, P1)}, To}, React, {P1, P2});
-        {from_attr, I2} -> apply_effect({direct, {Op, get_attr(AttrName, P1)}, To}, React, {P1, P2})
+        {from_hp, I1} -> apply_effect({direct, {linear, H1, Ratio}, To}, React, {P1, P2});
+        {from_hp, I2} -> apply_effect({direct, {linear, H2, Ratio}, To}, React, {P1, P2});
+        {from_attr, I1} -> apply_effect({direct, {linear, get_attr(AttrName, P1), Ratio}, To}, React, {P1, P2});
+        {from_attr, I2} -> apply_effect({direct, {linear, get_attr(AttrName, P1), Ratio}, To}, React, {P1, P2})
     end;
 
 
 apply_effect(Effect, State, {O, D}) ->
 
-    {_Name, EffectCond = {_, _, _Phase}, Specs, ProbOutcome, React} = Effect,
+    {_Name, EffectCond = {_, _, _Phase}, Specs, React} = Effect,
 
-    case check_condition(EffectCond, State) and (ProbOutcome == cast_successful) of
+    case check_condition(EffectCond, State) of
         
         true -> apply_effect(Specs, React, {O, D});
         
@@ -144,7 +144,7 @@ apply_effect(Effect, State, {O, D}) ->
     end.
 
 
-log({Seq, Stage, Mover}, {EffectName, _, _, _, _}, ReactOutcome, O, D) ->
+log({Seq, Stage, Mover}, {EffectName, _, _, _}, ReactOutcome, O, D) ->
 
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, D)},
