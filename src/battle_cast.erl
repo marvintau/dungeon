@@ -36,7 +36,7 @@ parse_single_effect({Name, Cond, Trans, React}, {CurrSeq, _, _}, O, D) ->
 
     {Name, condition(Cond, CurrSeq), role(Trans, {O, D}), React}.
 
-parse_effects({_Name, Prob, List}, S, O, D) ->
+parse_effects({_Name, _Class, Prob, List}, S, O, D) ->
     case rand:uniform() < Prob of
         true -> {success, lists:map(fun(Spec) -> parse_single_effect(Spec, S, O, D) end, List)};
         _ -> {failed, none}
@@ -57,8 +57,8 @@ log(CastName, Outcome, {Seq, Stage, Mover}, O, D) ->
 cast(_S, #{casts:=[]}=O, D, L) ->
     {O#{rem_moves:=0}, D, L};
 
-cast(_S, #{casts:=[null | _]}=O, D, L) ->
-    {O#{rem_moves:=0}, D, L};
+cast(_S, #{casts:=[none | RemainingCasts]}=O, D, L) ->
+    {O#{rem_moves:=0, casts:=RemainingCasts}, D, L};
 
 cast(S, #{id:=Off, casts:=[CastName | RemainingCasts], effects:=ExistingEffects}=O, 
         #{id:=Def}=D, L) ->

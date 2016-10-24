@@ -14,7 +14,7 @@ rotate(Roulette) ->
 
     Rand = rand:uniform() * hd(Cumulative),
     
-    ResultIndex = length(element(1, lists:splitwith(fun(X) -> X > Rand end, Cumulative))),
+    ResultIndex = length(element(1, lists:splitwith(fun(X) -> X >= Rand end, Cumulative))),
     lists:nth(ResultIndex, [block, resist, dodge, critical, attack]).
 
 
@@ -80,7 +80,6 @@ log({Seq, Stage, Mover},
     
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, D)},
-
         { hand, Which}, { action, WeaponType},
         { outcome, Outcome }, { damage, Damage },
         { offender_hp, maps:get(hp, O) },

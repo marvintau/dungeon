@@ -19,6 +19,11 @@ var perm = function(array) {
     return array;
 }
 
+var pad_with_null = function(array) {
+    var pad = Array.apply(null, Array(5 - array.length)).map(String.prototype.valueOf,"none");
+    return array.concat(pad);
+}
+
 $.setData = function () {
     $('#id1').val("Maxim the Warrior");
     $('#hp1').val(3400);
@@ -38,11 +43,6 @@ $.setData = function () {
     $('#block1').val("35");
     $('#agi1').val("50");
 
-    NewCasts = perm(['burning_powder', 'talisman_of_death', 'attack_command', 'combat_sense']);
-    $('#cast1-1').val(NewCasts[0]);
-    $('#cast1-2').val(NewCasts[1]);
-    $('#cast1-3').val(NewCasts[2]);
-
     $('#id2').val("Scarlett the Rogue");
     $('#hp2').val("2700");
     $('#prim_type2').val("physical");
@@ -60,11 +60,6 @@ $.setData = function () {
     $('#resist2').val("35");
     $('#block2').val("0");
     $('#agi2').val("75");
-
-    NewCasts = perm(['burning_powder', 'talisman_of_death', 'attack_command', 'combat_sense']);
-    $('#cast2-1').val(NewCasts[0]);
-    $('#cast2-2').val(NewCasts[1]);
-    $('#cast2-3').val(NewCasts[2]);
 
 }
 
@@ -90,7 +85,8 @@ $.getData = function () {
             block : parseInt($('#block1').val()),
             agility : parseInt($('#agi1').val()),
 
-            cast_list : [$('#cast1-1').val(), $('#cast1-2').val(), $('#cast1-3').val()]
+            cast_list : pad_with_null(ms1.getValue())
+
         },
 
         player2 : {
@@ -112,7 +108,7 @@ $.getData = function () {
             block : parseInt($('#block2').val()),
             agility : parseInt($('#agi2').val()),
 
-            cast_list : [$('#cast2-1').val(), $('#cast2-2').val(), $('#cast2-3').val()]
+            cast_list : pad_with_null(ms2.getValue())
         }
     }    
 }
@@ -178,4 +174,44 @@ $("#submit").on('click', function(){
 
 $("#reset").on('click', function(){
     $.setData();
+});
+
+$("#class1").ready(function(){
+    $.postJSON("/get_list", {id: $('#id1').val(), class:$('#class1').val()}, function(data){
+        console.log(data);
+        ms1 = $('#cast-list-1').magicSuggest({data:data, maxSuggestion:5, allowFreeEntries:false});
+    }, "json").fail(function(){
+        console.log("error");
+    });
+});
+
+$("#class1").change(function(){
+
+    console.log('changed');
+
+    $.postJSON("/get_list", {id: $('#id1').val(), class:$('#class1').val()}, function(data){
+        ms1.clear(); 
+        ms1.setData(data);
+
+    }, "json").fail(function(){
+        console.log("error");
+    });
+});
+
+$("#class2").ready(function(){
+    $.postJSON("/get_list", {id: $('#id2').val(), class:$('#class2').val()}, function(data){
+        ms2 = $('#cast-list-2').magicSuggest({data:data, maxSuggestion:5, allowFreeEntries:false});
+    }, "json").fail(function(){
+        console.log("error");
+    });
+});
+
+$("#class2").change(function(){
+    $.postJSON("/get_list", {id: $('#id2').val(), class:$('#class2').val()}, function(data){
+        ms2.clear();
+        ms2.setData(data);
+
+    }, "json").fail(function(){
+        console.log("error");
+    });
 });

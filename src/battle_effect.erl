@@ -11,7 +11,7 @@ get_attr(AttrName, P) ->
     #{curr_attr:=#{AttrName:=Value}} = P, Value.
 
 rand_from_interval({Low, High}) ->
-    Low + rand:uniform() * (High - Low);
+    round(Low + rand:uniform() * (High - Low));
 rand_from_interval(SingleValue) -> SingleValue.
 
 set_attr({set, Value}, AttrName, #{curr_attr:=Attr}=P) ->

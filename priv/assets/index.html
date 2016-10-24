@@ -15,6 +15,7 @@
         <!-- Bootstrap core CSS -->
         <link href="bower_components/bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">
         <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="magicsuggest-min.css" rel="stylesheet">
 
         <style type="text/css">
             .h-divider{
@@ -45,6 +46,15 @@
                         <input class="form-control" id="id1" >
                     </div>
                     <div class="form-group-sm col-sm-2">
+                        <label>职业</label>
+                        <select class="form-control input" id="class1">
+                            <option>warrior</option>
+                            <option>hunter</option>
+                            <option>rogue</option>
+                            <option>mage</option>
+                         </select>
+                     </div>
+                     <div class="form-group-sm col-sm-2">
                         <label>血量</label>
                         <input class="form-control" id="hp1" >
                     </div>
@@ -114,19 +124,11 @@
                     </div>
                  </div>
                 <div class="row">
-                    <div class="form-group-sm col-sm-2">
-                        <label>Cast-1</label>
-                        <input class="form-control" id="cast1-1" >
+                    <div class="form-group-sm col-md-12">
+                        <label>技能列表</label>
+                        <div class="form-control" id="cast-list-1"></div>
                     </div>
-                    <div class="form-group-sm col-sm-2">
-                        <label>Cast-2</label>
-                        <input class="form-control" id="cast1-2" >
-                    </div>
-                    <div class="form-group-sm col-sm-2">
-                        <label>Cast-3</label>
-                        <input class="form-control" id="cast1-3" >
-                    </div>
-                  </div>
+                </div>
                  <div class="h-divider"></div>
                 <div class="row">
                     <div class="form-group-sm col-sm-2">
@@ -134,6 +136,15 @@
                         <input class="form-control" id="id2" >
                     </div>
                     <div class="form-group-sm col-sm-2">
+                        <label>职业</label>
+                        <select class="form-control input" id="class2">
+                            <option>warrior</option>
+                            <option>hunter</option>
+                            <option>rogue</option>
+                            <option>mage</option>
+                         </select>
+                     </div>
+                     <div class="form-group-sm col-sm-2">
                         <label>血量</label>
                         <input class="form-control" id="hp2" >
                     </div>
@@ -203,17 +214,9 @@
                     </div>
                  </div>
                 <div class="row">
-                    <div class="form-group-sm col-sm-2">
-                        <label>Cast-1</label>
-                        <input class="form-control" id="cast2-1" >
-                    </div>
-                    <div class="form-group-sm col-sm-2">
-                        <label>Cast-2</label>
-                        <input class="form-control" id="cast2-2" >
-                    </div>
-                    <div class="form-group-sm col-sm-2">
-                        <label>Cast-3</label>
-                        <input class="form-control" id="cast2-3" >
+                    <div class="form-group-sm col-md-12">
+                        <label>技能列表</label>
+                        <div class="form-control" id="cast-list-2"></div>
                     </div>
                 </div>
  
@@ -238,6 +241,7 @@
         <!-- Placed at the end of the document so the pages load faster -->
         <script>window.jQuery || document.write('<script src="bower_components/jquery/dist/jquery.min.js"><\/script>')</script>
         <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="magicsuggest.js"></script>
         <script src="main.js"></script>
         </body>
     </html>

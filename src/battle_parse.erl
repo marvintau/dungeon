@@ -26,7 +26,7 @@ parse_single_player(SinglePlayerData) ->
         effects => [],
 
         orig_attr => #{
-            status     => none,
+            is_movable => true,
             armor      => Armor,
             hit        => Hit,
             critical   => Critic,

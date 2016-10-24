@@ -103,9 +103,14 @@ loop({Seq, Stage, Mover}, P1, #{id:=Mover, rem_moves:=0}=P2, L) ->
 
 loop(S={_, attacking, _}, A, B, L) ->
 
-    {AttackA, AttackB, AttackLog} = trans(fun(State, O, D, Log) ->
-        {MovedO, MovedD, MovedLog} = battle_attack:attack(State, O, D, Log),
-        battle_effect:effect(State, MovedO, MovedD, MovedLog)
+    {AttackA, AttackB, AttackLog} = trans(fun(State, #{curr_attr:=CurrAttr}=O, D, Log) ->
+        case maps:get(is_movable, CurrAttr) of
+            true ->
+                {MovedO, MovedD, MovedLog} = battle_attack:attack(State, O, D, Log),
+                battle_effect:effect(State, MovedO, MovedD, MovedLog);
+            _ ->
+                {O#{rem_moves:=0}, D, Log}
+        end
     end, S, A, B, L),
 
     loop(S, AttackA, AttackB, AttackLog);

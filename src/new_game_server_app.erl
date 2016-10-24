@@ -19,7 +19,8 @@ start(_StartType, _StartArgs) ->
     Dispatch = cowboy_router:compile([
             {'_', [
                    {"/exam/[...]", cowboy_static, {priv_dir, new_game_server, "assets"}},
-                   {"/get_result", new_game_handler, []}
+                   {"/get_result", new_game_handler, []},
+                   {"/get_list", cast_list_handler, []}
                   ]}
         ]),
 
