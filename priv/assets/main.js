@@ -3,7 +3,7 @@ var rand_choice = function(array){
     return array[Math.floor(Math.random() * array.length)];
 }
 
-var perm = function(array) {
+var perm_slice = function(array) {
     var currentIndex = array.length, temporaryValue, randomIndex;
 
     while (0 !== currentIndex) {
@@ -16,7 +16,7 @@ var perm = function(array) {
         array[randomIndex] = temporaryValue;
     }
 
-    return array;
+    return array.slice(0, 5);
 }
 
 var pad_with_null = function(array) {
@@ -43,6 +43,9 @@ $.setData = function () {
     $('#block1').val("35");
     $('#agi1').val("50");
 
+    ms1.clear();
+    ms1.setValue(perm_slice(ms1.getData()));
+
     $('#id2').val("Scarlett the Rogue");
     $('#hp2').val("2700");
     $('#prim_type2').val("physical");
@@ -61,6 +64,8 @@ $.setData = function () {
     $('#block2').val("0");
     $('#agi2').val("75");
 
+    ms2.clear();
+    ms2.setValue(perm_slice(ms2.getData()));
 }
 
 
