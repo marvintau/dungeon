@@ -71,6 +71,8 @@ get_react_outcome(React, ID, P1, P2) ->
             _ -> {not_affected, resisted}
         end;
 
+        invalidated -> {not_affected, invalidated};
+
         absorbable -> {affected, absorbed};
         none -> {ok, none}
     end.
@@ -174,7 +176,7 @@ effect(S, O, D, Log, [EffectSpec| Remaining]) ->
         {affected, AffectedP1, AffectedP2} ->
             NextLog = [log(S, EffectSpec, effect, AffectedP1, AffectedP2) | Log],
             {AffectedP1, AffectedP2, NextLog};
-        {{not_affected, React}, NotAffectedP1, NotAffectedP2} when (React==resist) or (React==block) ->
+        {{not_affected, React}, NotAffectedP1, NotAffectedP2} when (React==resist) or (React==block) or (React==invalidated)->
             NextLog = [log(S, EffectSpec, React, NotAffectedP1, NotAffectedP2) | Log],
             {NotAffectedP1, NotAffectedP2, NextLog};
         {{not_affected, _}, NotAffectedP1, NotAffectedP2} ->

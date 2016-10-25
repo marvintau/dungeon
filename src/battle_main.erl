@@ -12,6 +12,9 @@
 
 % ------------- HELPER FUNCTION FOR CHOOSING NEW OFFENDER --------------
 
+toss(#{id:=A, casts:=[rune_of_the_void | _]}, _) -> A;
+toss(_, #{id:=B, casts:=[rune_of_the_void | _]}) -> B;
+
 toss(#{id:=A, curr_attr:=#{agility:=AgiA}},
      #{id:=B, curr_attr:=#{agility:=AgiB}}) ->
     case rand:uniform() * (AgiA + AgiB) > AgiA of
@@ -87,7 +90,7 @@ loop({Seq, Stage, Mover}, #{rem_moves:=0}=P1, #{rem_moves:=0}=P2, L) ->
     end,
     
     loop({Seq, NewStage, swap(Mover, P1, P2)}, P1#{rem_moves:=2}, P2#{rem_moves:=2}, L);
-    
+
 loop({Seq, Stage, Mover}, #{id:=Mover, rem_moves:=0}=P1, P2, L) ->
     loop({Seq, Stage, swap(Mover, P1, P2)}, P1, P2, L);
 

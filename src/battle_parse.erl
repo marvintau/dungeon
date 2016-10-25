@@ -37,8 +37,9 @@ parse_single_player(SinglePlayerData) ->
             outcome    => null,
             damage_coeff => 1,
             damage_addon => 0,
-            damage_taken => 0
+            damage_taken => 0,
 
+            status     => none
         }
     }.
 

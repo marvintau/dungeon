@@ -22,23 +22,8 @@ create_casts() ->
 
     CastsGeneral = [
 
-        {combat_sense, general, 1, [
-            {combat_sense, {0, 1, casting}, {direct, {times, 0.2}, {role, to_attr, of_self, hit}}, none}
-        ]},
-
-        {attack_command, general, 1, [
-            {attack_command, {0, 1, casting}, {direct, {linear, {23, 109}, 1}, {role, to_hp, of_opponent, null}}, none}
-        ]},
-
-        {burning_powder, general, 1, [
-            {burning_powder, {0, 1, casting}, {direct, {times, 0.01}, {role, to_hp, of_opponent, null}}, none},
-            {burning_powder, {1, 3, settling}, {direct, {times, 0.01}, {role, to_hp, of_opponent, null}}, none},
-            {burning_powder, {4, 1, settling}, {direct, {times, 0.05}, {role, to_hp, of_opponent, null}}, none}
-        ]},
-
-        {charm_of_foresight, general, 1, [
-            {charm_of_foresight, {0, 1, casting}, {direct, {times, 0.25}, {role, to_attr, of_self, dodge}}, none},
-            {charm_of_foresight, {0, 1, casting}, {direct, {times, 0.25}, {role, to_attr, of_self, block}}, none}
+        {rune_of_the_void, general, 1, [
+            {rune_of_the_void, {0, 1, casting}, {direct, {set, cast_disabled}, {role, to_attr, of_opponent, status}}, none}
         ]},
 
         {holy_hand_grenade, general, 1, [

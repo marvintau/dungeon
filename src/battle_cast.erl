@@ -32,9 +32,14 @@ condition({Start, Last, Phase}, CurrSeq) ->
 % latter function is the actual entrance that takes cast name as argument, and
 % find the specification in database, and re-interpret it with battle context.
 
-parse_single_effect({Name, Cond, Trans, React}, {CurrSeq, _, _}, O, D) ->
+parse_single_effect({Name, Cond, Trans, React}, {CurrSeq, _, _}, #{id:=Off, curr_attr:=#{status:=Status}=_}, #{id:=Def}) ->
 
-    {Name, condition(Cond, CurrSeq), role(Trans, {O, D}), React}.
+    NewReact = case Status of
+        cast_disabled -> invalidated;
+        _ -> React
+    end,
+
+    {Name, condition(Cond, CurrSeq), role(Trans, {Off, Def}), NewReact}.
 
 parse_effects({_Name, _Class, Prob, List}, S, O, D) ->
     case rand:uniform() < Prob of
@@ -60,10 +65,9 @@ cast(_S, #{casts:=[]}=O, D, L) ->
 cast(_S, #{casts:=[none | RemainingCasts]}=O, D, L) ->
     {O#{rem_moves:=0, casts:=RemainingCasts}, D, L};
 
-cast(S, #{id:=Off, casts:=[CastName | RemainingCasts], effects:=ExistingEffects}=O, 
-        #{id:=Def}=D, L) ->
+cast(S, #{casts:=[CastName | RemainingCasts], effects:=ExistingEffects}=O, D, L) ->
 
-    {NewEffects, NewLog} = case parse_cast(CastName, S, Off, Def) of
+    {NewEffects, NewLog} = case parse_cast(CastName, S, O, D) of
         {success, CurrEffects} ->
             Log = [log(CastName, success, S, O, D) | L],
             Effects = lists:append(CurrEffects, ExistingEffects),
