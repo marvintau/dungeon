@@ -2,10 +2,48 @@
 
 -author('Yue Marvin Tao').
 
--export([init_table/0, create_casts/0, list_casts/1, list_cast_json/1]).
+-export([init_table/0, create_casts/0, list_casts/0, list_casts/1, list_cast_json/1]).
 
 init_table() ->
     create_casts().
+
+parse_role_to_json({role, What, Whom, Attr}) ->
+    {[{what, What}, {whom, Whom}, {attr, Attr}]}.
+
+parse_range_to_json({Min, Max}) ->
+    {[{type, range}, {min, Min}, {max, Max}]};
+parse_range_to_json(Value) ->
+    {[{type, value}, {value, Value}]}.
+
+
+parse_op_to_json({linear, {role, FromWhat, FromWhom, FromAttr}, Ratio}) ->
+    {[{type, linear}, {ratio, Ratio}, {from, parse_role_to_json({role, FromWhat, FromWhom, FromAttr})}]};
+
+parse_op_to_json({linear, IncRange, Ratio}) ->
+    {[{type, linear}, {ratio, Ratio}, {from, parse_range_to_json(IncRange)}]};
+
+parse_op_to_json({Op, IncRange}) ->
+    {[{type, Op}, {from, parse_range_to_json(IncRange)}]}.
+
+parse_trans_to_json({TransType, Op, To}) ->
+    {[{type, TransType}, {op, parse_op_to_json(Op)}, {to, parse_role_to_json(To)}]}.
+
+parse_single_effect_to_json(Effect) ->
+    {Name, {Start, LastFor, Stage}, Trans, PossibleReact} = Effect,
+
+    NameJson = {name, Name},
+
+    RoundCondition = {[{start, Start}, {last_for, LastFor}, {stage, Stage}]},
+
+    {[{name, Name}, {round_cond, RoundCondition}, {trans, parse_single_effect_to_json({Trans})}, {react, PossibleReact}]}.
+
+parse_single_cast_to_json(Cast) ->
+    {Name, Class, Prob, Effects} = Cast,
+
+    {[{name, Name}, {class, Class}, {prob, Prob}, {effects, [parse_single_effect_to_json(Effect) || Effect <- Effects]}]}.
+
+list_casts() ->
+    {done, jiffy:encode(lists:flatten(ets:match(casts, '$1')))}.
 
 list_casts(Class) ->
     General = lists:flatten(ets:match(casts, {'$1', general, '_', '_'})),

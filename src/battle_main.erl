@@ -12,6 +12,9 @@
 
 % ------------- HELPER FUNCTION FOR CHOOSING NEW OFFENDER --------------
 
+% Any cast that might change the normal way of determine the order of
+% attack will be put here.
+
 toss(#{id:=A, casts:=[rune_of_the_void | _]}, _) -> A;
 toss(_, #{id:=B, casts:=[rune_of_the_void | _]}) -> B;
 
