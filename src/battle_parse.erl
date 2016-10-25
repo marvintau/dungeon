@@ -17,6 +17,7 @@ parse_single_player(SinglePlayerData) ->
         id         => binary_to_atom(ID, utf8),
         hp         => HP,
         rem_moves  => 0,
+        done       => already,
 
         prim_hand  => {prim, binary_to_atom(PrimType, utf8), {PrimMin, PrimMax}},
         secd_hand  => {secd, binary_to_atom(SecdType, utf8), {SecdMin, SecdMax}},
@@ -26,7 +27,9 @@ parse_single_player(SinglePlayerData) ->
         effects => [],
 
         orig_attr => #{
-            is_movable => true,
+            attack_disabled => false,
+            cast_disabled => false,
+            effect_invalidated => false,
             armor      => Armor,
             hit        => Hit,
             critical   => Critic,
@@ -37,9 +40,7 @@ parse_single_player(SinglePlayerData) ->
             outcome    => null,
             damage_coeff => 1,
             damage_addon => 0,
-            damage_taken => 0,
-
-            status     => none
+            damage_taken => 0
         }
     }.
 

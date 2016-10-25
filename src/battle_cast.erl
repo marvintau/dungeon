@@ -32,23 +32,27 @@ condition({Start, Last, Phase}, CurrSeq) ->
 % latter function is the actual entrance that takes cast name as argument, and
 % find the specification in database, and re-interpret it with battle context.
 
-parse_single_effect({Name, Cond, Trans, React}, {CurrSeq, _, _}, #{id:=Off, curr_attr:=#{status:=Status}=_}, #{id:=Def}) ->
+parse_single_effect({Name, Cond, Trans, React}, {CurrSeq, _, _}, #{id:=Off}, #{id:=Def}) ->
 
-    NewReact = case Status of
-        cast_disabled -> invalidated;
-        _ -> React
-    end,
+    {Name, condition(Cond, CurrSeq), role(Trans, {Off, Def}), React}.
 
-    {Name, condition(Cond, CurrSeq), role(Trans, {Off, Def}), NewReact}.
-
-parse_effects({_Name, _Class, Prob, List}, S, O, D) ->
+parse_single_group({Prob, Effects}, S, O, D) ->
     case rand:uniform() < Prob of
-        true -> {success, lists:map(fun(Spec) -> parse_single_effect(Spec, S, O, D) end, List)};
-        _ -> {failed, none}
+        true -> {success, lists:map(fun(Spec) -> parse_single_effect(Spec, S, O, D) end, Effects)};
+        _ -> {failed, bad_luck}
     end.
 
+parse_groups(Groups, S, O, D) ->
+   [parse_single_group(Group, S, O, D) || Group <- Groups]. 
+
+parse_groups_logged({Name, _Type, Groups}, S, O, D) ->
+    Parsed = parse_groups(Groups, S, O, D),
+    {Logs, Effects} = lists:unzip([{log(Name, Outcome, S, O, D), CurrEffects} || {Outcome, CurrEffects} <- Parsed]),
+
+    {Logs, [Effect || Effect <- lists:flatten(Effects), Effect =/=bad_luck]}.
+
 parse_cast(Name, S, O, D) ->
-    parse_effects(hd(ets:lookup(casts, Name)), S, O, D).
+    parse_groups_logged(hd(ets:lookup(casts, Name)), S, O, D).
 
 log(CastName, Outcome, {Seq, Stage, Mover}, O, D) ->
     {[
@@ -60,20 +64,15 @@ log(CastName, Outcome, {Seq, Stage, Mover}, O, D) ->
     ]}.
 
 cast(_S, #{casts:=[]}=O, D, L) ->
-    {O#{rem_moves:=0}, D, L};
+    {O, D, L};
 
 cast(_S, #{casts:=[none | RemainingCasts]}=O, D, L) ->
-    {O#{rem_moves:=0, casts:=RemainingCasts}, D, L};
+    {O#{casts:=RemainingCasts}, D, L};
 
 cast(S, #{casts:=[CastName | RemainingCasts], effects:=ExistingEffects}=O, D, L) ->
 
-    {NewEffects, NewLog} = case parse_cast(CastName, S, O, D) of
-        {success, CurrEffects} ->
-            Log = [log(CastName, success, S, O, D) | L],
-            Effects = lists:append(CurrEffects, ExistingEffects),
-            {Effects, Log};
-        {failed, _} ->
-            {ExistingEffects, L}
-    end,
+    {CurrLogs, CurrEffects} = parse_cast(CastName, S, O, D),
+    NewEffects = lists:append(CurrEffects, ExistingEffects),
+    NewLog = lists:append(CurrLogs, L),
 
-    {O#{rem_moves:=0, casts:=RemainingCasts, effects:=NewEffects}, D, NewLog}.
+    {O#{casts:=RemainingCasts, effects:=NewEffects}, D, NewLog}.

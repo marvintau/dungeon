@@ -10,7 +10,6 @@
 -export([handle_post/2]).
 
 init(Req, Opts) ->
-    battle_db:init_table(),
     {cowboy_rest, Req, Opts}.
 
 allowed_methods(Req, Opts) ->

@@ -15,8 +15,8 @@
 % Any cast that might change the normal way of determine the order of
 % attack will be put here.
 
-toss(#{id:=A, casts:=[rune_of_the_void | _]}, _) -> A;
-toss(_, #{id:=B, casts:=[rune_of_the_void | _]}) -> B;
+toss(#{id:=A, casts:=[rune_of_the_void|_]}, _) -> A;
+toss(_, #{id:=B, casts:=[rune_of_the_void|_]}) -> B;
 
 toss(#{id:=A, curr_attr:=#{agility:=AgiA}},
      #{id:=B, curr_attr:=#{agility:=AgiB}}) ->
@@ -68,12 +68,12 @@ loop(_, #{hp:=HP1, id:=I1}, #{hp:=HP2, id:=I2}, Log) when HP1 < 0 orelse HP2 < 0
 % both players will be restored to primary hand.
 
 loop({Seq, attacking, _Mover},
-     #{rem_moves:=0, prim_hand:=PrimHand1, orig_attr:=Orig1}=P1,
-     #{rem_moves:=0, prim_hand:=PrimHand2, orig_attr:=Orig2}=P2,
+     #{done:=already, prim_hand:=PrimHand1, orig_attr:=Orig1}=P1,
+     #{done:=already, prim_hand:=PrimHand2, orig_attr:=Orig2}=P2,
      L) ->
 
-    NewP1 = P1#{rem_moves:=2, curr_hand:=PrimHand1, curr_attr=>Orig1},
-    NewP2 = P2#{rem_moves:=2, curr_hand:=PrimHand2, curr_attr=>Orig2},
+    NewP1 = P1#{rem_moves:=2, done:=not_yet, curr_hand:=PrimHand1, curr_attr=>Orig1},
+    NewP2 = P2#{rem_moves:=2, done:=not_yet, curr_hand:=PrimHand2, curr_attr=>Orig2},
 
     loop({Seq+1, settling, toss(NewP1, NewP2)}, NewP1, NewP2, L);
 
@@ -85,19 +85,19 @@ loop({Seq, attacking, _Mover},
 % simply change to defender without changing anything else. If defender,
 % we need to switch to the next phase.
 
-loop({Seq, Stage, Mover}, #{rem_moves:=0}=P1, #{rem_moves:=0}=P2, L) ->
+loop({Seq, Stage, Mover}, #{done:=already}=P1, #{done:=already}=P2, L) ->
 
     NewStage = case Stage of
         settling -> casting;
         casting -> attacking
     end,
     
-    loop({Seq, NewStage, swap(Mover, P1, P2)}, P1#{rem_moves:=2}, P2#{rem_moves:=2}, L);
+    loop({Seq, NewStage, swap(Mover, P1, P2)}, P1#{done:=not_yet}, P2#{done:=not_yet}, L);
 
-loop({Seq, Stage, Mover}, #{id:=Mover, rem_moves:=0}=P1, P2, L) ->
+loop({Seq, Stage, Mover}, #{id:=Mover, done:=already}=P1, P2, L) ->
     loop({Seq, Stage, swap(Mover, P1, P2)}, P1, P2, L);
 
-loop({Seq, Stage, Mover}, P1, #{id:=Mover, rem_moves:=0}=P2, L) ->
+loop({Seq, Stage, Mover}, P1, #{id:=Mover, done:=already}=P2, L) ->
     loop({Seq, Stage, swap(Mover, P1, P2)}, P1, P2, L);
 
 
@@ -110,12 +110,18 @@ loop({Seq, Stage, Mover}, P1, #{id:=Mover, rem_moves:=0}=P2, L) ->
 loop(S={_, attacking, _}, A, B, L) ->
 
     {AttackA, AttackB, AttackLog} = trans(fun(State, #{curr_attr:=CurrAttr}=O, D, Log) ->
-        case maps:get(is_movable, CurrAttr) of
-            true ->
+        case maps:get(attack_disabled, CurrAttr) of
+            false ->
                 {MovedO, MovedD, MovedLog} = battle_attack:attack(State, O, D, Log),
-                battle_effect:effect(State, MovedO, MovedD, MovedLog);
+
+                DoneMovedO = case maps:get(rem_moves, MovedO) of
+                    0 -> MovedO#{done:=already};
+                    _ -> MovedO
+                end,
+
+                battle_effect:effect(State, DoneMovedO, MovedD, MovedLog);
             _ ->
-                {O#{rem_moves:=0}, D, Log}
+                {O#{done:=already}, D, Log}
         end
     end, S, A, B, L),
 
@@ -126,11 +132,14 @@ loop(S={_, attacking, _}, A, B, L) ->
 
 loop(S={_, casting, _}, A, B, L) ->
 
-    {CastA, CastB, CastLog} = trans(fun(State, O, D, Log) ->
-        
-        {MovedO, MovedD, MovedLog} = battle_cast:cast(State, O, D, Log),
-        battle_effect:effect(State, MovedO, MovedD, MovedLog)
-
+    {CastA, CastB, CastLog} = trans(fun(State, #{curr_attr:=CurrAttr}=O, D, Log) ->
+        case maps:get(cast_disabled, CurrAttr) of
+            false ->        
+                {MovedO, MovedD, MovedLog} = battle_cast:cast(State, O, D, Log),
+                battle_effect:effect(State, MovedO#{done:=already}, MovedD, MovedLog);
+            _ ->
+                {O#{done:=already}, D, Log}
+        end
     end, S, A, B, L),
 
     loop(S, CastA, CastB, CastLog);
@@ -142,7 +151,7 @@ loop(S={_, settling, _}, A, B, L) ->
 
     {SettleO, SettleD, SettleLog} = trans(fun(State, O, D, Log) ->
 
-        battle_effect:effect(State, O#{rem_moves:=0}, D, Log)
+        battle_effect:effect(State, O#{done:=already}, D, Log)
 
     end, S, A, B, L),
 
