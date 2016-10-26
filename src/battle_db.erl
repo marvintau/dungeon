@@ -122,11 +122,19 @@ create_casts() ->
             ]}
         ]},
 
-        {deadly_strike, warrior, [
+        {sure_hit, warrior, [
             {1, [
-                {deadly_strike, {0, 1, casting}, {direct, {add, 150}, {role, to_hp, of_opponent, null}}, absorbable},
-                {deadly_strike, {0, 1, casting}, {direct, {set, 4}, {role, to_rem_moves, of_self, null}}, none}
-            ]}
+                {sure_hit, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_opponent, resist}}, none},
+                {sure_hit, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_opponent, block}}, none},
+                {sure_hit, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_opponent, dodge}}, none},
+                {sure_hit, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_self, critical}}, none},
+
+                {sure_hit, {1, 1, settling}, {direct, {set, 0}, {role, to_attr, of_opponent, resist}}, none},
+                {sure_hit, {1, 1, settling}, {direct, {set, 0}, {role, to_attr, of_opponent, block}}, none},
+                {sure_hit, {1, 1, settling}, {direct, {set, 0}, {role, to_attr, of_opponent, dodge}}, none},
+                {sure_hit, {1, 1, settling}, {direct, {set, 0}, {role, to_attr, of_self, critical}}, none}
+
+           ]}
         ]},
 
         {double_swing, warrior, [
@@ -242,7 +250,7 @@ create_casts() ->
                 {lower_resist, {0, 1, casting}, {direct, {set, false}, {role, to_attr, of_self, is_movable}}, none},
                 {lower_resist, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_self, dodge}}, none},
                 {lower_resist, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_self, block}}, none},
-                {lower_resist, {0, 1, casting}, {set, stunned}, {role, to_attr, of_opponent, status}, none},
+                {lower_resist, {0, 1, casting}, {direct, {set, stunned}, {role, to_attr, of_opponent}, none},
                 {lower_resist, {0, 1, casting}, {direct, {times, -0.3}, {role, to_attr, of_opponent, resist}}, none},
                 {lower_resist, {1, 2, settling}, {direct, {times, -0.3}, {role, to_attr, of_opponent, resist}}, none}
             ]}
