@@ -250,7 +250,7 @@ create_casts() ->
                 {lower_resist, {0, 1, casting}, {direct, {set, false}, {role, to_attr, of_self, is_movable}}, none},
                 {lower_resist, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_self, dodge}}, none},
                 {lower_resist, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_self, block}}, none},
-                {lower_resist, {0, 1, casting}, {direct, {set, stunned}, {role, to_attr, of_opponent}, none},
+                {lower_resist, {0, 1, casting}, {direct, {set, stunned}, {role, to_attr, of_opponent}}, none},
                 {lower_resist, {0, 1, casting}, {direct, {times, -0.3}, {role, to_attr, of_opponent, resist}}, none},
                 {lower_resist, {1, 2, settling}, {direct, {times, -0.3}, {role, to_attr, of_opponent, resist}}, none}
             ]}
