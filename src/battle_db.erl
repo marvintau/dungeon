@@ -33,22 +33,27 @@ parse_single_effect_to_json(Effect) ->
 
     RoundCondition = {[{start, Start}, {last_for, LastFor}, {stage, Stage}]},
 
-    {[{name, Name}, {round_cond, RoundCondition}, {trans, parse_trans_to_json({Trans})}, {react, PossibleReact}]}.
+    {[{name, Name}, {round_cond, RoundCondition}, {trans, parse_trans_to_json(Trans)}, {react, PossibleReact}]}.
+
+parse_single_group_to_json({Prob, Effects}) ->
+    {[{prob, Prob}, {effects, [parse_single_effect_to_json(Effect) || Effect <- Effects]}]}.
 
 parse_single_cast_to_json(Cast) ->
-    {Name, Class, Prob, Effects} = Cast,
+    {Name, Class, Groups} = Cast,
 
-    {[{name, Name}, {class, Class}, {prob, Prob}, {effects, [parse_single_effect_to_json(Effect) || Effect <- Effects]}]}.
+    {[{name, Name}, {class, Class}, {groups, [parse_single_group_to_json(Group) || Group <- Groups]}]}.
 
 parse_casts_to_json(Casts) ->
     jiffy:encode([parse_single_cast_to_json(Cast) || Cast <- Casts]).
 
 list_casts() ->
-    {done, parse_casts_to_json(lists:flatten(ets:match(casts, '$1')))}.
+    AllCasts = lists:flatten(ets:match(casts, '$1')), 
+    erlang:display(AllCasts),
+    {done, parse_casts_to_json(AllCasts)}.
 
 list_casts(Class) ->
-    General = lists:flatten(ets:match(casts, {'$1', general, '_', '_'})),
-    ClassCast = lists:flatten(ets:match(casts, {'$1', Class, '_', '_'})),
+    General = lists:flatten(ets:match(casts, {'$1', general, '_'})),
+    ClassCast = lists:flatten(ets:match(casts, {'$1', Class, '_'})),
     lists:append(General, ClassCast).
 
 list_cast_json(Data) ->
