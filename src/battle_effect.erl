@@ -86,7 +86,7 @@ check_condition(EffectCond, {CurrSeq, CurrPhase, _}) ->
 % mark whether the context is modified. If modified, the function returns {affected, P1, P2},
 % otherwise {not_affected, P1, P2}
 
-apply_effect({direct, Op, {role, to_hp, ToWhom, _}}, React, {#{id:=I1}=P1, #{id:=I2}=P2}) ->
+apply_effect({direct, Op, {role, hp, ToWhom, _}}, React, {#{id:=I1}=P1, #{id:=I2}=P2}) ->
    
     FinalReact = get_react_outcome(React, ToWhom, P1, P2),
 
@@ -103,7 +103,7 @@ apply_effect({direct, Op, {role, to_hp, ToWhom, _}}, React, {#{id:=I1}=P1, #{id:
         {_, I2} -> {affected, P1, set_hp(Op, P2)}
     end;
 
-apply_effect({direct, Op, {role, to_attr, ToWhom, AttrName}}, React, {#{id:=I1}=P1, #{id:=I2}=P2}) ->
+apply_effect({direct, Op, {role, attr, ToWhom, AttrName}}, React, {#{id:=I1}=P1, #{id:=I2}=P2}) ->
     
     FinalReact = get_react_outcome(React, ToWhom, P1, P2),
 
@@ -113,7 +113,7 @@ apply_effect({direct, Op, {role, to_attr, ToWhom, AttrName}}, React, {#{id:=I1}=
         {_, I2} -> {affected, P1, set_attr(Op, AttrName, P2)}
     end;
 
-apply_effect({direct, Op, {role, to_rem_moves, ToWhom, _}}, React, {#{id:=I1}=P1, #{id:=I2}=P2}) ->
+apply_effect({direct, Op, {role, rem_moves, ToWhom, _}}, React, {#{id:=I1}=P1, #{id:=I2}=P2}) ->
     
     FinalReact = get_react_outcome(React, ToWhom, P1, P2),
 
@@ -127,10 +127,10 @@ apply_effect({direct, Op, {role, to_rem_moves, ToWhom, _}}, React, {#{id:=I1}=P1
 apply_effect({indirect, {linear, {role, FromWhat, FromWhom, AttrName}, Ratio}, To}, React,
             {#{id:=I1, hp:=H1}=P1, #{id:=I2, hp:=H2}=P2}) ->
     case {FromWhat, FromWhom} of
-        {from_hp, I1} -> apply_effect({direct, {linear, H1, Ratio}, To}, React, {P1, P2});
-        {from_hp, I2} -> apply_effect({direct, {linear, H2, Ratio}, To}, React, {P1, P2});
-        {from_attr, I1} -> apply_effect({direct, {linear, get_attr(AttrName, P1), Ratio}, To}, React, {P1, P2});
-        {from_attr, I2} -> apply_effect({direct, {linear, get_attr(AttrName, P1), Ratio}, To}, React, {P1, P2})
+        {hp, I1} -> apply_effect({direct, {linear, H1, Ratio}, To}, React, {P1, P2});
+        {hp, I2} -> apply_effect({direct, {linear, H2, Ratio}, To}, React, {P1, P2});
+        {attr, I1} -> apply_effect({direct, {linear, get_attr(AttrName, P1), Ratio}, To}, React, {P1, P2});
+        {attr, I2} -> apply_effect({direct, {linear, get_attr(AttrName, P1), Ratio}, To}, React, {P1, P2})
     end;
 
 

@@ -48,7 +48,6 @@ parse_casts_to_json(Casts) ->
 
 list_casts() ->
     AllCasts = lists:flatten(ets:match(casts, '$1')), 
-    erlang:display(AllCasts),
     {done, parse_casts_to_json(AllCasts)}.
 
 list_casts(Class) ->
@@ -68,46 +67,46 @@ create_casts() ->
 
         {rune_of_the_void, general, [
             {1, [
-                {rune_of_the_void, {0, 1, casting}, {direct, {set, true}, {role, to_attr, of_opponent, cast_disabled}}, none}
+                {rune_of_the_void, {0, 1, casting}, {direct, {set, true}, {role, attr, of_opponent, cast_disabled}}, none}
             ]}
         ]},
 
         {holy_hand_grenade, general, [
             {1, [
-                {holy_hand_grenade, {0, 1, casting}, {direct, {add, {1, 500}}, {role, to_hp, of_opponent, resist}}, none}
+                {holy_hand_grenade, {0, 1, casting}, {direct, {add, {1, 500}}, {role, hp, of_opponent, resist}}, none}
             ]}
         ]},
 
         {talisman_of_death, general, [
             {1, [
-                {talisman_of_death, {0, 1, casting}, {direct, {times, 0.15}, {role, to_hp, of_opponent, null}}, resistable}
+                {talisman_of_death, {0, 1, casting}, {direct, {times, 0.15}, {role, hp, of_opponent, none}}, resistable}
             ]}
         ]},
 
         {talisman_of_spellshrouding, general, [
             {1, [
-                {talisman_of_spellshrouding, {0, 1, casting}, {direct, {add, 100}, {role, to_attr, of_self, resist}}, none}
+                {talisman_of_spellshrouding, {0, 1, casting}, {direct, {add, 100}, {role, attr, of_self, resist}}, none}
             ]}
         ]},
 
         {poison_gas, general, [
             {0.5, [
-                {poison_gas, {0, 1, casting}, {direct, {set, true}, {role, to_attr, of_opponent, attack_disabled}}, none},
-                {poison_gas, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_opponent, dodge}}, none},
-                {poison_gas, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_opponent, block}}, none},
-                {poison_gas, {1, 1, settling}, {direct, {set, true}, {role, to_attr, of_opponent, attack_disabled}}, none},
-                {poison_gas, {1, 1, settling}, {direct, {set, true}, {role, to_attr, of_opponent, cast_disabled}}, none},
-                {poison_gas, {1, 1, settling}, {direct, {set, 0}, {role, to_attr, of_opponent, dodge}}, none},
-                {poison_gas, {1, 1, settling}, {direct, {set, 0}, {role, to_attr, of_opponent, block}}, none}
+                {poison_gas, {0, 1, casting}, {direct, {set, true}, {role, attr, of_opponent, attack_disabled}}, none},
+                {poison_gas, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_opponent, dodge}}, none},
+                {poison_gas, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_opponent, block}}, none},
+                {poison_gas, {1, 1, settling}, {direct, {set, true}, {role, attr, of_opponent, attack_disabled}}, none},
+                {poison_gas, {1, 1, settling}, {direct, {set, true}, {role, attr, of_opponent, cast_disabled}}, none},
+                {poison_gas, {1, 1, settling}, {direct, {set, 0}, {role, attr, of_opponent, dodge}}, none},
+                {poison_gas, {1, 1, settling}, {direct, {set, 0}, {role, attr, of_opponent, block}}, none}
             ]},
             {0.5, [
-                {poison_gas, {0, 1, casting}, {direct, {set, true}, {role, to_attr, of_self, attack_disabled}}, none},
-                {poison_gas, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_self, dodge}}, none},
-                {poison_gas, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_self, block}}, none},
-                {poison_gas, {1, 1, settling}, {direct, {set, true}, {role, to_attr, of_self, attack_disabled}}, none},
-                {poison_gas, {1, 1, settling}, {direct, {set, true}, {role, to_attr, of_self, cast_disabled}}, none},
-                {poison_gas, {1, 1, settling}, {direct, {set, 0}, {role, to_attr, of_self, dodge}}, none},
-                {poison_gas, {1, 1, settling}, {direct, {set, 0}, {role, to_attr, of_self, block}}, none}
+                {poison_gas, {0, 1, casting}, {direct, {set, true}, {role, attr, of_self, attack_disabled}}, none},
+                {poison_gas, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_self, dodge}}, none},
+                {poison_gas, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_self, block}}, none},
+                {poison_gas, {1, 1, settling}, {direct, {set, true}, {role, attr, of_self, attack_disabled}}, none},
+                {poison_gas, {1, 1, settling}, {direct, {set, true}, {role, attr, of_self, cast_disabled}}, none},
+                {poison_gas, {1, 1, settling}, {direct, {set, 0}, {role, attr, of_self, dodge}}, none},
+                {poison_gas, {1, 1, settling}, {direct, {set, 0}, {role, attr, of_self, block}}, none}
             ]}
         ]}
     ],
@@ -115,43 +114,43 @@ create_casts() ->
     Warrior = [
         {shield_wall, warrior, [
             {1, [
-                {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_self, dodge}}, none},
-                {shield_wall, {0, 1, casting}, {direct, {set, 100}, {role, to_attr, of_self, block}}, none},
-                {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_opponent, hit}}, none},
-                {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_opponent, critical}}, none}
+                {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_self, dodge}}, none},
+                {shield_wall, {0, 1, casting}, {direct, {set, 100}, {role, attr, of_self, block}}, none},
+                {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_opponent, hit}}, none},
+                {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_opponent, critical}}, none}
             ]}
         ]},
 
         {sure_hit, warrior, [
             {1, [
-                {sure_hit, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_opponent, resist}}, none},
-                {sure_hit, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_opponent, block}}, none},
-                {sure_hit, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_opponent, dodge}}, none},
-                {sure_hit, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_self, critical}}, none},
+                {sure_hit, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_opponent, resist}}, none},
+                {sure_hit, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_opponent, block}}, none},
+                {sure_hit, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_opponent, dodge}}, none},
+                {sure_hit, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_self, critical}}, none},
 
-                {sure_hit, {1, 1, settling}, {direct, {set, 0}, {role, to_attr, of_opponent, resist}}, none},
-                {sure_hit, {1, 1, settling}, {direct, {set, 0}, {role, to_attr, of_opponent, block}}, none},
-                {sure_hit, {1, 1, settling}, {direct, {set, 0}, {role, to_attr, of_opponent, dodge}}, none},
-                {sure_hit, {1, 1, settling}, {direct, {set, 0}, {role, to_attr, of_self, critical}}, none}
+                {sure_hit, {1, 1, settling}, {direct, {set, 0}, {role, attr, of_opponent, resist}}, none},
+                {sure_hit, {1, 1, settling}, {direct, {set, 0}, {role, attr, of_opponent, block}}, none},
+                {sure_hit, {1, 1, settling}, {direct, {set, 0}, {role, attr, of_opponent, dodge}}, none},
+                {sure_hit, {1, 1, settling}, {direct, {set, 0}, {role, attr, of_self, critical}}, none}
 
            ]}
         ]},
 
         {double_swing, warrior, [
             {1, [
-                {double_swing, {0, 1, casting}, {direct, {set, 4}, {role, to_rem_moves, of_self, null}}, none}
+                {double_swing, {0, 1, casting}, {direct, {set, 4}, {role, rem_moves, of_self, none}}, none}
             ]}
         ]},
 
         {chain_lock, warrior, [
             {1, [
-                {chain_lock, {0, 1, casting}, {direct, {set, true}, {role, to_attr, of_opponent, attack_disabled}}, resistable}
+                {chain_lock, {0, 1, casting}, {direct, {set, true}, {role, attr, of_opponent, attack_disabled}}, resistable}
             ]}
         ]},
 
         {first_aid, warrior, [
             {1, [
-                {first_aid, {0, 1, casting}, {direct, {times, -0.08}, {role, to_hp, of_self, null}}, none}
+                {first_aid, {0, 1, casting}, {direct, {times, -0.08}, {role, hp, of_self, none}}, none}
             ]}
         ]}
     ],
@@ -160,36 +159,36 @@ create_casts() ->
     Hunter = [
         {tornado, hunter, [
             {1, [
-                {tornado, {0, 1, casting}, {direct, {times, -0.05}, {role, to_attr, of_opponent, hit}}, none},          
-                {tornado, {1, 4, settling}, {direct, {times, -0.05}, {role, to_attr, of_opponent, hit}}, none},          
-                {tornado, {0, 1, casting}, {direct, {add, 50}, {role, to_hp, of_opponent, null}}, absorbable},          
-                {tornado, {1, 4, settling}, {direct, {add, 50}, {role, to_hp, of_opponent, null}}, absorbable}
+                {tornado, {0, 1, casting}, {direct, {times, -0.05}, {role, attr, of_opponent, hit}}, none},          
+                {tornado, {1, 4, settling}, {direct, {times, -0.05}, {role, attr, of_opponent, hit}}, none},          
+                {tornado, {0, 1, casting}, {direct, {add, 50}, {role, hp, of_opponent, none}}, absorbable},          
+                {tornado, {1, 4, settling}, {direct, {add, 50}, {role, hp, of_opponent, none}}, absorbable}
             ]}
         ]},
 
         {mend, hunter, [
             {1, [
-                {mend, {0, 1, casting}, {direct, {times, -0.07}, {role, to_hp, of_self, null}}, none},
-                {mend, {1, 2, settling}, {direct, {times, -0.07}, {role, to_hp, of_self, null}}, none}
+                {mend, {0, 1, casting}, {direct, {times, -0.07}, {role, hp, of_self, none}}, none},
+                {mend, {1, 2, settling}, {direct, {times, -0.07}, {role, hp, of_self, none}}, none}
             ]}
         ]},
 
         {outbreak, hunter, [
             {1, [
-                {outbreak, {0, 3, attacking}, {direct, {add, 70}, {role, to_hp, of_opponent, null}}, resistable}
+                {outbreak, {0, 3, attacking}, {direct, {add, 70}, {role, hp, of_opponent, none}}, resistable}
             ]}
         ]},
 
         {roots, hunter, [
             {1, [
-                {roots, {0, 1, casting}, {direct, {set, 1}, {role, to_rem_moves, of_opponent, null}}, resistable},
-                {roots, {1, 2, settling}, {direct, {set, 1}, {role, to_rem_moves, of_opponent, null}}, resistable}
+                {roots, {0, 1, casting}, {direct, {set, 1}, {role, rem_moves, of_opponent, none}}, resistable},
+                {roots, {1, 2, settling}, {direct, {set, 1}, {role, rem_moves, of_opponent, none}}, resistable}
             ]}
         ]},
 
         {tree_hide, hunter, [
             {1, [
-                {tree_hide, {0, 3, casting}, {direct, {add, 0.5}, {role, to_attr, of_self, armor}}, resistable}
+                {tree_hide, {0, 3, casting}, {direct, {add, 0.5}, {role, attr, of_self, armor}}, resistable}
             ]}
         ]}
     ],
@@ -197,36 +196,36 @@ create_casts() ->
     Rogue = [
         {healing_potion, rogue, [
             {1, [
-                {healing_potion, {0, 1, casting}, {direct, {add, {-255, -175}}, {role, to_hp, of_self, null}}, resistable}
+                {healing_potion, {0, 1, casting}, {direct, {add, {-255, -175}}, {role, hp, of_self, none}}, resistable}
             ]}
         ]},
 
         {pierce_armor, rogue, [
             {1, [
-                {pierce_armor, {0, 1, casting}, {direct, {add, -50}, {role, to_attr, of_opponent, armor}}, resistable},
-                {pierce_armor, {1, 2, settling}, {direct, {add, -50}, {role, to_attr, of_opponent, armor}}, resistable}
+                {pierce_armor, {0, 1, casting}, {direct, {add, -50}, {role, attr, of_opponent, armor}}, resistable},
+                {pierce_armor, {1, 2, settling}, {direct, {add, -50}, {role, attr, of_opponent, armor}}, resistable}
             ]}
         ]},
 
         {flurry, rogue, [
             {1, [
-                {flurry, {0, 1, casting}, {direct, {set, 3}, {role, to_rem_moves, of_self, null}}, none}
+                {flurry, {0, 1, casting}, {direct, {set, 3}, {role, rem_moves, of_self, none}}, none}
             ]}
         ]},
 
         {spellbreak, rogue, [
             {1, [
-                {spellbreak, {0, 1, casting}, {direct, {times, 0.7}, {role, to_attr, of_self, resist}}, none},
-                {spellbreak, {1, 3, settling}, {direct, {times, 0.7}, {role, to_attr, of_self, resist}}, none}
+                {spellbreak, {0, 1, casting}, {direct, {times, 0.7}, {role, attr, of_self, resist}}, none},
+                {spellbreak, {1, 3, settling}, {direct, {times, 0.7}, {role, attr, of_self, resist}}, none}
             ]}
         ]},
 
         {perfect_strike, rogue, [
             {1, [
-                {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_opponent, dodge}}, none},
-                {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_opponent, block}}, none},
-                {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_self, hit}}, none},
-                {shield_wall, {0, 1, casting}, {direct, {set, 100}, {role, to_attr, of_self, critical}}, none}
+                {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_opponent, dodge}}, none},
+                {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_opponent, block}}, none},
+                {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_self, hit}}, none},
+                {shield_wall, {0, 1, casting}, {direct, {set, 100}, {role, attr, of_self, critical}}, none}
             ]}
         ]}
     ],
@@ -234,40 +233,41 @@ create_casts() ->
     Mage = [
         {vampiric_bolt, mage, [
             {1, [
-                {vampiric_bolt, {0, 1, casting}, {indirect, {linear, {role, from_hp, of_opponent, null}, -0.1}, {role, to_hp, of_self, null}}, resistable},
-                {vampiric_bolt, {0, 1, casting}, {direct, {times, 0.1}, {role, to_hp, of_opponent, null}}, resistable}
+                {vampiric_bolt, {0, 1, casting}, {indirect, {linear, {role, hp, of_opponent, none}, -0.1}, {role, hp, of_self, none}}, resistable},
+                {vampiric_bolt, {0, 1, casting}, {direct, {times, 0.1}, {role, hp, of_opponent, none}}, resistable}
             ]}
         ]},
 
         {arcane_surge, mage, [
             {1, [
-                {arcane_surge, {0, 1, casting}, {direct, {set, 4}, {role, to_rem_moves, of_self, null}}, none}
+                {arcane_surge, {0, 1, casting}, {direct, {set, 4}, {role, rem_moves, of_self, none}}, none}
             ]}
         ]},
 
         {lower_resist, mage, [
             {1, [
-                {lower_resist, {0, 1, casting}, {direct, {set, false}, {role, to_attr, of_self, is_movable}}, none},
-                {lower_resist, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_self, dodge}}, none},
-                {lower_resist, {0, 1, casting}, {direct, {set, 0}, {role, to_attr, of_self, block}}, none},
-                {lower_resist, {0, 1, casting}, {direct, {set, stunned}, {role, to_attr, of_opponent}}, none},
-                {lower_resist, {0, 1, casting}, {direct, {times, -0.3}, {role, to_attr, of_opponent, resist}}, none},
-                {lower_resist, {1, 2, settling}, {direct, {times, -0.3}, {role, to_attr, of_opponent, resist}}, none}
+                {lower_resist, {0, 1, casting}, {direct, {set, true}, {role, attr, of_self, attack_disabled}}, none},
+                {lower_resist, {0, 1, casting}, {direct, {set, true}, {role, attr, of_self, cast_disabled}}, none},
+                {lower_resist, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_self, dodge}}, none},
+                {lower_resist, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_self, block}}, none},
+
+                {lower_resist, {0, 1, casting}, {direct, {times, -0.3}, {role, attr, of_opponent, resist}}, none},
+                {lower_resist, {1, 2, settling}, {direct, {times, -0.3}, {role, attr, of_opponent, resist}}, none}
             ]}
         ]},
 
         {pyromania, mage, [
             {1, [
-                {pyromania, {0, 1, casting}, {direct, {add, 50}, {role, to_hp, of_opponent, null}}, resistable},
-                {pyromania, {1, 2, settling}, {direct, {add, 50}, {role, to_hp, of_opponent, null}}, resistable},
-                {pyromania, {0, 1, casting}, {direct, {times, -0.5}, {role, to_attr, of_opponent, critical}}, resistable}
+                {pyromania, {0, 1, casting}, {direct, {add, 50}, {role, hp, of_opponent, none}}, resistable},
+                {pyromania, {1, 2, settling}, {direct, {add, 50}, {role, hp, of_opponent, none}}, resistable},
+                {pyromania, {0, 1, casting}, {direct, {times, -0.5}, {role, attr, of_opponent, critical}}, resistable}
             ]}
         ]},
 
         {mind_blast, mage, [
             {1, [
-                {mind_blast, {0, 1, casting}, {direct, {add, 125}, {role, to_hp, of_opponent, null}}, resistable},
-                {mind_blast, {0, 1, casting}, {direct, {set, 1}, {role, to_rem_moves, of_opponent, null}}, resistable}
+                {mind_blast, {0, 1, casting}, {direct, {add, 125}, {role, hp, of_opponent, none}}, resistable},
+                {mind_blast, {0, 1, casting}, {direct, {set, 1}, {role, rem_moves, of_opponent, none}}, resistable}
             ]}
         ]}
     ],

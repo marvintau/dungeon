@@ -18,20 +18,89 @@
         <link href="magicsuggest-min.css" rel="stylesheet">
 
         <style type="text/css">
+            body{
+                margin: 30px;
+                /*background-color:#8A8A8A;    */
+            }
+            
+
             .h-divider{
-                margin-top:15px;
+                margin-top:5px;
                 margin-bottom:5px;
                 height:1px;
                 width:100%;
-                border-top:1px solid #DDDDDD;
+                
             }
+
+            .l-indent{
+                margin:15px;
+                padding:15px;
+                background-color: #FAFAFA;
+            }
+
+            .l-indent-2{
+                margin:35px;
+                padding:10px;
+                background-color: #EAEAEE;                
+            }
+
+            .divider-vertical {
+                height: 40px;
+                margin: 0 9px;
+                border-left: 1px solid #0A0A0A;
+                border-right: 1px solid #EAEAEA;
+            }
+
         </style>
         <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
     </head>
 
 
     <body>
-        asdasdasd
+
+        <div class="">
+        <div id="cast-table" class="col-md-12">
+            <div v-for="cast of casts" class="form-group-sm">
+                <div class=" h-divider"> </div>
+                <div class="row">
+                    <div><h1>{{cast.name}}</h1></div>
+                    {{cast}}<br>
+                    
+                    <div class="form-group-sm col-sm-1">
+                        <vinput name="技能名称" :value= "cast.name" ></vinput>
+                    </div>
+                    <class-select :type="cast.class" ></class-select>
+                    
+                    <button class="btn btn-sm btn-primary">删</button>
+                </div>
+                
+                <div class="row l-indent" >
+                    <div v-for="group of cast.groups">
+                        <div class="row">
+
+                        <div class="form-group-sm col-sm-1">
+                            <vinput name='技能概率' :value="group.prob" ></vinput>
+                        </div>
+
+                        <button class="btn btn-sm btn-primary">删</button>
+                            <div class="row l-indent-2">
+                                <div v-for="effect of group.effects">
+                                    <div class='row'>
+                                        <div class="form-group-sm col-sm-1">
+                                        <vinput name='效果名' :value="effect.name" ></vinput> 
+                                        </div>
+                                        <cond :cond="effect.round_cond"> </cond>
+                                        <trans :trans="effect.trans"></trans>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        </div>
 
         <!-- Bootstrap core JavaScript
         ================================================== -->
@@ -39,7 +108,191 @@
         <script>window.jQuery || document.write('<script src="bower_components/jquery/dist/jquery.min.js"><\/script>')</script>
         <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
         <script type="text/javascript" src="vue.js"></script>
-        <script type="text/javascript" src="cast-edit.js"></script>
+
+        <script type="text/javascript">
+
+
+        Vue.component('role', {
+            data : function(){
+                return {
+                    what_type : ['hp', 'attr', 'rem_moves'],
+                    attr_type : ['attack_disabled', 'cast_disabled', 'armor', 'hit', 'critical', 'dodge', 'resist', 'block', 'agility', 'none']
+                }
+            },
+
+            props: ['role'],
+            template : '<div><div class="form-group-sm col-sm-1">'+
+                        '<select class="form-control" v-model="role.what">'+
+                            '<option v-for="typewhat in what_type">{{ typewhat }}<option>' +
+                        '</select><label>技能影响类型</label>' +
+                        '<select class="form-control" v-model="role.whom">'+
+                            '<option>of_self</option><option>of_opponent</option>' +
+                        '</select><label>影响对象</label>' +
+                        '<select class="form-control" v-model="role.attr">'+
+                            '<option v-for="typeattr in attr_type">{{ typeattr }}<option>' +
+                        '</select><label>影响属性</label>' +
+                    '</div>'
+        })
+
+        Vue.component('operation', {
+            data : function(){
+                return {
+
+
+
+                    ops : ['set', 'add', 'times', 'linear'],
+                }
+            },
+            props : ['type_trans', 'operand'],
+            template : '<div>'+
+                            '<div class="form-group-sm col-sm-1">'+
+                                '<select v-model="operand.type" class="form-control">'+
+                                    '<option v-for="op in ops">{{op}}</option>'+
+                                '</select><label>操作类型</label>'+
+                            '</div>'+
+                            
+                            '<div v-if="is_linear(operand.type)"><vinput name="比例" :value="operand.ratio"></vinput></div>'+
+
+                            '<div v-if=trans_type_is_indirect(type_trans)>'+
+                                '<role :role=operand.from> </role>' +
+                            '</div>' +
+
+                            '<div v-else>'+
+                                '<range :range=operand.from> </range>'+
+                            '</div>'+
+
+                        '</div>',
+
+            methods : {
+                is_linear : function(type) {
+                    return type == "linear";
+                },
+
+                trans_type_is_indirect : function(type){
+                    return type == "indirect";
+                }
+
+            }
+        })
+
+        Vue.component('trans', {
+            props: ['trans'],
+            template : '<div><div class="form-group-sm col-sm-1"><select v-model="trans.type" class="form-control">'+
+                            '<option>direct</option><option>indirect</option>' +
+                        '</select><label>赋值方式</label></div>' +
+
+                        '<operation :type_trans=trans.type :operand=trans.op></operation>' +
+                        '<role :role=trans.to></role>' +
+                        '</div>',
+            methods: {
+            }
+        })
+
+        Vue.component('range', {
+
+            data : function(){
+                return {
+                    _range : null
+                }
+            },
+
+            created: function(){
+                this._range = this.range;
+            },
+
+            props: ['range'],
+            template :  '<div><div class="form-group-sm col-sm-1" v-if=range_type(range.type)>'+
+                        '<vinput :name={{ 值 range.value }} @submit="subval" :value=range.value></vinput></div>'+
+                        '<div v-else><vinput name="下限" :value=range.min></vinput><vinput name="上限" :value=range.max></vinput></div></div>',
+
+            methods: {
+                range_type : function(type) {
+                    return type == "value";
+                },
+
+                subval : function(val){
+                    this._range.value = val;
+                }
+            }
+        })
+
+
+        Vue.component('cond', {
+            data: function(){ return{stages : ['casting', 'settling', 'attacking']}},
+            props:['cond'],
+            template :  '<div class="form-group-sm col-sm-1"><vinput name="起始回合(自当前回合起)" :value="cond.start"></vinput>' + 
+                        '<vinput name="持续回合" :value="cond.last_for"></vinput>' + 
+                        '<select v-model="cond.stage" class="form-control">' +
+                            '<option v-for="stage in stages">{{stage}}</option>'+
+                        '</select><label>阶段</label></div>' 
+        })
+
+        Vue.component('vinput', {
+
+            data: function(){
+                return {
+                    _value : this.value
+                }
+            },
+
+            created : function(){
+                this._value = this.value;
+            },
+
+            props:['name', 'value_type', 'value'],
+            template:'<div><input @keyup.enter="submit" v-model=_value class="form-control" /> <label>{{name}}</label></div>',
+
+            methods: {
+
+                submit : function(event){
+                    var finalValue = 0;
+                    switch(this.value_type){
+                        case "int" :
+                            finalValue = parseInt(this._value);
+                            break;
+                        case "float" :
+                            finalValue = parseFloat(this._value);
+                            break;
+                        default : 
+                            finalValue = this._value;
+                    }
+
+                    console.log(finalValue);
+
+                    this.$emit('submit', finalValue);
+                }
+            }
+        })
+
+        Vue.component('class-select', {
+            data : function(){return {types : ['warrior', 'rogue', 'mage', 'hunter', 'general']}},
+            props : ['type'],
+            template : '<div class="form-group-sm col-md-1">'+
+
+                        '<select v-model=type class="form-control">'+
+                            '<option v-for="type in types">{{type}}</option>'+
+                        '</select><label>职业类型</label></div>'
+                         
+       })
+
+        var cast_edit = new Vue({
+            el: '#cast-table',
+            data: { casts:[] },
+
+            created: function(){
+                self = this;
+
+                $.get("/get_casts", function(data){
+                    self.casts = data;
+                }).fail(function(error){
+                    self.casts = [{name: error}]
+                });
+
+            }
+
+        });
+
+        </script>
         </body>
     </html>
 

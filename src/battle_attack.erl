@@ -9,7 +9,6 @@
 
 rotate(Roulette) ->
 
-    erlang:display(Roulette),
     % reversed
     Cumulative = lists:foldl(fun(X, Rem) -> [X + hd(Rem) | Rem] end, [0], Roulette),
 
