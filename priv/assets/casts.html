@@ -25,8 +25,8 @@
             
 
             .h-divider{
-                margin-top:5px;
-                margin-bottom:5px;
+                margin-top:15px;
+                margin-bottom:15px;
                 height:1px;
                 width:100%;
                 
@@ -58,46 +58,11 @@
 
     <body>
 
-        <div class="">
+        <div class="container">
         <div id="cast-table" class="col-md-12">
+            <button v-on:click="send" class="btn btn-success">保存</button>
             <div v-for="cast of casts" class="form-group-sm">
-                <div class=" h-divider"> </div>
-                <div class="row">
-                    <div><h1>{{cast.name}}</h1></div>
-                    {{cast}}<br>
-                    
-                    <div class="form-group-sm col-sm-1">
-                        <vinput name="技能名称" :value= "cast.name" ></vinput>
-                    </div>
-                    <class-select :type="cast.class" ></class-select>
-                    
-                    <button class="btn btn-sm btn-primary">删</button>
-                </div>
-                
-                <div class="row l-indent" >
-                    <div v-for="group of cast.groups">
-                        <div class="row">
-
-                        <div class="form-group-sm col-sm-1">
-                            <vinput name='技能概率' :value="group.prob" ></vinput>
-                        </div>
-
-                        <button class="btn btn-sm btn-primary">删</button>
-                            <div class="row l-indent-2">
-                                <div v-for="effect of group.effects">
-                                    <div class='row'>
-                                        <div class="form-group-sm col-sm-1">
-                                        <vinput name='效果名' :value="effect.name" ></vinput> 
-                                        </div>
-                                        <cond :cond="effect.round_cond"> </cond>
-                                        <trans :trans="effect.trans"></trans>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
+                <cast :cast='cast'></cast>
             </div>
         </div>
         </div>
@@ -111,121 +76,19 @@
 
         <script type="text/javascript">
 
-
-        Vue.component('role', {
-            data : function(){
-                return {
-                    what_type : ['hp', 'attr', 'rem_moves'],
-                    attr_type : ['attack_disabled', 'cast_disabled', 'armor', 'hit', 'critical', 'dodge', 'resist', 'block', 'agility', 'none']
-                }
-            },
-
-            props: ['role'],
-            template : '<div><div class="form-group-sm col-sm-1">'+
-                        '<select class="form-control" v-model="role.what">'+
-                            '<option v-for="typewhat in what_type">{{ typewhat }}<option>' +
-                        '</select><label>技能影响类型</label>' +
-                        '<select class="form-control" v-model="role.whom">'+
-                            '<option>of_self</option><option>of_opponent</option>' +
-                        '</select><label>影响对象</label>' +
-                        '<select class="form-control" v-model="role.attr">'+
-                            '<option v-for="typeattr in attr_type">{{ typeattr }}<option>' +
-                        '</select><label>影响属性</label>' +
-                    '</div>'
-        })
-
-        Vue.component('operation', {
-            data : function(){
-                return {
-
-
-
-                    ops : ['set', 'add', 'times', 'linear'],
-                }
-            },
-            props : ['type_trans', 'operand'],
-            template : '<div>'+
-                            '<div class="form-group-sm col-sm-1">'+
-                                '<select v-model="operand.type" class="form-control">'+
-                                    '<option v-for="op in ops">{{op}}</option>'+
-                                '</select><label>操作类型</label>'+
-                            '</div>'+
-                            
-                            '<div v-if="is_linear(operand.type)"><vinput name="比例" :value="operand.ratio"></vinput></div>'+
-
-                            '<div v-if=trans_type_is_indirect(type_trans)>'+
-                                '<role :role=operand.from> </role>' +
-                            '</div>' +
-
-                            '<div v-else>'+
-                                '<range :range=operand.from> </range>'+
-                            '</div>'+
-
-                        '</div>',
-
-            methods : {
-                is_linear : function(type) {
-                    return type == "linear";
+        $.postJSON = function(url, data, callback) {
+            return jQuery.ajax({
+                headers: { 
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json' 
                 },
-
-                trans_type_is_indirect : function(type){
-                    return type == "indirect";
-                }
-
-            }
-        })
-
-        Vue.component('trans', {
-            props: ['trans'],
-            template : '<div><div class="form-group-sm col-sm-1"><select v-model="trans.type" class="form-control">'+
-                            '<option>direct</option><option>indirect</option>' +
-                        '</select><label>赋值方式</label></div>' +
-
-                        '<operation :type_trans=trans.type :operand=trans.op></operation>' +
-                        '<role :role=trans.to></role>' +
-                        '</div>',
-            methods: {
-            }
-        })
-
-        Vue.component('range', {
-
-            data : function(){
-                return {
-                    _range : null
-                }
-            },
-
-            created: function(){
-                this._range = this.range;
-            },
-
-            props: ['range'],
-            template :  '<div><div class="form-group-sm col-sm-1" v-if=range_type(range.type)>'+
-                        '<vinput :name={{ 值 range.value }} @submit="subval" :value=range.value></vinput></div>'+
-                        '<div v-else><vinput name="下限" :value=range.min></vinput><vinput name="上限" :value=range.max></vinput></div></div>',
-
-            methods: {
-                range_type : function(type) {
-                    return type == "value";
-                },
-
-                subval : function(val){
-                    this._range.value = val;
-                }
-            }
-        })
-
-
-        Vue.component('cond', {
-            data: function(){ return{stages : ['casting', 'settling', 'attacking']}},
-            props:['cond'],
-            template :  '<div class="form-group-sm col-sm-1"><vinput name="起始回合(自当前回合起)" :value="cond.start"></vinput>' + 
-                        '<vinput name="持续回合" :value="cond.last_for"></vinput>' + 
-                        '<select v-model="cond.stage" class="form-control">' +
-                            '<option v-for="stage in stages">{{stage}}</option>'+
-                        '</select><label>阶段</label></div>' 
-        })
+                'type': 'POST',
+                'url': url,
+                'data': JSON.stringify(data),
+                'dataType': 'json',
+                'success': callback
+            });
+        };
 
         Vue.component('vinput', {
 
@@ -264,16 +127,339 @@
             }
         })
 
-        Vue.component('class-select', {
-            data : function(){return {types : ['warrior', 'rogue', 'mage', 'hunter', 'general']}},
-            props : ['type'],
-            template : '<div class="form-group-sm col-md-1">'+
+        Vue.component('range', {
 
-                        '<select v-model=type class="form-control">'+
-                            '<option v-for="type in types">{{type}}</option>'+
-                        '</select><label>职业类型</label></div>'
-                         
-       })
+            data : function(){
+                return {
+                    _range : null
+                }
+            },
+
+            created: function(){
+                this._range = this.range;
+            },
+
+            props: ['range'],
+            template :  '<div><div class="form-group-sm col-sm-2" v-if=range_type(range.type)>'+
+                        '<vinput :name="value_name()" @submit="subval" :value=range.value value_type="float"></vinput></div>'+
+                        '<div v-else><vinput name="下限" @submit="submin" :value=range.min value_type="float">'+'</vinput><vinput name="上限" @submit=submax :value=range.max value_type="float"></vinput></div></div>',
+
+            methods: {
+                value_name : function(){
+                    return "值设为了" + this._range.value;
+                },
+
+                range_type : function(type) {
+                    return type == "value";
+                },
+
+                subval : function(val){
+                    this._range.value = val;
+                },
+
+                submin : function(min){
+                    this._range.min = min;
+                },
+
+                submax : function(max){
+                    this._range.max = max;
+                }
+            }
+        })
+
+        Vue.component('role', {
+            data : function(){
+                return {
+                    what_type : ['hp', 'attr', 'rem_moves'],
+                    attr_type : ['attack_disabled', 'cast_disabled', 'armor', 'hit', 'critical', 'dodge', 'resist', 'block', 'agility', 'none']
+                }
+            },
+
+            props: ['role'],
+            template : '<div><div class="form-group-sm col-sm-2">'+
+                        '<select class="form-control" v-model="role.what">'+
+                            '<option v-for="typewhat in what_type">{{ typewhat }}<option>' +
+                        '</select><label>技能影响类型</label>' +
+                        '<select class="form-control" v-model="role.whom">'+
+                            '<option>of_self</option><option>of_opponent</option>' +
+                        '</select><label>影响对象</label>' +
+                        '<select class="form-control" v-model="role.attr">'+
+                            '<option v-for="typeattr in attr_type">{{ typeattr }}<option>' +
+                        '</select><label>影响属性</label>' +
+                    '</div>'
+        })
+
+        Vue.component('cond', {
+            data: function(){
+                return{ 
+                    _cond : null,
+                    stages : ['casting', 'settling', 'attacking']
+                }
+            },
+
+            created : function(){
+                this._cond = this.cond;
+            },
+
+            props:['cond'],
+            template :  '<div class="form-group-sm col-sm-2"><vinput value_type="int" @submit=substart :name="round_start()" :value="_cond.start"></vinput>' + 
+                        '<vinput @submit=sublasts value_type="int" :name="round_lasts()" :value="_cond.last_for"></vinput>' + 
+                        '<select v-model="_cond.stage" class="form-control">' +
+                            '<option v-for="stage in stages">{{stage}}</option>'+
+                        '</select><label>阶段</label></div>',
+            methods: {
+
+                substart : function (val){
+                    this._cond.start = val;
+                },
+
+                sublasts : function (val) {
+                    this._cond.last_for = val;
+                },
+
+                round_start : function(){
+                    var res;
+                    switch(this._cond.start){
+                        case 0:
+                            res = "本回合开始"; break;
+                        default :
+                            res = "本回合后" + this._cond.start + "回合开始";
+                    }
+                    return res;
+                },
+
+                round_lasts : function () {
+                    return "持续" + this.cond.last_for + "回合";
+                }
+            }
+        })
+
+        Vue.component('operation', {
+            data : function(){
+                return {
+
+                    _operation : null,
+
+                    temp_range : {"type": "range", "min": 0, "max":0},
+
+                    temp_role : {"what":"attr", "whom":"of_opponent", "attr":"resist"},
+
+                    ops : ['set', 'add', 'times', 'linear'],
+
+                    _type_trans : null
+                }
+            },
+
+            created : function(){
+
+                this._type_trans = this.type_trans;
+
+                this._operand = this.operand;
+
+                if(this._operand.from.type){
+                    this.temp_range = this._operand.from;
+                }
+            },
+
+            props : ['type_trans', 'operand'],
+            template : '<div>'+
+                            '<div class="form-group-sm col-sm-2">'+
+                                '<select v-model="operand.type" class="form-control">'+
+                                    '<option v-for="op in ops">{{op}}</option>'+
+                                '</select><label>操作类型</label>'+
+                            '</div>'+
+                            
+                            '<div v-if="is_linear(operand.type)"><vinput name="比例" value_type="float" :value="operand.ratio"></vinput></div>'+
+
+                            '<div v-if=trans_type_is_indirect(type_trans)>'+
+                                '<role :role=operand.from> </role>' +
+                            '</div>' +
+
+                            '<div v-else>'+
+                                '<range :range=operand.from> </range>'+
+                            '</div>'+
+
+                        '</div>',
+
+            methods : {
+                is_linear : function(type) {
+                    return type == "linear";
+                },
+
+                trans_type_is_indirect : function(type){
+                    return type == "indirect";
+                }
+
+            },
+
+            watch : {
+                type_trans : function(val){
+                    console.log("changed");
+
+                    if(val == "direct"){
+                        // this.temp_role = JSON.parse(JSON.stringify(this._operand.from));
+                        this._operand.from = this.temp_range;
+                    } else {
+                        // this.temp_range = JSON.parse(JSON.stringify(this._operand.from));
+                        this._operand.from = this.temp_role;
+                    }
+                }
+            }
+        })
+
+        Vue.component('trans', {
+            data : function(){
+                return {
+                    _trans : null
+                };
+            },
+
+            created : function () {
+                this._trans = this.trans;
+            },
+
+            props: ['trans'],
+            template : '<div><div class="form-group-sm col-sm-2"><select v-model="trans.type" class="form-control">'+
+                            '<option>direct</option><option>indirect</option>' +
+                        '</select><label>赋值方式</label></div>' +
+
+                        '<operation :type_trans=_trans.type :operand=_trans.op></operation>' +
+                        '<role :role=trans.to></role>' +
+                        '</div>',
+            methods: {
+            }
+        })
+
+        Vue .component('effect', {
+            data : function(){
+                return {
+                    _effect : null
+                }
+            },
+
+            created : function(){
+                this._effect = this.effect;
+            },
+
+            props : ['effect', 'effect_name'],
+
+            template : '<div class="row">' +
+                            '<div class="form-group-sm col-sm-2">' +
+                            '<vinput @submit="change_name" name="效果名" :value="_effect.name" ></vinput> ' +
+                            '</div>' +
+                            '<cond :cond="_effect.round_cond"> </cond>'+
+                            '<trans :trans="_effect.trans"></trans>' +
+                            '<div class="form-group-sm col-sm-2">' +
+                            // '<button @click="remove" class="btn btn-sm btn-primary">删此效果</button>' +
+                            '</div>'+
+                            '<div class="h-divider"></div>' +
+                        '</div>',
+
+            methods: {
+                change_name : function(name){
+                    this._effect.name = name;
+                },
+
+                remove : function(event){
+                    this.$emit('remove_eff');
+                }
+            },
+
+            watch : {
+                effect_name : function(new_eff_name){
+                    console.log("name changed");
+                    this._effect.name = new_eff_name;
+                }
+            }
+        })
+
+
+        Vue.component('group', {
+            data : function(){
+                return {
+                    _cast_name : null,
+                    _group : null
+                };
+            },
+
+            created : function(){
+                this._cast_name = this.cast_name;
+                this._group = this.group;
+            },
+
+            props : ['group', 'cast_name'],
+
+            template : '<div>' +
+
+                        '<div class="form-group-sm col-sm-2">' +
+                            '<vinput @submit="change_prob" name="技能概率" :value="_group.prob" value_type="float"></vinput>' +
+                        '</div>' +
+
+                        '<button class="btn btn-sm btn-primary">删此分组</button>' +
+                        '<div class="l-indent-2">' +
+                            '<div v-for="effect of _group.effects">' +
+                                '<effect @remove_eff:="remove_effect" :effect="effect" :effect_name="_cast_name"></effect>' +
+                            '</div>' +
+                        '</div>' +
+                        '</div>',
+
+            methods: {
+                change_prob : function(prob) {
+                    this._group.prob = prob;
+                },
+
+                remove_effect : function () {
+                    console.log("asd");
+                }
+            }
+        })
+
+
+        Vue.component('cast', {
+            data : function(){
+                return {
+                    _cast : null,
+                    class_options : ['warrior', 'rogue', 'mage', 'hunter', 'general']
+                }
+            },
+
+            created : function(){
+                this._cast = this.cast;
+            },
+
+            props : ['cast'],
+
+            template :  '<div>' +
+                        '<div class="row">' +
+                            '<div class=" h-divider"> </div>' +
+                            '<div><h1>{{_cast.name}}</h1></div>' +
+                            '{{_cast}}<br>' +
+                            
+                            '<div class="form-group-sm col-sm-2">' +
+                                '<vinput @submit=subname name="技能名称" :value= "_cast.name" ></vinput>' +
+                            '</div>' +
+
+                            '<div class="form-group-sm col-md-1">'+
+                            '<select v-model="_cast.class" class="form-control">'+
+                                '<option v-for="type_option in class_options">{{type_option}}</option>'+
+                            '</select><label>职业类型</label></div>'+
+                        
+                            '<button class="btn btn-sm btn-primary">删</button>' +
+                        '</div>' +
+                        
+                        '<div class="l-indent" >' +
+                            '<div v-for="group of _cast.groups">' +
+                                '<group :group="group" :name="_cast.name"></group>' +
+                            '</div>' +
+                        '</div></div>',
+
+            methods: {
+                subname : function(name){
+                    this._cast.name = name;
+                }
+            }
+
+        })
 
         var cast_edit = new Vue({
             el: '#cast-table',
@@ -288,7 +474,22 @@
                     self.casts = [{name: error}]
                 });
 
-            }
+            },
+
+             methods : {
+                send : function(){
+
+                    var casts_json = JSON.stringify(this.casts);
+
+                    console.log(casts_json);
+
+                    $.postJSON("/post_casts", casts_json, function(data){
+                        console.log("done");
+                    }).fail(function(error){
+                        console.log("error "+error);
+                    });
+                }
+             }
 
         });
 

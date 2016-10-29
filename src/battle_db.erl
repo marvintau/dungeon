@@ -4,6 +4,10 @@
 
 -export([init_table/0, create_casts/0, list_casts/0, list_casts/1, list_cast_json/1]).
 
+-export([update_casts/1]).
+
+
+
 init_table() ->
     create_casts().
 
@@ -60,6 +64,56 @@ list_cast_json(Data) ->
     ReturnedData = [ none | list_casts(binary_to_atom(Class, utf8))],    
     error_logger:info_report(ReturnedData),
     {done, jiffy:encode(ReturnedData)}.
+
+
+parse_range({[{_, <<"range">>}, {_, Min}, {_, Max}]}) ->
+    {Min, Max};
+
+parse_range({[_, {_, Value}]}) ->
+    if 
+        is_number(Value) or is_boolean(Value) -> Value;
+        is_binary(Value) -> binary_to_atom(Value, utf8)
+    end.
+
+parse_role({[{_, What}, {_, Whom}, {_, Attr}]}) ->
+    {role, binary_to_atom(What, utf8), binary_to_atom(Whom, utf8), binary_to_atom(Attr, utf8)}.
+
+parse_op(direct, {[{_, Type}, {_, From}]}) ->
+    {binary_to_atom(Type, utf8), parse_range(From)};
+parse_op(indirect, {[{_, Type}, {_, Ratio}, {_, Role}]}) ->
+    {binary_to_atom(Type, utf8), Ratio, parse_role(Role)}.
+
+parse_trans({[{_, <<"direct">>}, {_, Op}, {_, To}]}) ->
+    {direct, parse_op(direct, Op), parse_role(To)};
+parse_trans({[{_, <<"indirect">>}, {_, Op}, {_, To}]}) ->
+    {indirect, parse_op(indirect, Op), parse_role(To)}.
+
+parse_cond({[{_, Start}, {_, Last}, {_, Stage}]}) ->
+    {Start, Last, binary_to_atom(Stage, utf8)}.
+
+parse_single_effect({[{_, Name}, {_, Cond}, {_, Trans}, {_, React}]}) ->
+    {binary_to_atom(Name, utf8), parse_cond(Cond), parse_trans(Trans), binary_to_atom(React, utf8)}.
+
+parse_effects(Effects) ->
+    [parse_single_effect(Effect) || Effect <- Effects].
+
+parse_single_group({[{_, Prob}, {_, Effects}]}) ->
+    {Prob, parse_effects(Effects)}.
+
+parse_groups(Groups) ->
+   [parse_single_group(Group) || Group <- Groups]. 
+
+parse_cast(CastData) ->
+    {[{_, Name}, {_, Class}, {_, Groups}]} = CastData,
+
+    Res ={binary_to_atom(Name, utf8), binary_to_atom(Class, utf8), parse_groups(Groups)}, 
+
+    error_logger:info_report(Res).
+
+update_casts(Data) ->
+    Decoded = jiffy:decode(Data),
+    [parse_cast(Cast) || Cast <- Decoded], 
+    ok.
 
 create_casts() ->
 
