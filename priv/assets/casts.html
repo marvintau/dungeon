@@ -432,19 +432,21 @@
             template :  '<div>' +
                         '<div class="row">' +
                             '<div class=" h-divider"> </div>' +
-                            '<div><h1>{{_cast.name}}</h1></div>' +
-                            '{{_cast}}<br>' +
+                            '<div><h1>{{uppercase(_cast.name)}}</h1></div>' +
                             
                             '<div class="form-group-sm col-sm-2">' +
                                 '<vinput @submit=subname name="技能名称" :value= "_cast.name" ></vinput>' +
                             '</div>' +
 
-                            '<div class="form-group-sm col-md-1">'+
+                            '<div class="form-group-sm col-md-2">'+
                             '<select v-model="_cast.class" class="form-control">'+
                                 '<option v-for="type_option in class_options">{{type_option}}</option>'+
                             '</select><label>职业类型</label></div>'+
                         
-                            '<button class="btn btn-sm btn-primary">删</button>' +
+                            '<div class="form-group-sm col-md-1">' +
+                            '<button class="btn btn-sm btn-warning">删除</button></div>' +
+                            '<div class="form-group-sm col-md-2">' +
+                            '<button class="btn btn-sm btn-success">保存</button></div>' +
                         '</div>' +
                         
                         '<div class="l-indent" >' +
@@ -456,6 +458,14 @@
             methods: {
                 subname : function(name){
                     this._cast.name = name;
+                },
+
+                uppercase : function(name){
+                    return name.split("_").map( function(w){
+                        return w.replace(/^./, function(c){
+                            return c.toUpperCase()
+                        });
+                    }).join(" ");
                 }
             }
 

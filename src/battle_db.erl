@@ -106,13 +106,13 @@ parse_groups(Groups) ->
 parse_cast(CastData) ->
     {[{_, Name}, {_, Class}, {_, Groups}]} = CastData,
 
-    Res ={binary_to_atom(Name, utf8), binary_to_atom(Class, utf8), parse_groups(Groups)}, 
+    {binary_to_atom(Name, utf8), binary_to_atom(Class, utf8), parse_groups(Groups)}. 
 
-    error_logger:info_report(Res).
 
 update_casts(Data) ->
     Decoded = jiffy:decode(Data),
-    [parse_cast(Cast) || Cast <- Decoded], 
+    Res = [parse_cast(Cast) || Cast <- Decoded], 
+    error_logger:info_report(Res),
     ok.
 
 create_casts() ->
