@@ -23,6 +23,10 @@
                 /*background-color:#8A8A8A;    */
             }
             
+            div{
+                margin: 0;
+            }
+
 
             .h-divider{
                 margin-top:15px;
@@ -60,9 +64,8 @@
 
         <div class="container">
         <div id="cast-table" class="col-md-12">
-            <button v-on:click="send" class="btn btn-success">保存</button>
-            <div v-for="cast of casts" class="form-group-sm">
-                <cast :cast='cast'></cast>
+            <div v-for="(cast, index) of casts" class="form-group-sm">
+                <cast @cast_removal="casts.splice(index, 1)" :cast='cast'></cast>
             </div>
         </div>
         </div>
@@ -125,24 +128,43 @@
                     this.$emit('submit', finalValue);
                 }
             }
-        })
+        });
 
         Vue.component('range', {
 
             data : function(){
                 return {
+                    temp_range : {min: 0, max : 0},
+                    temp_val : 0,
                     _range : null
                 }
             },
 
             created: function(){
                 this._range = this.range;
-            },
+
+           },
 
             props: ['range'],
-            template :  '<div><div class="form-group-sm col-sm-2" v-if=range_type(range.type)>'+
-                        '<vinput :name="value_name()" @submit="subval" :value=range.value value_type="float"></vinput></div>'+
-                        '<div v-else><vinput name="下限" @submit="submin" :value=range.min value_type="float">'+'</vinput><vinput name="上限" @submit=submax :value=range.max value_type="float"></vinput></div></div>',
+            template :  '<div class="form-group-sm col-sm-2">'+
+                         
+                        '<div v-if=range_type(_range.type)>'+
+                        '<vinput :name="value_name()" @submit="subval" :value=_range.value value_type="float"></vinput></div>'+
+                        '<div v-else><vinput name="下限" @submit="submin" :value=_range.value.min value_type="float">'+
+                        '</vinput><vinput name="上限" @submit=submax :value=_range.value.max value_type="float"></vinput></div></div>',
+
+            watch : {
+                range : {
+                    handler: function(r){
+                        if(r.type == "range"){
+                            this._range.value = this.temp_range;
+                        } else {
+                            this._range.value = this.temp_val;
+                        }
+                    },
+                    deep : true
+                }
+            },
 
             methods: {
                 value_name : function(){
@@ -154,15 +176,18 @@
                 },
 
                 subval : function(val){
-                    this._range.value = val;
+                    this.temp_val = val;
+                    this._range.value = this.temp_val;
                 },
 
                 submin : function(min){
-                    this._range.min = min;
+                    this.temp_range.min = min;
+                    this._range.value = this.temp_range;
                 },
 
                 submax : function(max){
-                    this._range.max = max;
+                    this.temp_range.max = max;
+                    this._range.value = this.temp_range;
                 }
             }
         })
@@ -261,15 +286,18 @@
                 }
             },
 
-            props : ['type_trans', 'operand'],
+            props : ['type_range', 'type_trans', 'operand'],
             template : '<div>'+
                             '<div class="form-group-sm col-sm-2">'+
                                 '<select v-model="operand.type" class="form-control">'+
                                     '<option v-for="op in ops">{{op}}</option>'+
                                 '</select><label>操作类型</label>'+
-                            '</div>'+
+                                '<div v-if="is_linear(operand.type)"><vinput name="比例" value_type="float" :value="operand.ratio"></vinput></div>'+
+                                '<select class="form-control" v-model=temp_range.type>'+
+                                    '<option>range</option><option>value</option>' +
+                                '</select><label>影响对象</label>' +
+                        '</div>'+
                             
-                            '<div v-if="is_linear(operand.type)"><vinput name="比例" value_type="float" :value="operand.ratio"></vinput></div>'+
 
                             '<div v-if=trans_type_is_indirect(type_trans)>'+
                                 '<role :role=operand.from> </role>' +
@@ -412,7 +440,7 @@
                     console.log("asd");
                 }
             }
-        })
+        });
 
 
         Vue.component('cast', {
@@ -424,6 +452,7 @@
             },
 
             created : function(){
+                console.log(this.cast.name);
                 this._cast = this.cast;
             },
 
@@ -432,7 +461,8 @@
             template :  '<div>' +
                         '<div class="row">' +
                             '<div class=" h-divider"> </div>' +
-                            '<div><h1>{{uppercase(_cast.name)}}</h1></div>' +
+                            '<div class="form-group-sm col-sm-12"><h1>{{uppercase(_cast.name)}}</h1></div>' +
+                            '<div class=" h-divider"> </div>' +
                             
                             '<div class="form-group-sm col-sm-2">' +
                                 '<vinput @submit=subname name="技能名称" :value= "_cast.name" ></vinput>' +
@@ -444,9 +474,9 @@
                             '</select><label>职业类型</label></div>'+
                         
                             '<div class="form-group-sm col-md-1">' +
-                            '<button class="btn btn-sm btn-warning">删除</button></div>' +
+                            '<button @click="remove_cast_req" class="btn btn-sm btn-warning">删除</button></div>' +
                             '<div class="form-group-sm col-md-2">' +
-                            '<button class="btn btn-sm btn-success">保存</button></div>' +
+                            '<button @click=send class="btn btn-sm btn-success">保存</button></div>' +
                         '</div>' +
                         
                         '<div class="l-indent" >' +
@@ -466,8 +496,36 @@
                             return c.toUpperCase()
                         });
                     }).join(" ");
+                },
+
+                send : function(){
+
+                    var casts_json = JSON.stringify(this.cast);
+
+                    console.log(casts_json);
+
+                    $.postJSON("/post_casts", casts_json, function(data){
+                        console.log("done");
+                    }).fail(function(error){
+                        console.log("error "+error);
+                    });
+                },
+
+                remove_cast_req: function(){
+                    var casts_json = JSON.stringify(this.cast);
+
+                    console.log(casts_json);
+
+                    $.postJSON("/remove_cast", casts_json, function(data){
+                        console.log("done");
+                    }).fail(function(error){
+                        console.log("error "+error);
+                    });
+
+                    this.$emit('cast_removal');
+
                 }
-            }
+             }
 
         })
 
@@ -486,21 +544,12 @@
 
             },
 
-             methods : {
-                send : function(){
-
-                    var casts_json = JSON.stringify(this.casts);
-
-                    console.log(casts_json);
-
-                    $.postJSON("/post_casts", casts_json, function(data){
-                        console.log("done");
-                    }).fail(function(error){
-                        console.log("error "+error);
-                    });
+            methods: {
+                remove_cast : function(index){
+                    console.log("executed removal");
+                    // this.;
                 }
-             }
-
+            }
         });
 
         </script>

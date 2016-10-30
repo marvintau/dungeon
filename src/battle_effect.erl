@@ -40,11 +40,11 @@ set_hp({add, Inc}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
 
 set_hp({times, Ratio}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
     FinalInc = round(Hp * rand_from_interval(Ratio)),
-    P#{hp:= Hp - FinalInc, curr_attr:=Attrs#{damage_taken:=FinalInc}};
+    P#{hp:= Hp + FinalInc, curr_attr:=Attrs#{damage_taken:=FinalInc}};
 
 set_hp({linear, Inc, Ratio}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
     FinalInc = round(rand_from_interval(Inc) * Ratio),
-    P#{hp:=Hp - FinalInc, curr_attr:=Attrs#{damage_taken:=FinalInc}}.
+    P#{hp:=Hp + FinalInc, curr_attr:=Attrs#{damage_taken:=FinalInc}}.
 
 compensate_armor(#{hp:=Hp, curr_attr:=Attrs}=P) ->
     #{armor:=Armor, damage_taken:=Damage} = Attrs,

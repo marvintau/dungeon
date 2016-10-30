@@ -24,7 +24,8 @@ start(_StartType, _StartArgs) ->
                    {"/get_result", new_game_handler, []},
                    {"/get_casts", cast_edit_handler, []},
                    {"/get_list", cast_list_handler, []},
-                   {"/post_casts", cast_submit_handler, []}
+                   {"/post_casts", cast_submit_handler, []},
+                   {"/remove_cast", cast_remove_handler, []}
                   ]}
         ]),
 

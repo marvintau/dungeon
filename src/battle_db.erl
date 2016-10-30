@@ -4,9 +4,9 @@
 
 -export([init_table/0, create_casts/0, list_casts/0, list_casts/1, list_cast_json/1]).
 
--export([update_casts/1]).
+-export([update_cast/1]).
 
-
+-export([remove_cast/1]).
 
 init_table() ->
     create_casts().
@@ -15,7 +15,7 @@ parse_role_to_json({role, What, Whom, Attr}) ->
     {[{what, What}, {whom, Whom}, {attr, Attr}]}.
 
 parse_range_to_json({Min, Max}) ->
-    {[{type, range}, {min, Min}, {max, Max}]};
+    {[{type, range}, {value, {[{min, Min}, {max, Max}]} } ]};
 parse_range_to_json(Value) ->
     {[{type, value}, {value, Value}]}.
 
@@ -66,7 +66,7 @@ list_cast_json(Data) ->
     {done, jiffy:encode(ReturnedData)}.
 
 
-parse_range({[{_, <<"range">>}, {_, Min}, {_, Max}]}) ->
+parse_range({[{_, <<"range">>}, {_, {[{_, Min}, {_, Max}]} } ]}) ->
     {Min, Max};
 
 parse_range({[_, {_, Value}]}) ->
@@ -109,11 +109,22 @@ parse_cast(CastData) ->
     {binary_to_atom(Name, utf8), binary_to_atom(Class, utf8), parse_groups(Groups)}. 
 
 
-update_casts(Data) ->
+update_cast(Data) ->
     Decoded = jiffy:decode(Data),
-    Res = [parse_cast(Cast) || Cast <- Decoded], 
-    error_logger:info_report(Res),
+    {Name, _, _} = Res = parse_cast(Decoded),
+    error_logger:info_report(ets:lookup(casts, Name)),
+    ets:insert(casts, Res),
+    error_logger:info_report(ets:lookup(casts, Name)),
     ok.
+
+remove_cast(Data) ->
+    Decoded = jiffy:decode(Data),
+    {Name, _, _} = parse_cast(Decoded),
+    error_logger:info_report(ets:lookup(casts, Name)),
+    ets:delete(casts, Name),
+    error_logger:info_report(length(ets:lookup(casts, Name))),
+    ok.
+
 
 create_casts() ->
 
@@ -127,7 +138,7 @@ create_casts() ->
 
         {holy_hand_grenade, general, [
             {1, [
-                {holy_hand_grenade, {0, 1, casting}, {direct, {add, {1, 500}}, {role, hp, of_opponent, resist}}, none}
+                {holy_hand_grenade, {0, 1, casting}, {direct, {add, {-500, -1}}, {role, hp, of_opponent, resist}}, none}
             ]}
         ]},
 
@@ -139,7 +150,7 @@ create_casts() ->
 
         {talisman_of_spellshrouding, general, [
             {1, [
-                {talisman_of_spellshrouding, {0, 1, casting}, {direct, {add, 100}, {role, attr, of_self, resist}}, none}
+                {talisman_of_spellshrouding, {0, 1, casting}, {direct, {add, -100}, {role, attr, of_self, resist}}, none}
             ]}
         ]},
 
@@ -215,8 +226,8 @@ create_casts() ->
             {1, [
                 {tornado, {0, 1, casting}, {direct, {times, -0.05}, {role, attr, of_opponent, hit}}, none},          
                 {tornado, {1, 4, settling}, {direct, {times, -0.05}, {role, attr, of_opponent, hit}}, none},          
-                {tornado, {0, 1, casting}, {direct, {add, 50}, {role, hp, of_opponent, none}}, absorbable},          
-                {tornado, {1, 4, settling}, {direct, {add, 50}, {role, hp, of_opponent, none}}, absorbable}
+                {tornado, {0, 1, casting}, {direct, {add, -50}, {role, hp, of_opponent, none}}, absorbable},          
+                {tornado, {1, 4, settling}, {direct, {add, -50}, {role, hp, of_opponent, none}}, absorbable}
             ]}
         ]},
 
@@ -229,7 +240,7 @@ create_casts() ->
 
         {outbreak, hunter, [
             {1, [
-                {outbreak, {0, 3, attacking}, {direct, {add, 70}, {role, hp, of_opponent, none}}, resistable}
+                {outbreak, {0, 3, attacking}, {direct, {add, -70}, {role, hp, of_opponent, none}}, resistable}
             ]}
         ]},
 
@@ -250,7 +261,7 @@ create_casts() ->
     Rogue = [
         {healing_potion, rogue, [
             {1, [
-                {healing_potion, {0, 1, casting}, {direct, {add, {-255, -175}}, {role, hp, of_self, none}}, resistable}
+                {healing_potion, {0, 1, casting}, {direct, {add, {175, 255}}, {role, hp, of_self, none}}, resistable}
             ]}
         ]},
 
@@ -312,21 +323,21 @@ create_casts() ->
 
         {pyromania, mage, [
             {1, [
-                {pyromania, {0, 1, casting}, {direct, {add, 50}, {role, hp, of_opponent, none}}, resistable},
-                {pyromania, {1, 2, settling}, {direct, {add, 50}, {role, hp, of_opponent, none}}, resistable},
+                {pyromania, {0, 1, casting}, {direct, {add, -50}, {role, hp, of_opponent, none}}, resistable},
+                {pyromania, {1, 2, settling}, {direct, {add, -50}, {role, hp, of_opponent, none}}, resistable},
                 {pyromania, {0, 1, casting}, {direct, {times, -0.5}, {role, attr, of_opponent, critical}}, resistable}
             ]}
         ]},
 
         {mind_blast, mage, [
             {1, [
-                {mind_blast, {0, 1, casting}, {direct, {add, 125}, {role, hp, of_opponent, none}}, resistable},
+                {mind_blast, {0, 1, casting}, {direct, {add, -125}, {role, hp, of_opponent, none}}, resistable},
                 {mind_blast, {0, 1, casting}, {direct, {set, 1}, {role, rem_moves, of_opponent, none}}, resistable}
             ]}
         ]}
     ],
 
-    ets:new(casts, [set, named_table]),
+    ets:new(casts, [set, public, named_table]),
 
     ets:insert(casts, CastsGeneral),
     ets:insert(casts, Warrior),
