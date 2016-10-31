@@ -144,7 +144,7 @@ create_casts() ->
 
         {talisman_of_death, general, [
             {1, [
-                {talisman_of_death, {0, 1, casting}, {direct, {times, 0.15}, {role, hp, of_opponent, none}}, resistable}
+                {talisman_of_death, {0, 1, casting}, {direct, {times, -0.15}, {role, hp, of_opponent, none}}, resistable}
             ]}
         ]},
 

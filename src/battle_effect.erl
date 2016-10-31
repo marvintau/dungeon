@@ -35,7 +35,7 @@ set_hp({set, Value}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
 
 set_hp({add, Inc}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
     FinalInc = rand_from_interval(Inc),
-    P#{hp:=Hp - FinalInc, 
+    P#{hp:=Hp + FinalInc, 
        curr_attr:=Attrs#{damage_taken:=FinalInc}};
 
 set_hp({times, Ratio}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
