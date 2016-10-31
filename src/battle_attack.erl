@@ -65,7 +65,7 @@ calculate_damage(physical, critical, {Lower, Upper}, Armor) ->
     round(2*(Lower + rand:uniform() * (Upper - Lower)) * (1 - Armor * 0.0001));
 
 calculate_damage(physical, _, {Lower, Upper}, Armor) ->
-    round(Lower + rand:uniform() * (Upper - Lower) * (1 - Armor * 0.0001));
+    round((Lower + rand:uniform() * (Upper - Lower)) * (1 - Armor * 0.0001));
 
 calculate_damage(_, _, _, _) -> 0.
 
