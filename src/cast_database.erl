@@ -1,8 +1,8 @@
--module(battle_db).
+-module(cast_database).
 
 -author('Yue Marvin Tao').
 
--export([init_table/0, create_casts/0, list_casts/0, list_casts/1, list_cast_json/1]).
+-export([init_table/0, create_casts/0]).
 
 -export([update_cast/1]).
 
@@ -11,107 +11,9 @@
 init_table() ->
     create_casts().
 
-parse_role_to_json({role, What, Whom, Attr}) ->
-    {[{what, What}, {whom, Whom}, {attr, Attr}]}.
-
-parse_range_to_json({Min, Max}) ->
-    {[{type, range}, {value, {[{min, Min}, {max, Max}]} } ]};
-parse_range_to_json(Value) ->
-    {[{type, value}, {value, Value}]}.
-
-
-parse_op_to_json({linear, {role, FromWhat, FromWhom, FromAttr}, Ratio}) ->
-    {[{type, linear}, {ratio, Ratio}, {from, parse_role_to_json({role, FromWhat, FromWhom, FromAttr})}]};
-
-parse_op_to_json({linear, IncRange, Ratio}) ->
-    {[{type, linear}, {ratio, Ratio}, {from, parse_range_to_json(IncRange)}]};
-
-parse_op_to_json({Op, IncRange}) ->
-    {[{type, Op}, {from, parse_range_to_json(IncRange)}]}.
-
-parse_trans_to_json({TransType, Op, To}) ->
-    {[{type, TransType}, {op, parse_op_to_json(Op)}, {to, parse_role_to_json(To)}]}.
-
-parse_single_effect_to_json(Effect) ->
-    {Name, {Start, LastFor, Stage}, Trans, PossibleReact} = Effect,
-
-    RoundCondition = {[{start, Start}, {last_for, LastFor}, {stage, Stage}]},
-
-    {[{name, Name}, {round_cond, RoundCondition}, {trans, parse_trans_to_json(Trans)}, {react, PossibleReact}]}.
-
-parse_single_group_to_json({Prob, Effects}) ->
-    {[{prob, Prob}, {effects, [parse_single_effect_to_json(Effect) || Effect <- Effects]}]}.
-
-parse_single_cast_to_json(Cast) ->
-    {Name, Class, Groups} = Cast,
-
-    {[{name, Name}, {class, Class}, {groups, [parse_single_group_to_json(Group) || Group <- Groups]}]}.
-
-parse_casts_to_json(Casts) ->
-    jiffy:encode([parse_single_cast_to_json(Cast) || Cast <- Casts]).
-
-list_casts() ->
-    AllCasts = lists:flatten(ets:match(casts, '$1')), 
-    {done, parse_casts_to_json(AllCasts)}.
-
-list_casts(Class) ->
-    General = lists:flatten(ets:match(casts, {'$1', general, '_'})),
-    ClassCast = lists:flatten(ets:match(casts, {'$1', Class, '_'})),
-    lists:append(General, ClassCast).
-
-list_cast_json(Data) ->
-    {[{<<"id">>, _ID}, {<<"class">>, Class}]} = Data,
-    ReturnedData = [ none | list_casts(binary_to_atom(Class, utf8))],    
-    error_logger:info_report(ReturnedData),
-    {done, jiffy:encode(ReturnedData)}.
-
-
-parse_range({[{_, <<"range">>}, {_, {[{_, Min}, {_, Max}]} } ]}) ->
-    {Min, Max};
-
-parse_range({[_, {_, Value}]}) ->
-    if 
-        is_number(Value) or is_boolean(Value) -> Value;
-        is_binary(Value) -> binary_to_atom(Value, utf8)
-    end.
-
-parse_role({[{_, What}, {_, Whom}, {_, Attr}]}) ->
-    {role, binary_to_atom(What, utf8), binary_to_atom(Whom, utf8), binary_to_atom(Attr, utf8)}.
-
-parse_op(direct, {[{_, Type}, {_, From}]}) ->
-    {binary_to_atom(Type, utf8), parse_range(From)};
-parse_op(indirect, {[{_, Type}, {_, Ratio}, {_, Role}]}) ->
-    {binary_to_atom(Type, utf8), Ratio, parse_role(Role)}.
-
-parse_trans({[{_, <<"direct">>}, {_, Op}, {_, To}]}) ->
-    {direct, parse_op(direct, Op), parse_role(To)};
-parse_trans({[{_, <<"indirect">>}, {_, Op}, {_, To}]}) ->
-    {indirect, parse_op(indirect, Op), parse_role(To)}.
-
-parse_cond({[{_, Start}, {_, Last}, {_, Stage}]}) ->
-    {Start, Last, binary_to_atom(Stage, utf8)}.
-
-parse_single_effect({[{_, Name}, {_, Cond}, {_, Trans}, {_, React}]}) ->
-    {binary_to_atom(Name, utf8), parse_cond(Cond), parse_trans(Trans), binary_to_atom(React, utf8)}.
-
-parse_effects(Effects) ->
-    [parse_single_effect(Effect) || Effect <- Effects].
-
-parse_single_group({[{_, Prob}, {_, Effects}]}) ->
-    {Prob, parse_effects(Effects)}.
-
-parse_groups(Groups) ->
-   [parse_single_group(Group) || Group <- Groups]. 
-
-parse_cast(CastData) ->
-    {[{_, Name}, {_, Class}, {_, Groups}]} = CastData,
-
-    {binary_to_atom(Name, utf8), binary_to_atom(Class, utf8), parse_groups(Groups)}. 
-
-
 update_cast(Data) ->
     Decoded = jiffy:decode(Data),
-    {Name, _, _} = Res = parse_cast(Decoded),
+    {Name, _, _} = Res = casts_to_erlang:cast(Decoded),
     error_logger:info_report(ets:lookup(casts, Name)),
     ets:insert(casts, Res),
     error_logger:info_report(ets:lookup(casts, Name)),
@@ -119,7 +21,7 @@ update_cast(Data) ->
 
 remove_cast(Data) ->
     Decoded = jiffy:decode(Data),
-    {Name, _, _} = parse_cast(Decoded),
+    {Name, _, _} = casts_to_erlang:cast(Decoded),
     error_logger:info_report(ets:lookup(casts, Name)),
     ets:delete(casts, Name),
     error_logger:info_report(length(ets:lookup(casts, Name))),
@@ -181,7 +83,7 @@ create_casts() ->
             {1, [
                 {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_self, dodge}}, none},
                 {shield_wall, {0, 1, casting}, {direct, {set, 100}, {role, attr, of_self, block}}, none},
-                {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_opponent, hit}}, none},
+                {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_opponent, hit_bonus}}, none},
                 {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_opponent, critical}}, none}
             ]}
         ]},
@@ -215,7 +117,7 @@ create_casts() ->
 
         {first_aid, warrior, [
             {1, [
-                {first_aid, {0, 1, casting}, {direct, {times, -0.08}, {role, hp, of_self, none}}, none}
+                {first_aid, {0, 1, casting}, {direct, {times, 0.08}, {role, hp, of_self, none}}, none}
             ]}
         ]}
     ],
@@ -224,8 +126,8 @@ create_casts() ->
     Hunter = [
         {tornado, hunter, [
             {1, [
-                {tornado, {0, 1, casting}, {direct, {times, -0.05}, {role, attr, of_opponent, hit}}, none},          
-                {tornado, {1, 4, settling}, {direct, {times, -0.05}, {role, attr, of_opponent, hit}}, none},          
+                {tornado, {0, 1, casting}, {direct, {times, -0.05}, {role, attr, of_opponent, hit_bonus}}, none},          
+                {tornado, {1, 4, settling}, {direct, {times, -0.05}, {role, attr, of_opponent, hit_bonus}}, none},          
                 {tornado, {0, 1, casting}, {direct, {add, -50}, {role, hp, of_opponent, none}}, absorbable},          
                 {tornado, {1, 4, settling}, {direct, {add, -50}, {role, hp, of_opponent, none}}, absorbable}
             ]}
@@ -289,7 +191,7 @@ create_casts() ->
             {1, [
                 {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_opponent, dodge}}, none},
                 {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_opponent, block}}, none},
-                {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_self, hit}}, none},
+                {shield_wall, {0, 1, casting}, {direct, {set, 0}, {role, attr, of_self, hit_bonus}}, none},
                 {shield_wall, {0, 1, casting}, {direct, {set, 100}, {role, attr, of_self, critical}}, none}
             ]}
         ]}

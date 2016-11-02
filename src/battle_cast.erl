@@ -54,13 +54,23 @@ parse_groups_logged({Name, _Type, Groups}, S, O, D) ->
 parse_cast(Name, S, O, D) ->
     parse_groups_logged(hd(ets:lookup(casts, Name)), S, O, D).
 
+check_disabled(#{curr_attr:=#{attack_disabled:=Atk, cast_disabled:=Cast}}) ->
+    case {Atk, Cast} of
+        {true, true} -> both;
+        {true, false} -> attack_disabled;
+        {false, true} -> cast_disabled;
+        _ -> none
+    end.
+
 log(CastName, Outcome, {Seq, Stage, Mover}, O, D) ->
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, D)},
-        { hand, null}, { action, CastName},
-        { outcome, Outcome }, { damage, null },
+        { hand, none}, { action, CastName},
+        { outcome, Outcome }, { damage, 0 },
         { offender_hp, maps:get(hp, O) },
-        { defender_hp, maps:get(hp, D) }
+        { offender_status, check_disabled(O)},
+        { defender_hp, maps:get(hp, D) },
+        { defender_status, check_disabled(D)}
     ]}.
 
 cast(_S, #{casts:=[]}=O, D, L) ->

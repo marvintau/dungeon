@@ -19,5 +19,5 @@ content_types_provided(Req, State) ->
 
 handle_get(Req, State) ->
 
-    {done, ResBody} = battle_db:list_casts(),
+    {done, ResBody} = cast_database:list_casts(),
     {ResBody, Req, State}.

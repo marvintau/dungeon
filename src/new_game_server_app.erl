@@ -16,16 +16,17 @@
 
 start(_StartType, _StartArgs) ->
 
-    battle_db:init_table(),
+    cast_database:init_table(),
 
     Dispatch = cowboy_router:compile([
             {'_', [
                    {"/dungeon/[...]", cowboy_static, {priv_dir, new_game_server, "assets"}},
-                   {"/get_result", new_game_handler, []},
+                   {"/get_result", battle_handler, []},
                    {"/get_casts", cast_edit_handler, []},
                    {"/get_list", cast_list_handler, []},
                    {"/post_casts", cast_submit_handler, []},
-                   {"/remove_cast", cast_remove_handler, []}
+                   {"/remove_cast", cast_remove_handler, []},
+                   {"/login", login_handler, []}
                   ]}
         ]),
 

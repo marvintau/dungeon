@@ -47,5 +47,5 @@ handle_casts_submit(Req, State) ->
     end,
 
     Data = jiffy:decode(ReqBody),
-    ok = battle_db:update_cast(Data),
+    ok = cast_database:update_cast(Data),
     {true, NextReq, State}.

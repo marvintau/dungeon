@@ -25,7 +25,7 @@ var pad_with_null = function(array) {
 }
 
 $.setData = function () {
-    $('#id1').val("Maxim the Warrior");
+    $('#id1').val("Maxim");
     $('#hp1').val(3400);
     $('#prim_type1').val("physical");
     $('#prim_max_1').val("235");
@@ -46,7 +46,7 @@ $.setData = function () {
     ms1.clear();
     ms1.setValue(perm_slice(ms1.getData()));
 
-    $('#id2').val("Scarlett the Rogue");
+    $('#id2').val("Scarlett");
     $('#hp2').val("2700");
     $('#prim_type2').val("physical");
     $('#prim_max_2').val("205");

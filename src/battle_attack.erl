@@ -7,15 +7,20 @@
 % get the random choice result according to the probability of each 
 % option.
 
-rotate(Roulette) ->
+rotate(Roulette, MaxLimit) ->
 
-    % reversed
     Cumulative = lists:foldl(fun(X, Rem) -> [X + hd(Rem) | Rem] end, [0], Roulette),
 
-    Rand = rand:uniform() * hd(Cumulative),
+    MaxCumu = hd(Cumulative),
+
+    NewCumulative = [I + (MaxLimit - MaxCumu) || I <- Cumulative],
+
+    Rand = rand:uniform() * hd(NewCumulative),
     
-    ResultIndex = length(element(1, lists:splitwith(fun(X) -> X >= Rand end, Cumulative))),
-    lists:nth(ResultIndex, [block, resist, dodge, critical, attack]).
+    ResultIndex = length(element(1, lists:splitwith(fun(X) -> X >= Rand end, NewCumulative))),
+
+
+    lists:nth(ResultIndex, [critical, block, resist, dodge, attack]).
 
 
 % ----------------------- PREPARE ROULETTE ----------------------------
@@ -26,8 +31,8 @@ rotate(Roulette) ->
 % otherwise.
 
 prepare_roulette_from(
-    #{curr_hand:={_, Curr, _}, curr_attr:=#{resist:=Res, hit:=Hit, critical:=Critic}},
-    #{secd_hand:={_, Secd, _}, curr_attr:=#{block:=Blo, dodge:=Dod}}
+    #{curr_hand:={_, Curr, _}, curr_attr:=#{hit_bonus:=Hit, critical:=Critical}},
+    #{secd_hand:={_, Secd, _}, curr_attr:=#{resist:=Res, block:=Blo, dodge:=Dod}}
 ) ->
 
     {Dodge, Resist, Block} = case {Curr, Secd} of
@@ -44,7 +49,12 @@ prepare_roulette_from(
             {0, 0, 0}            
     end,
 
-    [Hit, Critic, Dodge, Resist, Block].
+    NewDodge = case Dodge - Hit > 0 of 
+        true -> Dodge - Hit;
+        _ -> 0
+    end,
+
+    [NewDodge, Resist, Block, Critical].
 
 % --------------- PLAYER AS MAGE ------------------------------
 % Magic attack cannot be blocked, thus make sure that block has
@@ -73,6 +83,17 @@ calculate_damage(_, _, _, _) -> 0.
 
 % Calculates the damage with given character type, the upper and lower
 % damage of weapon, and outcome of roulette turning.
+check_disabled(#{curr_attr:=#{attack_disabled:=Atk, cast_disabled:=Cast}}) ->
+    case {Atk, Cast} of
+        {true, true} -> both;
+        {true, false} -> attack_disabled;
+        {false, true} -> cast_disabled;
+        _ -> none
+    end.
+
+
+is_no_damage_move(#{curr_hand:={secd, Type, _}}) when (Type==shield) or (Type==bare) -> true;
+is_no_damage_move(_) -> false.
 
 log({Seq, Stage, Mover},
     #{curr_hand:={Which, WeaponType, _}}=O,
@@ -83,7 +104,9 @@ log({Seq, Stage, Mover},
         { hand, Which}, { action, WeaponType},
         { outcome, Outcome }, { damage, Damage },
         { offender_hp, maps:get(hp, O) },
-        { defender_hp, maps:get(hp, D) }
+        { offender_status, check_disabled(O)},
+        { defender_hp, maps:get(hp, D) },
+        { defender_status, check_disabled(D)}
     ]}.
 
 attack(S,
@@ -91,7 +114,7 @@ attack(S,
          curr_attr:=#{damage_coeff:=DamageCoeff, damage_addon:=DamageAddon}=CurrAttr, rem_moves:=RemMoves}=A,
        #{curr_attr:=#{armor:=Armor}, hp:=H2}=D, L) ->
 
-    Outcome = rotate(prepare_roulette_from(A, D)),
+    Outcome = rotate(prepare_roulette_from(A, D), 120),
     
     Damage = calculate_damage(AttackType, Outcome, DamageRange, Armor) * DamageCoeff + DamageAddon,
 
@@ -100,6 +123,11 @@ attack(S,
         secd -> A#{curr_hand:=PrimHand}
     end,
     NextD = D#{curr_attr:=CurrAttr#{damage_taken:=Damage, outcome:=Outcome}, hp:=H2 - Damage},
-    NextLog = [log(S, A, NextD) | L],
+
+
+    NextLog = case is_no_damage_move(A) of
+        true -> L;
+        _ -> [log(S, A, NextD) | L]
+    end,
     
     {NextA#{rem_moves:=RemMoves-1}, NextD, NextLog}.

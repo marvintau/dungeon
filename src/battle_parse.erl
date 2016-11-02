@@ -8,7 +8,7 @@ parse_single_player(SinglePlayerData) ->
 
     {[
       {_, ID}, {_, HP}, {_, PrimType}, {_, PrimMax}, {_, PrimMin}, {_, SecdType},
-      {_, SecdMax}, {_, SecdMin}, {_, Armor}, {_, Hit}, {_, Critic}, {_, Dodge},
+      {_, SecdMax}, {_, SecdMin}, {_, Armor}, {_, HitBonus}, {_, Critic}, {_, Dodge},
       {_, Resist}, {_, Block}, {_, Agi}, {_, CastList}
      ]} = SinglePlayerData,
 
@@ -31,7 +31,7 @@ parse_single_player(SinglePlayerData) ->
             cast_disabled => false,
             effect_invalidated => false,
             armor      => Armor,
-            hit        => Hit,
+            hit_bonus  => HitBonus,
             critical   => Critic,
             dodge      => Dodge,
             resist     => Resist,

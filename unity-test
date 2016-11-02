@@ -1,0 +1,6 @@
+#!/bin/sh
+
+
+
+curl -H "Content-Type: application/x-www-form-urlencoded" -X POST -d 'id=123&name=456' http://10.0.0.8:1337/player_info
+

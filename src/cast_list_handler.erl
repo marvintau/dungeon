@@ -16,6 +16,7 @@ content_types_accepted(Req, State) ->
     erlang:display(accepted),
 
     {[
+        {<<"application/text">>, handle_post},
         {<<"application/json">>, handle_post}
     ], Req, State}.
 
@@ -48,6 +49,6 @@ handle_post(Req, State) ->
 
     Data = jiffy:decode(ReqBody),
     error_logger:info_report(Data),
-    {done, ResBody} = battle_db:list_cast_json(Data),
+    {done, ResBody} = casts_to_json:casts(Data),
     Res = cowboy_req:set_resp_body(ResBody, NextReq),
     {true, Res, State}.

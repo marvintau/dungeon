@@ -36,15 +36,15 @@ set_hp({set, Value}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
 set_hp({add, Inc}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
     FinalInc = rand_from_interval(Inc),
     P#{hp:=Hp + FinalInc, 
-       curr_attr:=Attrs#{damage_taken:=FinalInc}};
+       curr_attr:=Attrs#{damage_taken:=-FinalInc}};
 
 set_hp({times, Ratio}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
     FinalInc = round(Hp * rand_from_interval(Ratio)),
-    P#{hp:= Hp + FinalInc, curr_attr:=Attrs#{damage_taken:=FinalInc}};
+    P#{hp:= Hp + FinalInc, curr_attr:=Attrs#{damage_taken:=-FinalInc}};
 
 set_hp({linear, Inc, Ratio}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
     FinalInc = round(rand_from_interval(Inc) * Ratio),
-    P#{hp:=Hp + FinalInc, curr_attr:=Attrs#{damage_taken:=FinalInc}}.
+    P#{hp:=Hp + FinalInc, curr_attr:=Attrs#{damage_taken:=-FinalInc}}.
 
 compensate_armor(#{hp:=Hp, curr_attr:=Attrs}=P) ->
     #{armor:=Armor, damage_taken:=Damage} = Attrs,
@@ -99,8 +99,8 @@ apply_effect({direct, Op, {role, hp, ToWhom, _}}, React, {#{id:=I1}=P1, #{id:=I2
         {{affected, absorbed}, I2} ->
             {affected, P1, compensate_armor(set_hp(Op, P2))};
 
-        {_, I1} -> {affected, set_hp(Op, P1), P2};
-        {_, I2} -> {affected, P1, set_hp(Op, P2)}
+        {_, I1} -> {affected, hp, set_hp(Op, P1), P2};
+        {_, I2} -> {affected, hp, P1, set_hp(Op, P2)}
     end;
 
 apply_effect({direct, Op, {role, attr, ToWhom, AttrName}}, React, {#{id:=I1}=P1, #{id:=I2}=P2}) ->
@@ -109,8 +109,8 @@ apply_effect({direct, Op, {role, attr, ToWhom, AttrName}}, React, {#{id:=I1}=P1,
 
     case {FinalReact, ToWhom} of
         {{not_affected, Reaction}, _} -> {{not_affected, Reaction}, P1, P2};
-        {_, I1} -> {affected, set_attr(Op, AttrName, P1), P2};
-        {_, I2} -> {affected, P1, set_attr(Op, AttrName, P2)}
+        {_, I1} -> {affected, attr, set_attr(Op, AttrName, P1), P2};
+        {_, I2} -> {affected, attr, P1, set_attr(Op, AttrName, P2)}
     end;
 
 apply_effect({direct, Op, {role, rem_moves, ToWhom, _}}, React, {#{id:=I1}=P1, #{id:=I2}=P2}) ->
@@ -119,8 +119,8 @@ apply_effect({direct, Op, {role, rem_moves, ToWhom, _}}, React, {#{id:=I1}=P1, #
 
     case {FinalReact, ToWhom} of
         {{not_affected, Reaction}, _} -> {{not_affected, Reaction}, P1, P2};
-        {_, I1} -> {affected, set_rem_moves(Op, P1), P2};
-        {_, I2} -> {affected, P1, set_rem_moves(Op, P2)}
+        {_, I1} -> {affected, rem_moves, set_rem_moves(Op, P1), P2};
+        {_, I2} -> {affected, rem_moves, P1, set_rem_moves(Op, P2)}
     end;
 
 
@@ -145,16 +145,32 @@ apply_effect(Effect, State, {O, D}) ->
         _    -> {{not_affected, not_correct_cond}, O, D}
     end.
 
+check_disabled(#{curr_attr:=#{attack_disabled:=Atk, cast_disabled:=Cast}}) ->
+    case {Atk, Cast} of
+        {true, true} -> both;
+        {true, false} -> attack_disabled;
+        {false, true} -> cast_disabled;
+        _ -> none
+    end.
 
-log({Seq, Stage, Mover}, {EffectName, _, _, _}, ReactOutcome, O, D) ->
+log({Seq, Stage, Mover}, {EffectName, _, Specs, _}, ReactOutcome, O, D) ->
+
+    {_, _Operation, {role, _What, ToWhom, _}} = Specs,
+
+    Role = case ToWhom of
+        Mover -> O;
+        _ -> D
+    end,
 
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, D)},
 
-        { hand, null}, { action, EffectName},
-        { outcome, ReactOutcome }, { damage, maps:get(damage_taken, maps:get(curr_attr, D)) },
+        { hand, none}, { action, EffectName},
+        { outcome, ReactOutcome }, { damage, maps:get(damage_taken, maps:get(curr_attr, Role)) },
         { offender_hp, maps:get(hp, O) },
-        { defender_hp, maps:get(hp, D) }
+        { offender_status, check_disabled(O)},
+        { defender_hp, maps:get(hp, D) },
+        { defender_status, check_disabled(D)}
     ]}.
 
 
@@ -173,10 +189,12 @@ effect(S, O, D, Log, [EffectSpec| Remaining]) ->
 
     {EffectedOffender, EffectedDefender, NewLog} =
     case apply_effect(EffectSpec, S, {O, D}) of
-        {affected, AffectedP1, AffectedP2} ->
+        {affected, hp, AffectedP1, AffectedP2} ->
             NextLog = [log(S, EffectSpec, effect, AffectedP1, AffectedP2) | Log],
             {AffectedP1, AffectedP2, NextLog};
-        {{not_affected, React}, NotAffectedP1, NotAffectedP2} when (React==resist) or (React==block) or (React==invalidated)->
+        {affected, _, AffectedP1, AffectedP2} ->
+            {AffectedP1, AffectedP2, Log};
+        {{not_affected, React}, NotAffectedP1, NotAffectedP2} when (React==resisted) or (React==block) or (React==invalidated)->
             NextLog = [log(S, EffectSpec, React, NotAffectedP1, NotAffectedP2) | Log],
             {NotAffectedP1, NotAffectedP2, NextLog};
         {{not_affected, _}, NotAffectedP1, NotAffectedP2} ->
