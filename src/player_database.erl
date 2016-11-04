@@ -21,7 +21,7 @@ random_name() ->
     Given = [{1, "总裁"}, {2, "战士"}, {3, "魔法使"}, {4, "隐士"}, {5, "高人"}, {6, "科学家"}, {7, "学霸"}, {8, "天才"}, {9, "学生会长"}, {10, "体育部长"}],
     {_, [{_, ResSurname}|_]} = lists:splitwith(fun({ID, _Name}) -> ID < rand:uniform() * length(SurNames) end, SurNamesNames),
     {_, [{_, ResGiven}|_]} = lists:splitwith(fun({ID, _Name}) -> ID < rand:uniform() * length(Given) end, Given),
-    Res.
+    ResSurname.
 
 login(Binary) ->
 
