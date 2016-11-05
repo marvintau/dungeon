@@ -32,7 +32,7 @@ condition({Start, Last, Phase}, CurrSeq) ->
 % latter function is the actual entrance that takes cast name as argument, and
 % find the specification in database, and re-interpret it with battle context.
 
-parse_single_effect({Name, Cond, Trans, React}, {CurrSeq, _, _}, #{id:=Off}, #{id:=Def}) ->
+parse_single_effect({Name, Cond, Trans, React}, #{seq:=CurrSeq}, #{id:=Off}, #{id:=Def}) ->
 
     {Name, condition(Cond, CurrSeq), role(Trans, {Off, Def}), React}.
 
@@ -62,7 +62,7 @@ check_disabled(#{curr_attr:=#{attack_disabled:=Atk, cast_disabled:=Cast}}) ->
         _ -> none
     end.
 
-log(CastName, Outcome, {Seq, Stage, Mover}, O, D) ->
+log(CastName, Outcome, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, D)},
         { hand, none}, { action, CastName},

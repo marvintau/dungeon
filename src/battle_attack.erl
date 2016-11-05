@@ -95,7 +95,7 @@ check_disabled(#{curr_attr:=#{attack_disabled:=Atk, cast_disabled:=Cast}}) ->
 is_no_damage_move(#{curr_hand:={secd, Type, _}}) when (Type==shield) or (Type==bare) -> true;
 is_no_damage_move(_) -> false.
 
-log({Seq, Stage, Mover},
+log(#{seq:=Seq, stage:=Stage, mover:=Mover},
     #{curr_hand:={Which, WeaponType, _}}=O,
     #{curr_attr:=#{outcome:=Outcome, damage_taken:=Damage}}=D)  ->
     

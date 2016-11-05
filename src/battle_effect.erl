@@ -77,7 +77,7 @@ get_react_outcome(React, ID, P1, P2) ->
         none -> {ok, none}
     end.
 
-check_condition({StartingSeq, TerminalSeq, Phase}, CurrSeq, CurrPhase) ->
+check_condition({StartingSeq, TerminalSeq, Phase}, CurrSeq, CurrStage) ->
 
     CalculatedPhase = case {Phase, StartingSeq} of
         {casting, 0} -> casting;
@@ -85,9 +85,9 @@ check_condition({StartingSeq, TerminalSeq, Phase}, CurrSeq, CurrPhase) ->
         {_, _} -> Phase
     end,
 
-    (CurrSeq >= StartingSeq) and (CurrSeq < TerminalSeq) and (CalculatedPhase == CurrPhase).
-check_condition(EffectCond, {CurrSeq, CurrPhase, _}) ->
-    check_condition(EffectCond, CurrSeq, CurrPhase).
+    (CurrSeq >= StartingSeq) and (CurrSeq < TerminalSeq) and (CalculatedPhase == CurrStage).
+check_condition(EffectCond, #{seq:=CurrSeq, stage:=CurrStage}) ->
+    check_condition(EffectCond, CurrSeq, CurrStage).
 
 % apply_effect: the wrapper function to apply the effects over the player context, and
 % mark whether the context is modified. If modified, the function returns {affected, P1, P2},
@@ -160,7 +160,7 @@ check_disabled(#{curr_attr:=#{attack_disabled:=Atk, cast_disabled:=Cast}}) ->
         _ -> none
     end.
 
-log({Seq, Stage, Mover}, {EffectName, _, Specs, _}, ReactOutcome, O, D) ->
+log(#{seq:=Seq, stage:=Stage, mover:=Mover}, {EffectName, _, Specs, _}, ReactOutcome, O, D) ->
 
     {_, _Operation, {role, _What, ToWhom, _}} = Specs,
 
