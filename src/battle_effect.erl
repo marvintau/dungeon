@@ -78,7 +78,14 @@ get_react_outcome(React, ID, P1, P2) ->
     end.
 
 check_condition({StartingSeq, TerminalSeq, Phase}, CurrSeq, CurrPhase) ->
-    (CurrSeq >= StartingSeq) and (CurrSeq < TerminalSeq) and (Phase == CurrPhase).
+
+    CalculatedPhase = case {Phase, StartingSeq} of
+        {casting, 0} -> casting;
+        {casting, _} -> settling;
+        {_, _} -> Phase
+    end,
+
+    (CurrSeq >= StartingSeq) and (CurrSeq < TerminalSeq) and (CalculatedPhase == CurrPhase).
 check_condition(EffectCond, {CurrSeq, CurrPhase, _}) ->
     check_condition(EffectCond, CurrSeq, CurrPhase).
 

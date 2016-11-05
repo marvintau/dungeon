@@ -19,7 +19,7 @@ parse_form(Binary) ->
 random_name() ->
     SurNames = [{1, "威猛的"}, {2, "霸道的"}, {3, "机智的"}, {4, "勇敢的"}, {5, "无敌的"}, {6, "可爱的"}, {7, "呆萌的"}, {8, "天然的"}, {9,"干练的"}, {10, "飒爽的"}],
     Given = [{1, "总裁"}, {2, "战士"}, {3, "魔法使"}, {4, "隐士"}, {5, "高人"}, {6, "科学家"}, {7, "学霸"}, {8, "天才"}, {9, "学生会长"}, {10, "体育部长"}],
-    {_, [{_, ResSurname}|_]} = lists:splitwith(fun({ID, _Name}) -> ID < rand:uniform() * length(SurNames) end, SurNamesNames),
+    {_, [{_, ResSurname}|_]} = lists:splitwith(fun({ID, _Name}) -> ID < rand:uniform() * length(SurNames) end, SurNames),
     {_, [{_, ResGiven}|_]} = lists:splitwith(fun({ID, _Name}) -> ID < rand:uniform() * length(Given) end, Given),
     ResSurname.
 
