@@ -67,9 +67,9 @@ log(CastName, Outcome, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
         { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, D)},
         { hand, none}, { action, CastName},
         { outcome, Outcome }, { damage, 0 },
-        { offender_hp, maps:get(hp, O) },
+        { offender_hp, maps:get(hp, maps:get(state, O)) },
         { offender_status, check_disabled(O)},
-        { defender_hp, maps:get(hp, D) },
+        { defender_hp, maps:get(hp, maps:get(state, D)) },
         { defender_status, check_disabled(D)}
     ]}.
 

@@ -46,7 +46,7 @@ trans(Action, #{mover:=Mover}=S, #{id:=I1}=P1, #{id:=I2}=P2, L) ->
 % When exiting the main loop, the log will be reversed to it's natural
 % order.
 
-loop(_, #{hp:=HP1, id:=I1}, #{hp:=HP2, id:=I2}, Log) when HP1 < 0 orelse HP2 < 0 ->
+loop(_, #{state:=#{hp:=HP1}, id:=I1}, #{state:=#{hp:=HP2}, id:=I2}, Log) when HP1 < 0 orelse HP2 < 0 ->
 
     Winner = if
         HP1 < 0 -> I2;
@@ -68,12 +68,12 @@ loop(_, #{hp:=HP1, id:=I1}, #{hp:=HP2, id:=I2}, Log) when HP1 < 0 orelse HP2 < 0
 % both players will be restored to primary hand.
 
 loop(#{seq:=Seq, stage:=attacking}=State,
-     #{done:=already, prim_hand:=PrimHand1, orig_attr:=Orig1}=P1,
-     #{done:=already, prim_hand:=PrimHand2, orig_attr:=Orig2}=P2,
+     #{done:=already, prim_hand:=PrimHand1, orig_attr:=Orig1, state:=State1}=P1,
+     #{done:=already, prim_hand:=PrimHand2, orig_attr:=Orig2, state:=State2}=P2,
      L) ->
 
-    NewP1 = P1#{rem_moves:=2, done:=not_yet, curr_hand:=PrimHand1, curr_attr=>Orig1},
-    NewP2 = P2#{rem_moves:=2, done:=not_yet, curr_hand:=PrimHand2, curr_attr=>Orig2},
+    NewP1 = P1#{state:=State1#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand1, curr_attr=>Orig1},
+    NewP2 = P2#{state:=State2#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand2, curr_attr=>Orig2},
 
     loop(State#{seq:=Seq+1, stage:=settling, mover:=toss(NewP1, NewP2)}, NewP1, NewP2, L);
 
@@ -114,7 +114,7 @@ loop(#{stage:=attacking}=S, A, B, L) ->
             false ->
                 {MovedO, MovedD, MovedLog} = battle_attack:attack(State, O, D, Log),
 
-                DoneMovedO = case maps:get(rem_moves, MovedO) of
+                DoneMovedO = case maps:get(rem_moves, maps:get(state, MovedO)) of
                     0 -> MovedO#{done:=already};
                     _ -> MovedO
                 end,

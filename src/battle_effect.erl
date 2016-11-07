@@ -14,6 +14,32 @@ rand_from_interval({Low, High}) ->
     round(Low + rand:uniform() * (High - Low));
 rand_from_interval(SingleValue) -> SingleValue.
 
+% =========================== TRANSFER FUNCTIONS ===============================
+% Apply transfer operations over specific attributes of player context. The type
+% could be varying state (hp, remaining moves) or attribute (hit, dodge, block,
+% etc.) that resets for every round. The supported operations include get, set,
+% add, add & multiply original value, or the value referring to other attributes.
+
+trans(get, Type, Attr, P) ->
+    maps:get(Attr, maps:get(Type, P));
+
+trans({set, New}, Type, Attr, P) ->
+    #{Type:=#{Attr:=Old}=TypeInstance} = P,
+    P#{Type:=TypeInstance#{Attr:=New, diff:=New - Old}};
+
+trans({add, Inc}, Type, Attr, P) ->
+    Orig = trans(get, Type, Attr, P),
+    trans({set, Orig + rand_from_interval(Inc)}, Type, Attr, P);
+
+trans({add_mul, Mul}, Type, Attr, P) ->
+    Orig = trans(get, Type, Attr, P),
+    trans({add, Orig * rand_from_interval(Mul)}, Type, Attr, P);
+
+trans({add_inc_mul, Inc, Mul}, Type, Attr, P) ->
+    trans({add, rand_from_interval(Inc) * rand_from_interval(Mul)}, Type, Attr, P).
+
+
+
 set_attr({set, Value}, AttrName, #{curr_attr:=Attr}=P) ->
     P#{curr_attr:=Attr#{AttrName:=Value}};
 
@@ -30,30 +56,30 @@ set_attr({linear, Inc, Ratio}, AttrName, #{curr_attr:=Attr}=P) ->
     Original = get_attr(AttrName, P),
     P#{curr_attr:=Attr#{AttrName := Original + round(rand_from_interval(Inc) * Ratio)}}.
 
-set_hp({set, Value}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
-    P#{hp:=Value, curr_attr:=Attrs#{damage_taken:=Hp - Value}};
+set_hp({set, Value}, #{state:=#{hp:=Hp}=State, curr_attr:=Attrs}=P) ->
+    P#{state:=State#{hp:=Value}, curr_attr:=Attrs#{damage_taken:=Hp - Value}};
 
-set_hp({add, Inc}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
+set_hp({add, Inc}, #{state:=#{hp:=Hp}=State, curr_attr:=Attrs}=P) ->
     FinalInc = rand_from_interval(Inc),
-    P#{hp:=Hp + FinalInc, 
+    P#{state:=State#{hp:=Hp + FinalInc}, 
        curr_attr:=Attrs#{damage_taken:=-FinalInc}};
 
-set_hp({times, Ratio}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
+set_hp({times, Ratio}, #{state:=#{hp:=Hp}=State, curr_attr:=Attrs}=P) ->
     FinalInc = round(Hp * rand_from_interval(Ratio)),
-    P#{hp:= Hp + FinalInc, curr_attr:=Attrs#{damage_taken:=-FinalInc}};
+    P#{state:=State#{hp:= Hp + FinalInc}, curr_attr:=Attrs#{damage_taken:=-FinalInc}};
 
-set_hp({linear, Inc, Ratio}, #{hp:=Hp, curr_attr:=Attrs}=P) ->
+set_hp({linear, Inc, Ratio}, #{state:=#{hp:=Hp}=State, curr_attr:=Attrs}=P) ->
     FinalInc = round(rand_from_interval(Inc) * Ratio),
-    P#{hp:=Hp + FinalInc, curr_attr:=Attrs#{damage_taken:=-FinalInc}}.
+    P#{state:=State#{hp:=Hp + FinalInc}, curr_attr:=Attrs#{damage_taken:=-FinalInc}}.
 
-compensate_armor(#{hp:=Hp, curr_attr:=Attrs}=P) ->
+compensate_armor(#{state:=#{hp:=Hp}=State, curr_attr:=Attrs}=P) ->
     #{armor:=Armor, damage_taken:=Damage} = Attrs,
     NewDamage = Damage * (1 - Armor/10000),
-    P#{hp:=Hp + (Damage - NewDamage), curr_attr:=Attrs#{damage_taken:=NewDamage}}.
+    P#{state:=State#{hp:=Hp + (Damage - NewDamage)}, curr_attr:=Attrs#{damage_taken:=NewDamage}}.
 
 
-set_rem_moves({set, Value}, P) ->
-    P#{rem_moves:=Value}.
+set_rem_moves({set, Value}, #{state:=State}=P) ->
+    P#{state:=State#{rem_moves:=Value}}.
 
 
 get_player_by_id(Who, #{id:=I1}=P1, #{id:=I2}=P2) ->
@@ -132,7 +158,7 @@ apply_effect({direct, Op, {role, rem_moves, ToWhom, _}}, React, {#{id:=I1}=P1, #
 
 
 apply_effect({indirect, {linear, {role, FromWhat, FromWhom, AttrName}, Ratio}, To}, React,
-            {#{id:=I1, hp:=H1}=P1, #{id:=I2, hp:=H2}=P2}) ->
+            {#{id:=I1, state:=#{hp:=H1}}=P1, #{id:=I2, state:=#{hp:=H2}}=P2}) ->
     case {FromWhat, FromWhom} of
         {hp, I1} -> apply_effect({direct, {linear, H1, Ratio}, To}, React, {P1, P2});
         {hp, I2} -> apply_effect({direct, {linear, H2, Ratio}, To}, React, {P1, P2});
@@ -174,9 +200,9 @@ log(#{seq:=Seq, stage:=Stage, mover:=Mover}, {EffectName, _, Specs, _}, ReactOut
 
         { hand, none}, { action, EffectName},
         { outcome, ReactOutcome }, { damage, maps:get(damage_taken, maps:get(curr_attr, Role)) },
-        { offender_hp, maps:get(hp, O) },
+        { offender_hp, maps:get(hp, maps:get(state, O)) },
         { offender_status, check_disabled(O)},
-        { defender_hp, maps:get(hp, D) },
+        { defender_hp, maps:get(hp, maps:get(state, D)) },
         { defender_status, check_disabled(D)}
     ]}.
 

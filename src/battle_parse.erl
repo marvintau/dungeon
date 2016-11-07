@@ -15,13 +15,20 @@ parse_single_player(SinglePlayerData) ->
     #{
 
         id         => binary_to_atom(ID, utf8),
-        hp         => HP,
-        rem_moves  => 0,
-        done       => already,
 
-        prim_hand  => {prim, binary_to_atom(PrimType, utf8), {PrimMin, PrimMax}},
-        secd_hand  => {secd, binary_to_atom(SecdType, utf8), {SecdMin, SecdMax}},
+        % State is the data that will be modified during a battle, and the result will
+        % be preserved.
+
+        state      => #{
+            hp         => HP,
+            rem_moves  => 0
+        },
+
+        done => already,
+        
         curr_hand  => {prim, binary_to_atom(PrimType, utf8), {PrimMin, PrimMax}},
+        secd_hand  => {secd, binary_to_atom(SecdType, utf8), {SecdMin, SecdMax}},
+        prim_hand  => {prim, binary_to_atom(PrimType, utf8), {PrimMin, PrimMax}},
 
         casts => lists:map(fun(X) -> binary_to_atom(X, utf8) end, CastList),
         effects => [],

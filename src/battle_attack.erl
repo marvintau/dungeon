@@ -103,16 +103,16 @@ log(#{seq:=Seq, stage:=Stage, mover:=Mover},
         { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, D)},
         { hand, Which}, { action, WeaponType},
         { outcome, Outcome }, { damage, Damage },
-        { offender_hp, maps:get(hp, O) },
+        { offender_hp, maps:get(hp, maps:get(state, O)) },
         { offender_status, check_disabled(O)},
-        { defender_hp, maps:get(hp, D) },
+        { defender_hp, maps:get(hp, maps:get(state, D)) },
         { defender_status, check_disabled(D)}
     ]}.
 
 attack(S,
        #{curr_hand:={HandType, AttackType, DamageRange}, prim_hand:=PrimHand, secd_hand:=SecdHand,
-         curr_attr:=#{damage_coeff:=DamageCoeff, damage_addon:=DamageAddon}=CurrAttr, rem_moves:=RemMoves}=A,
-       #{curr_attr:=#{armor:=Armor}, hp:=H2}=D, L) ->
+         curr_attr:=#{damage_coeff:=DamageCoeff, damage_addon:=DamageAddon}=CurrAttr, state:=#{rem_moves:=RemMoves}=StateA}=A,
+       #{curr_attr:=#{armor:=Armor}, state:=#{hp:=H2}=StateD}=D, L) ->
 
     Outcome = rotate(prepare_roulette_from(A, D), 120),
     
@@ -122,7 +122,7 @@ attack(S,
         prim -> A#{curr_hand:=SecdHand};
         secd -> A#{curr_hand:=PrimHand}
     end,
-    NextD = D#{curr_attr:=CurrAttr#{damage_taken:=Damage, outcome:=Outcome}, hp:=H2 - Damage},
+    NextD = D#{curr_attr:=CurrAttr#{damage_taken:=Damage, outcome:=Outcome}, state:=StateD#{hp:=H2 - Damage}},
 
 
     NextLog = case is_no_damage_move(A) of
@@ -130,4 +130,4 @@ attack(S,
         _ -> [log(S, A, NextD) | L]
     end,
     
-    {NextA#{rem_moves:=RemMoves-1}, NextD, NextLog}.
+    {NextA#{state:=StateA#{rem_moves:=RemMoves-1}}, NextD, NextLog}.
