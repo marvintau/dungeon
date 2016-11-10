@@ -4,15 +4,27 @@
 -author('Yue Marvin Tao').
 
 -export([effect/4]).
-% A effects entry in a list should conform to the format of:
 
-% Modify attribute and return new player profile
-get_attr(AttrName, P) ->
-    #{curr_attr:=#{AttrName:=Value}} = P, Value.
+% For all single O stands for "Offender" and D for "Defender".
 
-rand_from_interval({Low, High}) ->
+who(off, O, _) -> O;
+who(def, _, D) ->D.
+
+
+% ========================== REFERRING OPERAND ==================================
+% expecting {Type, Attribute, PlayerID} or {Type, Attribute, offender/defender}.
+
+ref({Type, Attr, P}) ->
+    maps:get(Attr, maps:get(Type, P));
+ref({Low, High}) ->
     round(Low + rand:uniform() * (High - Low));
-rand_from_interval(SingleValue) -> SingleValue.
+ref(SingleValue) -> SingleValue.
+
+ref_whom({T, A, P}, O, D) -> {T, A, who(P, O, D)};
+ref_whom({TAP1, TAP2}, O, D) -> {ref_whom(TAP1, O, D), ref_whom(TAP2, O, D)}.
+
+ref_whom_get({T, A, P}, O, D) -> ref(ref_whom({T, A, P}, O, D));
+ref_whom_get({TAP1, TAP2}, O, D) -> {ref_whom_get(TAP1, O, D), ref_whom_get(TAP2, O, D)}.
 
 % =========================== TRANSFER FUNCTIONS ===============================
 % Apply transfer operations over specific attributes of player context. The type
@@ -20,90 +32,111 @@ rand_from_interval(SingleValue) -> SingleValue.
 % etc.) that resets for every round. The supported operations include get, set,
 % add, add & multiply original value, or the value referring to other attributes.
 
-trans(get, Type, Attr, P) ->
-    maps:get(Attr, maps:get(Type, P));
+% trans cares if the damage will be absorbed by the armor of defender.
+%
+% expecting {Opcode, Value, React} where opcode of set/add/add_mul/add_inc_mul,
+% and Value of number, interval or {type, attribute, off/def} triple.
 
-trans({set, New}, Type, Attr, P) ->
+trans({set, New, _}, {Type, Attr, P}) ->
     #{Type:=#{Attr:=Old}=TypeInstance} = P,
-    P#{Type:=TypeInstance#{Attr:=New, diff:=New - Old}};
+    ReferredNew = ref(New),
+    case is_number(ReferredNew) of
+        true -> P#{Type:=TypeInstance#{Attr:=round(ref(New)), diff:=round(ref(New) - Old)}};
+        _    -> P#{Type:=TypeInstance#{Attr:=ref(New)}}
+    end;
 
-trans({add, Inc}, Type, Attr, P) ->
-    Orig = trans(get, Type, Attr, P),
-    trans({set, Orig + rand_from_interval(Inc)}, Type, Attr, P);
+trans({add, Inc, Cond}, {_, _, P}=ToWhom) when (Cond == absorbable) or (Cond== both)->
+    ArmorRatio = 1 - ref({attr, armor, P}) / 10000,
+    trans({set, ref(ToWhom) + ref(Inc) * ArmorRatio, none}, ToWhom);
 
-trans({add_mul, Mul}, Type, Attr, P) ->
-    Orig = trans(get, Type, Attr, P),
-    trans({add, Orig * rand_from_interval(Mul)}, Type, Attr, P);
+trans({add, Inc, none}, ToWhom) ->
+    trans({set, ref(ToWhom) + ref(Inc), none}, ToWhom);
 
-trans({add_inc_mul, Inc, Mul}, Type, Attr, P) ->
-    trans({add, rand_from_interval(Inc) * rand_from_interval(Mul)}, Type, Attr, P).
+trans({add_mul, Mul, Absorbing}, ToWhom) ->
+    trans({add, ref(ToWhom) * ref(Mul), Absorbing}, ToWhom);
 
-
-
-set_attr({set, Value}, AttrName, #{curr_attr:=Attr}=P) ->
-    P#{curr_attr:=Attr#{AttrName:=Value}};
-
-set_attr({add, Inc}, AttrName, #{curr_attr:=Attr}=P) ->
-    Original = get_attr(AttrName, P),
-    P#{curr_attr:=Attr#{AttrName := round(Original + rand_from_interval(Inc))}};
-
-set_attr({times, Ratio}, AttrName, #{curr_attr:=Attr}=P) ->
-    Original = get_attr(AttrName, P),
-    Inc = round(Original * rand_from_interval(Ratio)), 
-    P#{curr_attr:=Attr#{AttrName := Original + Inc}};
-
-set_attr({linear, Inc, Ratio}, AttrName, #{curr_attr:=Attr}=P) ->
-    Original = get_attr(AttrName, P),
-    P#{curr_attr:=Attr#{AttrName := Original + round(rand_from_interval(Inc) * Ratio)}}.
-
-set_hp({set, Value}, #{state:=#{hp:=Hp}=State, curr_attr:=Attrs}=P) ->
-    P#{state:=State#{hp:=Value}, curr_attr:=Attrs#{damage_taken:=Hp - Value}};
-
-set_hp({add, Inc}, #{state:=#{hp:=Hp}=State, curr_attr:=Attrs}=P) ->
-    FinalInc = rand_from_interval(Inc),
-    P#{state:=State#{hp:=Hp + FinalInc}, 
-       curr_attr:=Attrs#{damage_taken:=-FinalInc}};
-
-set_hp({times, Ratio}, #{state:=#{hp:=Hp}=State, curr_attr:=Attrs}=P) ->
-    FinalInc = round(Hp * rand_from_interval(Ratio)),
-    P#{state:=State#{hp:= Hp + FinalInc}, curr_attr:=Attrs#{damage_taken:=-FinalInc}};
-
-set_hp({linear, Inc, Ratio}, #{state:=#{hp:=Hp}=State, curr_attr:=Attrs}=P) ->
-    FinalInc = round(rand_from_interval(Inc) * Ratio),
-    P#{state:=State#{hp:=Hp + FinalInc}, curr_attr:=Attrs#{damage_taken:=-FinalInc}}.
-
-compensate_armor(#{state:=#{hp:=Hp}=State, curr_attr:=Attrs}=P) ->
-    #{armor:=Armor, damage_taken:=Damage} = Attrs,
-    NewDamage = Damage * (1 - Armor/10000),
-    P#{state:=State#{hp:=Hp + (Damage - NewDamage)}, curr_attr:=Attrs#{damage_taken:=NewDamage}}.
+trans({add_inc_mul, {Inc, Mul}, Absorbing}, ToWhom) ->
+    trans({add, ref(Inc) * ref(Mul), Absorbing}, ToWhom).
 
 
-set_rem_moves({set, Value}, #{state:=State}=P) ->
-    P#{state:=State#{rem_moves:=Value}}.
+% ========================== APPLY TRANS FUNCTION ===============================
+% apply_trans function will introduce the actual player context, and calculates
+% the result after applying the trans operations. Notably, apply_trans handles all
+% three conditions of resistable, absorbable, and both. For resistable and both,
+% if the random generated number is less than the resist attribute of defender, then
+% the original offender and defender will be returned. Otherwise, the both will be
+% handled as absorbable.
 
-
-get_player_by_id(Who, #{id:=I1}=P1, #{id:=I2}=P2) ->
-    case Who of
-        I1 -> P1;
-        I2 -> P2
-    end.
-
-get_react_outcome(React, ID, P1, P2) ->
-    Rand = rand:uniform() * 100,
+apply_trans({{Opcode, Oper, AddCond}, {_T, _A, P}=ToWhom}, O, D) ->
     
-    case React of
-        resistable -> case (Rand > get_attr(resist, get_player_by_id(ID, P1, P2))) of
-            true -> {ok, none};
-            _ -> {not_affected, resisted}
-        end;
+    RefOperand = case Oper of
+        {Tr, Ar, Pr} -> ref_whom_get({Tr, Ar, Pr}, O, D);
+        {{_, _, _} = TAP1, {_, _, _}=TAP2} -> ref_whom_get({TAP1, TAP2}, O, D);
+        Value -> ref(Value)
+    end,
 
-        invalidated -> {not_affected, invalidated};
+    RefWhom = ref_whom(ToWhom, O, D),
 
-        absorbable -> {affected, absorbed};
-        none -> {ok, none}
+    IsResisted = case AddCond of
+        resistable -> rand:uniform() > maps:get(resist, maps:get(attr, D));
+        both -> rand:uniform() > maps:get(resist, maps:get(attr, D));
+        _ -> false
+    end,
+
+    case {IsResisted, P} of
+        {true, _} -> {resisted, ToWhom, O, D};
+        {_, off} -> {effected, ToWhom, trans({Opcode, RefOperand, AddCond}, RefWhom), D};
+        {_, def} -> {effected, ToWhom, O, trans({Opcode, RefOperand, AddCond}, RefWhom)}
     end.
 
-check_condition({StartingSeq, TerminalSeq, Phase}, CurrSeq, CurrStage) ->
+log(#{seq:=Seq, stage:=Stage, mover:=Mover}, EffName, Outcome, {_, {T, hp, P}}, O, D) ->
+
+    {[
+        { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, D)},
+        { hand, none}, { action, EffName},
+        { outcome, Outcome }, { damage, maps:get(diff, maps:get(T, who(P, O, D))) },
+        { offender_hp, maps:get(hp, maps:get(state, O)) },
+        { defender_hp, maps:get(hp, maps:get(state, D)) }
+    ]};
+log(_, _, _, _, _, _) -> {[]}.
+
+% ======================== APPLY ALL TRANSFERS IN A LIST ========================
+% For each trans operation, apply_trans_with_log combines the player context with
+% log. Since the transfers are written in a list, the apply_trans_all.g_nested will
+% apply all the transfers sequentially over the player context, and returns log.
+
+apply_trans_logged(EffName, Trans, S, O, D) ->
+    
+    {EffectStatus, _Destination, TransedO, TransedD} = apply_trans(Trans, O, D),
+
+    {TransedO, TransedD, log(S, EffName, EffectStatus, Trans, O, D)}.
+
+apply_trans_all(EffName, TransList, S, O, D) ->
+    apply_trans_all(EffName, TransList, S, O, D, []).
+apply_trans_all(EffName, [Trans | RemTrans], S, O, D, Logs) ->
+    {AppliedO, AppliedD, L} = apply_trans_logged(EffName, Trans, S, O, D),
+    apply_trans_all(EffName, RemTrans, S, AppliedO, AppliedD, [L | Logs]);
+apply_trans_all(_EffName, [], _S, O, D, Logs) ->
+    {O, D, Logs}.
+
+% ======================== CHECK SINGLE CONDITION ===============================
+% besides the round control, the condition checking stage also goes through other
+% attributes checking, such as the outcome of last attack.
+cond_single({Val, '==', TAP}, O, D) -> 
+    Val == ref_whom_get(TAP, O, D);
+cond_single({Val, '>', TAP}, O, D) -> Val > ref_whom_get(TAP, O, D);
+cond_single({Val, '<', TAP}, O, D) -> Val < ref_whom_get(TAP, O, D).
+
+cond_list(CondList, O, D) -> cond_list(true, CondList, O, D).
+cond_list(TrueValue, [Cond | RemConds], O, D) ->
+    cond_list(TrueValue and cond_single(Cond, O, D), RemConds, O, D);
+cond_list(TrueValue, [], _, _) -> TrueValue.
+
+
+% ====================== SEQUENTIAL CONDITION CHECK =============================
+% checks whether the battle goes to specific round and stage.
+seq_cond({StartingSeq, TerminalSeq, Phase}, #{seq:=CurrSeq, stage:=CurrStage}) ->
+
 
     CalculatedPhase = case {Phase, StartingSeq} of
         {casting, 0} -> casting;
@@ -112,105 +145,34 @@ check_condition({StartingSeq, TerminalSeq, Phase}, CurrSeq, CurrStage) ->
     end,
 
     (CurrSeq >= StartingSeq) and (CurrSeq < TerminalSeq) and (CalculatedPhase == CurrStage).
-check_condition(EffectCond, #{seq:=CurrSeq, stage:=CurrStage}) ->
-    check_condition(EffectCond, CurrSeq, CurrStage).
 
-% apply_effect: the wrapper function to apply the effects over the player context, and
-% mark whether the context is modified. If modified, the function returns {affected, P1, P2},
+% ============================ CONDITION CHECK  =================================
+% checking both of sequential and additional conditions.
+
+cond_check({SeqCond, CondList}, S, O, D) ->
+    seq_cond(SeqCond, S) and cond_list(CondList, O, D).
+
+% =========================== APPLYING EFFECTS ==================================
+% wrapper function to apply the effects over the player context, and mark whether
+% the context is modified. If modified, the function returns {affected, P1, P2},
 % otherwise {not_affected, P1, P2}
-
-apply_effect({direct, Op, {role, hp, ToWhom, _}}, React, {#{id:=I1}=P1, #{id:=I2}=P2}) ->
-   
-    FinalReact = get_react_outcome(React, ToWhom, P1, P2),
-
-    case {FinalReact, ToWhom} of
-        {{not_affected, Reaction}, _} -> {{not_affected, Reaction}, P1, P2};
-
-        {{affected, absorbed}, I1} ->
-            {affected, compensate_armor(set_hp(Op, P1)), P2};
-
-        {{affected, absorbed}, I2} ->
-            {affected, P1, compensate_armor(set_hp(Op, P2))};
-
-        {_, I1} -> {affected, hp, set_hp(Op, P1), P2};
-        {_, I2} -> {affected, hp, P1, set_hp(Op, P2)}
-    end;
-
-apply_effect({direct, Op, {role, attr, ToWhom, AttrName}}, React, {#{id:=I1}=P1, #{id:=I2}=P2}) ->
-    
-    FinalReact = get_react_outcome(React, ToWhom, P1, P2),
-
-    case {FinalReact, ToWhom} of
-        {{not_affected, Reaction}, _} -> {{not_affected, Reaction}, P1, P2};
-        {_, I1} -> {affected, attr, set_attr(Op, AttrName, P1), P2};
-        {_, I2} -> {affected, attr, P1, set_attr(Op, AttrName, P2)}
-    end;
-
-apply_effect({direct, Op, {role, rem_moves, ToWhom, _}}, React, {#{id:=I1}=P1, #{id:=I2}=P2}) ->
-    
-    FinalReact = get_react_outcome(React, ToWhom, P1, P2),
-
-    case {FinalReact, ToWhom} of
-        {{not_affected, Reaction}, _} -> {{not_affected, Reaction}, P1, P2};
-        {_, I1} -> {affected, rem_moves, set_rem_moves(Op, P1), P2};
-        {_, I2} -> {affected, rem_moves, P1, set_rem_moves(Op, P2)}
-    end;
-
-
-apply_effect({indirect, {linear, {role, FromWhat, FromWhom, AttrName}, Ratio}, To}, React,
-            {#{id:=I1, state:=#{hp:=H1}}=P1, #{id:=I2, state:=#{hp:=H2}}=P2}) ->
-    case {FromWhat, FromWhom} of
-        {hp, I1} -> apply_effect({direct, {linear, H1, Ratio}, To}, React, {P1, P2});
-        {hp, I2} -> apply_effect({direct, {linear, H2, Ratio}, To}, React, {P1, P2});
-        {attr, I1} -> apply_effect({direct, {linear, get_attr(AttrName, P1), Ratio}, To}, React, {P1, P2});
-        {attr, I2} -> apply_effect({direct, {linear, get_attr(AttrName, P1), Ratio}, To}, React, {P1, P2})
-    end;
-
 
 apply_effect(Effect, State, {O, D}) ->
 
-    {_Name, EffectCond = {_, _, _Phase}, Specs, React} = Effect,
+    {Name, Conds, Specs} = Effect,
 
-    case check_condition(EffectCond, State) of
+    case cond_check(Conds, State, O, D) of
         
-        true -> apply_effect(Specs, React, {O, D});
+        true ->
+            apply_trans_all(Name, Specs, State, O, D);
         
-        _    -> {{not_affected, not_correct_cond}, O, D}
+        _    -> {O, D, []}
     end.
 
-check_disabled(#{curr_attr:=#{attack_disabled:=Atk, cast_disabled:=Cast}}) ->
-    case {Atk, Cast} of
-        {true, true} -> both;
-        {true, false} -> attack_disabled;
-        {false, true} -> cast_disabled;
-        _ -> none
-    end.
 
-log(#{seq:=Seq, stage:=Stage, mover:=Mover}, {EffectName, _, Specs, _}, ReactOutcome, O, D) ->
-
-    {_, _Operation, {role, _What, ToWhom, _}} = Specs,
-
-    Role = case ToWhom of
-        Mover -> O;
-        _ -> D
-    end,
-
-    {[
-        { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, D)},
-
-        { hand, none}, { action, EffectName},
-        { outcome, ReactOutcome }, { damage, maps:get(damage_taken, maps:get(curr_attr, Role)) },
-        { offender_hp, maps:get(hp, maps:get(state, O)) },
-        { offender_status, check_disabled(O)},
-        { defender_hp, maps:get(hp, maps:get(state, D)) },
-        { defender_status, check_disabled(D)}
-    ]}.
-
-
-% When applying effects, the effect list doesn't change. For every turn,
-% we just check whether the effect description meets the condition, and
-% apply. Hence here we only change the player context.
-
+% ============================ EFFECT ===========================================
+% for each stage, effect processes the whole effect table, get the final player
+% context and log.
 
 effect(S, #{effects:=Effects}=O, D, Log) ->
     effect(S, O, D, Log, Effects).
@@ -220,20 +182,8 @@ effect(_S, O, D, Log, []) ->
 
 effect(S, O, D, Log, [EffectSpec| Remaining]) ->
 
-    {EffectedOffender, EffectedDefender, NewLog} =
-    case apply_effect(EffectSpec, S, {O, D}) of
-        {affected, hp, AffectedP1, AffectedP2} ->
-            NextLog = [log(S, EffectSpec, effect, AffectedP1, AffectedP2) | Log],
-            {AffectedP1, AffectedP2, NextLog};
-        {affected, _, AffectedP1, AffectedP2} ->
-            {AffectedP1, AffectedP2, Log};
-        {{not_affected, React}, NotAffectedP1, NotAffectedP2} when (React==resisted) or (React==block) or (React==invalidated)->
-            NextLog = [log(S, EffectSpec, React, NotAffectedP1, NotAffectedP2) | Log],
-            {NotAffectedP1, NotAffectedP2, NextLog};
-        {{not_affected, _}, NotAffectedP1, NotAffectedP2} ->
-            {NotAffectedP1, NotAffectedP2, Log}
 
-    end,
-     
-    effect(S, EffectedOffender, EffectedDefender, NewLog, Remaining).
+    {EffectedOffender, EffectedDefender, NewLog} = apply_effect(EffectSpec, S, {O, D}),
+    
+    effect(S, EffectedOffender, EffectedDefender, lists:append(NewLog, Log), Remaining).
 

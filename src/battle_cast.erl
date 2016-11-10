@@ -4,19 +4,6 @@
 
 -export([cast/4]).
 
-role(of_self, {Offender, _Defender}) -> Offender;
-role(of_opponent, {_Offender, Defender}) -> Defender;
-
-% to create a data structure that holds the role information, including the
-% attribute to be modified, and the owner of those attributes.
-role({role, What, Whom, Attr}, Movers) -> {role, What, role(Whom, Movers), Attr};
-
-% to create the data structure that holds the operation over the attributes
-% and the owner. direct means that the value is assigned to the role directly,
-% while indirect means that the value is related to another attribute of some
-% role (maybe the initiator or the other one)
-role({direct, Op, To}, Movers) -> {direct, Op, role(To, Movers)};
-role({indirect, {Op, From}, To}, Movers) -> {indirect, {Op, role(From, Movers)}, role(To, Movers)}.
 
 % to assign the sequence number of terminal condition, and the cast initiator.
 
@@ -24,29 +11,32 @@ role({indirect, {Op, From}, To}, Movers) -> {indirect, {Op, role(From, Movers)},
 % of starting) should be 0, and the Last (the rounds that the effect of cast
 % last for) should be 1.
 
-condition({Start, Last, Phase}, CurrSeq) ->
-    {CurrSeq + Start, CurrSeq + Start + Last, Phase}.
+
+condition({{Start, null, Phase}, Others}, CurrSeq) ->
+    {{CurrSeq + Start, 9999, Phase}, Others};
+
+condition({{Start, Last, Phase}, Others}, CurrSeq) ->
+    {{CurrSeq + Start, CurrSeq + Start + Last, Phase}, Others}.
 
 % wrap all the operations. A mapping from original description of an effect
 % along with the current state, to a final form of effect description. The
 % latter function is the actual entrance that takes cast name as argument, and
 % find the specification in database, and re-interpret it with battle context.
 
-parse_single_effect({Name, Cond, Trans, React}, #{seq:=CurrSeq}, #{id:=Off}, #{id:=Def}) ->
+parse_single_effect({Name, Cond, Trans}, #{seq:=CurrSeq}) ->
+    {Name, condition(Cond, CurrSeq), Trans}.
 
-    {Name, condition(Cond, CurrSeq), role(Trans, {Off, Def}), React}.
-
-parse_single_group({Prob, Effects}, S, O, D) ->
+parse_single_group({Prob, Effects}, S) ->
     case rand:uniform() < Prob of
-        true -> {success, lists:map(fun(Spec) -> parse_single_effect(Spec, S, O, D) end, Effects)};
+        true -> {success, lists:map(fun(Spec) -> parse_single_effect(Spec, S) end, Effects)};
         _ -> {failed, bad_luck}
     end.
 
-parse_groups(Groups, S, O, D) ->
-   [parse_single_group(Group, S, O, D) || Group <- Groups]. 
+parse_groups(Groups, S) ->
+   [parse_single_group(Group, S) || Group <- Groups]. 
 
 parse_groups_logged({Name, _Type, Groups}, S, O, D) ->
-    Parsed = parse_groups(Groups, S, O, D),
+    Parsed = parse_groups(Groups, S),
     {Logs, Effects} = lists:unzip([{log(Name, Outcome, S, O, D), CurrEffects} || {Outcome, CurrEffects} <- Parsed]),
 
     {Logs, [Effect || Effect <- lists:flatten(Effects), Effect =/=bad_luck]}.
@@ -54,23 +44,13 @@ parse_groups_logged({Name, _Type, Groups}, S, O, D) ->
 parse_cast(Name, S, O, D) ->
     parse_groups_logged(hd(ets:lookup(casts, Name)), S, O, D).
 
-check_disabled(#{curr_attr:=#{attack_disabled:=Atk, cast_disabled:=Cast}}) ->
-    case {Atk, Cast} of
-        {true, true} -> both;
-        {true, false} -> attack_disabled;
-        {false, true} -> cast_disabled;
-        _ -> none
-    end.
-
 log(CastName, Outcome, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, D)},
         { hand, none}, { action, CastName},
         { outcome, Outcome }, { damage, 0 },
         { offender_hp, maps:get(hp, maps:get(state, O)) },
-        { offender_status, check_disabled(O)},
-        { defender_hp, maps:get(hp, maps:get(state, D)) },
-        { defender_status, check_disabled(D)}
+        { defender_hp, maps:get(hp, maps:get(state, D)) }
     ]}.
 
 cast(_S, #{casts:=[]}=O, D, L) ->

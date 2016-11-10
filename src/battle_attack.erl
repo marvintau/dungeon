@@ -31,8 +31,8 @@ rotate(Roulette, MaxLimit) ->
 % otherwise.
 
 prepare_roulette_from(
-    #{curr_hand:={_, Curr, _}, curr_attr:=#{hit_bonus:=Hit, critical:=Critical}},
-    #{secd_hand:={_, Secd, _}, curr_attr:=#{resist:=Res, block:=Blo, dodge:=Dod}}
+    #{curr_hand:={_, Curr, _}, attr:=#{hit_bonus:=Hit, critical:=Critical}},
+    #{secd_hand:={_, Secd, _}, attr:=#{resist:=Res, block:=Blo, dodge:=Dod}}
 ) ->
 
     {Dodge, Resist, Block} = case {Curr, Secd} of
@@ -83,7 +83,7 @@ calculate_damage(_, _, _, _) -> 0.
 
 % Calculates the damage with given character type, the upper and lower
 % damage of weapon, and outcome of roulette turning.
-check_disabled(#{curr_attr:=#{attack_disabled:=Atk, cast_disabled:=Cast}}) ->
+check_disabled(#{attr:=#{attack_disabled:=Atk, cast_disabled:=Cast}}) ->
     case {Atk, Cast} of
         {true, true} -> both;
         {true, false} -> attack_disabled;
@@ -97,32 +97,37 @@ is_no_damage_move(_) -> false.
 
 log(#{seq:=Seq, stage:=Stage, mover:=Mover},
     #{curr_hand:={Which, WeaponType, _}}=O,
-    #{curr_attr:=#{outcome:=Outcome, damage_taken:=Damage}}=D)  ->
+    #{attr:=#{outcome:=Outcome, damage_taken:=Damage}}=D)  ->
     
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, D)},
         { hand, Which}, { action, WeaponType},
         { outcome, Outcome }, { damage, Damage },
         { offender_hp, maps:get(hp, maps:get(state, O)) },
-        { offender_status, check_disabled(O)},
-        { defender_hp, maps:get(hp, maps:get(state, D)) },
-        { defender_status, check_disabled(D)}
+        { defender_hp, maps:get(hp, maps:get(state, D)) }
     ]}.
 
 attack(S,
        #{curr_hand:={HandType, AttackType, DamageRange}, prim_hand:=PrimHand, secd_hand:=SecdHand,
-         curr_attr:=#{damage_coeff:=DamageCoeff, damage_addon:=DamageAddon}=CurrAttr, state:=#{rem_moves:=RemMoves}=StateA}=A,
-       #{curr_attr:=#{armor:=Armor}, state:=#{hp:=H2}=StateD}=D, L) ->
+         attr:=#{damage_multiplier:=DamageMul, critical_multiplier:=CritMul, damage_addon:=DamageAddon}=CurrAttr,
+         state:=#{rem_moves:=RemMoves}=StateA}=A,
+       #{attr:=#{armor:=Armor}, state:=#{hp:=H2}=StateD}=D, L) ->
 
     Outcome = rotate(prepare_roulette_from(A, D), 120),
     
-    Damage = calculate_damage(AttackType, Outcome, DamageRange, Armor) * DamageCoeff + DamageAddon,
+    Damage = calculate_damage(AttackType, Outcome, DamageRange, Armor),
+
+    AddedDamage = case Outcome of
+        critical -> Damage * CritMul + DamageAddon;
+        attack -> Damage * DamageMul + DamageAddon;
+        _ -> Damage
+    end,
 
     NextA = case HandType of
         prim -> A#{curr_hand:=SecdHand};
         secd -> A#{curr_hand:=PrimHand}
     end,
-    NextD = D#{curr_attr:=CurrAttr#{damage_taken:=Damage, outcome:=Outcome}, state:=StateD#{hp:=H2 - Damage}},
+    NextD = D#{attr:=CurrAttr#{damage_taken:=AddedDamage, outcome:=Outcome}, state:=StateD#{hp:=H2 - AddedDamage}},
 
 
     NextLog = case is_no_damage_move(A) of

@@ -18,8 +18,8 @@
 toss(#{id:=A, casts:=[rune_of_the_void|_]}, _) -> A;
 toss(_, #{id:=B, casts:=[rune_of_the_void|_]}) -> B;
 
-toss(#{id:=A, curr_attr:=#{agility:=AgiA}},
-     #{id:=B, curr_attr:=#{agility:=AgiB}}) ->
+toss(#{id:=A, attr:=#{agility:=AgiA}},
+     #{id:=B, attr:=#{agility:=AgiB}}) ->
     case rand:uniform() * (AgiA + AgiB) > AgiA of
         true -> B;
         _    -> A
@@ -72,8 +72,8 @@ loop(#{seq:=Seq, stage:=attacking}=State,
      #{done:=already, prim_hand:=PrimHand2, orig_attr:=Orig2, state:=State2}=P2,
      L) ->
 
-    NewP1 = P1#{state:=State1#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand1, curr_attr=>Orig1},
-    NewP2 = P2#{state:=State2#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand2, curr_attr=>Orig2},
+    NewP1 = P1#{state:=State1#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand1, attr=>Orig1},
+    NewP2 = P2#{state:=State2#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand2, attr=>Orig2},
 
     loop(State#{seq:=Seq+1, stage:=settling, mover:=toss(NewP1, NewP2)}, NewP1, NewP2, L);
 
@@ -109,7 +109,7 @@ loop(#{mover:=Mover}=State, P1, #{id:=Mover, done:=already}=P2, L) ->
 
 loop(#{stage:=attacking}=S, A, B, L) ->
 
-    {AttackA, AttackB, AttackLog} = trans(fun(State, #{curr_attr:=CurrAttr}=O, D, Log) ->
+    {AttackA, AttackB, AttackLog} = trans(fun(State, #{attr:=CurrAttr}=O, D, Log) ->
         case maps:get(attack_disabled, CurrAttr) of
             false ->
                 {MovedO, MovedD, MovedLog} = battle_attack:attack(State, O, D, Log),
@@ -132,7 +132,7 @@ loop(#{stage:=attacking}=S, A, B, L) ->
 
 loop(#{stage:=casting}=S, A, B, L) ->
 
-    {CastA, CastB, CastLog} = trans(fun(State, #{curr_attr:=CurrAttr}=O, D, Log) ->
+    {CastA, CastB, CastLog} = trans(fun(State, #{attr:=CurrAttr}=O, D, Log) ->
         case maps:get(cast_disabled, CurrAttr) of
             false ->        
                 {MovedO, MovedD, MovedLog} = battle_cast:cast(State, O, D, Log),

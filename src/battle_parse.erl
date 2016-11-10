@@ -21,7 +21,8 @@ parse_single_player(SinglePlayerData) ->
 
         state      => #{
             hp         => HP,
-            rem_moves  => 0
+            rem_moves  => 0,
+            diff => 0
         },
 
         done => already,
@@ -34,6 +35,7 @@ parse_single_player(SinglePlayerData) ->
         effects => [],
 
         orig_attr => #{
+            diff => 0,
             attack_disabled => false,
             cast_disabled => false,
             effect_invalidated => false,
@@ -45,7 +47,8 @@ parse_single_player(SinglePlayerData) ->
             block      => Block,
             agility    => Agi,
             outcome    => null,
-            damage_coeff => 1,
+            damage_multiplier => 1,
+            critical_multiplier => 1,
             damage_addon => 0,
             damage_taken => 0
         }

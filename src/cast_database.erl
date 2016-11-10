@@ -31,35 +31,59 @@ remove_cast(Data) ->
 create_casts() ->
 
     Talents = [
-        {brave_shield_counterback, [
+        {brave_shield_counterback, talent, [
             {1, [
-                {brave_shield_counterback, {0, null, attacking}, {direct, {add, -125},{role, hp, of_opponent, none}}, absorbable}
+                {brave_shield_counterback,
+                 {{0, null, attacking}, [{attack, '==', {attr, outcome, def}}]},
+                 [{{add, -125, absorbable},{state, hp, def}}]
+                }
             ]}
         ]},
 
-        {blade_dance, [
+        {blade_dance, talent, [
             {1, [
-                {blade_dance, {0, null, settling}, {direct, {times, 0.1}, {role, attr, of_self, critical}}, none},
-                {blade_dance, {0, null, attacking}, {direct, {linear, {role, attr, of_opponent, damage_taken}, 0.5}, {role, hp, of_opponent, none}}, none}
+                {blade_dance,
+                 {{0, null, settling}, []},
+                 [{{add_mul, 0.1, none}, {attr, critical, off}}, {{add_mul, 0.5, none}, {attr, critical_multiplier, off}}]
+                }
             ]}
         ]},
 
-        {freeze, [
+        {freeze, talent, [
             {1, [
-                {freeze, {0, 2, settling}, {direct, {set, true}, {role, attr, of_opponent, cast_disabled}}, none},
-                {freeze, {0, 2, settling}, {direct, {set, true}, {role, attr, of_opponent, attack_disabled}}, none},
-
-                {freeze, {0, 2, settling}, {direct, {set, 0}, {role, attr, of_opponent, dodge}}, none},
-                {freeze, {0, 2, settling}, {direct, {set, 0}, {role, attr, of_opponent, block}}, none},
-                {freeze, {0, 2, settling}, {direct, {set, 0}, {role, attr, of_opponent, resist}}, none}
+                {freeze,
+                 {{0, 2, settling}, []},
+                 [{{set, true, none}, {attr, cast_disabled, def}},
+                  {{set, true, none}, {attr, attack_disabled, off}},
+                  {{set, 0, none}, {attr, dodge, def}},
+                  {{set, 0, none}, {attr, block, def}},
+                  {{set, 0, none}, {attr, resist, def}},
+                  {{set, 120, none}, {attr, critical, off}}
+                 ]
+                }
             ]}
+        ]},
+
+        {assault, talent, [
+            {1, [
+                {assault,
+                 {{0, null, settling}, [{dodge, '==', {attr, outcome, def}}]},
+                 [{{add, 1, none}, {state, rem_moves, off}},
+                  {{set, 0, none}, {attr, dodge, def}},
+                  {{set, 0, none}, {attr, block, def}},
+                  {{set, 0, none}, {attr, resist, def}}
+                 ]
+                },
+                {assault,
+                 {{0, null, settling}, [{block, '==', {attr, outcome, def}}]},
+                 [{{add, 1, none}, {state, rem_moves, off}},
+                  {{set, 0, none}, {attr, dodge, def}},
+                  {{set, 0, none}, {attr, block, def}},
+                  {{set, 0, none}, {attr, resist, def}}
+                 ]
+                }
+             ]}
         ]}
-
-        % {assault, [
-        %     {1, [
-        %         {assault, {0, }}
-        %     ]}
-        % ]}
     ],
 
     CastsGeneral = [
@@ -273,10 +297,6 @@ create_casts() ->
 
     ets:new(casts, [set, public, named_table]),
 
-    ets:insert(casts, CastsGeneral),
-    ets:insert(casts, Warrior),
-    ets:insert(casts, Rogue),
-    ets:insert(casts, Mage),
-    ets:insert(casts, Hunter).
+    ets:insert(casts, Talents).
 
 
