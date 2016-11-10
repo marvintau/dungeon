@@ -81,17 +81,6 @@ calculate_damage(_, _, _, _) -> 0.
 
 % ============= SINGLE ATTACK DAMAGE CALCULATION ======================
 
-% Calculates the damage with given character type, the upper and lower
-% damage of weapon, and outcome of roulette turning.
-check_disabled(#{attr:=#{attack_disabled:=Atk, cast_disabled:=Cast}}) ->
-    case {Atk, Cast} of
-        {true, true} -> both;
-        {true, false} -> attack_disabled;
-        {false, true} -> cast_disabled;
-        _ -> none
-    end.
-
-
 is_no_damage_move(#{curr_hand:={secd, Type, _}}) when (Type==shield) or (Type==bare) -> true;
 is_no_damage_move(_) -> false.
 
