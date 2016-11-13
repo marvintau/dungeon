@@ -5,7 +5,6 @@
 -export([init_table/0, create_casts/0]).
 
 -export([update_cast/1]).
-
 -export([remove_cast/1]).
 
 init_table() ->
@@ -233,7 +232,7 @@ create_casts() ->
 
         {spellbreak, rogue, [
             {1, [
-                {spellbreak, {{0, 4, casting}, []}, [{{add_mul, 0.7}, {attr, resist, off}}]}
+                {spellbreak, {{0, 4, casting}, []}, [{{add_mul, 0.7, none}, {attr, resist, off}}]}
             ]}
         ]},
 

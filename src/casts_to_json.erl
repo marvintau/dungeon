@@ -2,50 +2,63 @@
 
 -author('Yue Marvin Tao').
 
--export([casts/1, all_names/0, names_with/1]).
+-export([all_casts/0, casts/1, all_names/0, names_with/1]).
 
-parse_role_to_json({role, What, Whom, Attr}) ->
-    {[{what, What}, {whom, Whom}, {attr, Attr}]}.
-
-parse_range_to_json({Min, Max}) ->
-    {[{type, range}, {value, {[{min, Min}, {max, Max}]} } ]};
-parse_range_to_json(Value) ->
+ref({Type, Attribute, Role}) ->
+    {[{type, ref}, {attr_type, Type}, {attr, Attribute}, {role, Role}]};
+ref({Min, Max}) ->
+    {[{type, range}, {min, Min}, {max, Max}]};
+ref(Value) ->
     {[{type, value}, {value, Value}]}.
 
+ref_operand({Inc, Mul}) -> {[{type, inc_mul}, {inc, ref(Inc)}, {mul, ref(Mul)}]};
+ref_operand(Inc) -> {[{type, inc}, {inc, ref(Inc)}]}.
 
-parse_op_to_json({linear, {role, FromWhat, FromWhom, FromAttr}, Ratio}) ->
-    {[{type, linear}, {ratio, Ratio}, {from, parse_role_to_json({role, FromWhat, FromWhom, FromAttr})}]};
+ref_operator({Opcode, Operand, Note}) ->
+    {[{opcode, Opcode}, {operand, ref_operand(Operand)}, {note, Note}]}.
 
-parse_op_to_json({linear, IncRange, Ratio}) ->
-    {[{type, linear}, {ratio, Ratio}, {from, parse_range_to_json(IncRange)}]};
+trans({Operator, ToWhom}) ->
+    {[{operator, ref_operator(Operator)}, {to_whom, ref(ToWhom)}]}.
 
-parse_op_to_json({Op, IncRange}) ->
-    {[{type, Op}, {from, parse_range_to_json(IncRange)}]}.
+trans_list(TransList) ->
+    [trans(Trans) || Trans <- TransList].
 
-parse_trans_to_json({TransType, Op, To}) ->
-    {[{type, TransType}, {op, parse_op_to_json(Op)}, {to, parse_role_to_json(To)}]}.
+seq_cond({Start, Last, Stage}) ->
+    {[{start, Start}, {last, Last}, {stage, Stage}]}.
 
-parse_single_effect_to_json(Effect) ->
-    {Name, {Start, LastFor, Stage}, Trans, PossibleReact} = Effect,
+comp_cond({Value, Opcode, Ref}) ->
+    {[{value, Value}, {op, Opcode}, {ref, ref(Ref)}]}.
 
-    RoundCondition = {[{start, Start}, {last_for, LastFor}, {stage, Stage}]},
+comp_cond_list(CompCondList) ->
+    [comp_cond(CompCond) || CompCond <- CompCondList].
 
-    {[{name, Name}, {round_cond, RoundCondition}, {trans, parse_trans_to_json(Trans)}, {react, PossibleReact}]}.
+conds({Seq, CompCondList}) ->
+    {[{seq_cond, seq_cond(Seq)}, {comp_cond_list, comp_cond_list(CompCondList)}]}.
 
-parse_single_group_to_json({Prob, Effects}) ->
-    {[{prob, Prob}, {effects, [parse_single_effect_to_json(Effect) || Effect <- Effects]}]}.
+effect({Name, Conds, TransList}) ->
+    {[{name, Name}, {conds, conds(Conds)}, {trans_list, trans_list(TransList)}]}.
 
-parse_single_cast_to_json(Cast) ->
-    {Name, Class, Groups} = Cast,
+effect_list(EffectList) ->
+    [effect(Effect) || Effect <- EffectList].
 
-    {[{name, Name}, {class, Class}, {groups, [parse_single_group_to_json(Group) || Group <- Groups]}]}.
+effect_prob_group({Prob, EffectList}) ->
+    {[{prob, Prob}, {effects, effect_list(EffectList)}]}.
 
-parse_casts_to_json(Casts) ->
-    jiffy:encode([parse_single_cast_to_json(Cast) || Cast <- Casts]).
+effect_prob_group_list(EffectProbGroupList) ->
+    [effect_prob_group(EffectProbGroup) || EffectProbGroup <- EffectProbGroupList].
+
+cast({Name, Class, EffectProbGroupsList}) ->
+    Cast = {[{name, Name}, {class, Class}, {effect_prob_group_list, effect_prob_group_list(EffectProbGroupsList)}]},
+    erlang:display(Cast),
+    Cast.
+
+all_casts() ->
+    AllCasts = lists:flatten(ets:match(casts, '$1')),
+    {done, jiffy:encode([cast(Cast) || Cast <- AllCasts])}.
 
 all_names() ->
     AllCasts = lists:flatten(ets:match(casts, '$1')), 
-    {done, parse_casts_to_json(AllCasts)}.
+    {done, casts(AllCasts)}.
 
 names_with(Class) ->
     Talented = lists:flatten(ets:match(casts, {'$1', talent, '_'})),

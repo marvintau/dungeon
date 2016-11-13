@@ -1,3 +1,4 @@
+
 -module(cast_edit_handler).
 
 -export([init/2]).
@@ -19,5 +20,5 @@ content_types_provided(Req, State) ->
 
 handle_get(Req, State) ->
 
-    {done, ResBody} = cast_database:list_casts(),
+    {done, ResBody} = casts_to_json:all_casts(),
     {ResBody, Req, State}.

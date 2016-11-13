@@ -19,6 +19,7 @@
 
         <style type="text/css">
             body{
+                font-family:"Myriad Pro Condensed";
                 margin: 30px;
                 /*background-color:#8A8A8A;    */
             }
@@ -192,26 +193,44 @@
             }
         })
 
-        Vue.component('role', {
+        Vue.component('ref_attr', {
             data : function(){
                 return {
-                    what_type : ['hp', 'attr', 'rem_moves'],
-                    attr_type : ['attack_disabled', 'cast_disabled', 'armor', 'hit', 'critical', 'dodge', 'resist', 'block', 'agility', 'none']
+                    type_options : ['attr', 'state'],
+                    state_options : ['hp', 'rem_moves'],
+                    attr_options : ['attack_disabled', 'cast_disabled', 'armor', 'hit', 'critical', 'dodge', 'resist', 'block', 'agility']
                 }
             },
 
-            props: ['role'],
+            props: ['attr_type', 'attr', 'role'],
             template : '<div><div class="form-group-sm col-sm-2">'+
-                        '<select class="form-control" v-model="role.what">'+
-                            '<option v-for="typewhat in what_type">{{ typewhat }}<option>' +
-                        '</select><label>技能影响类型</label>' +
-                        '<select class="form-control" v-model="role.whom">'+
+
+                        '<select class="form-control" v-model="attr_type">'+
+                            '<option>attr</option><option>state</option>'+
+                        '</select>'+
+                        
+                        '<label>技能影响类型</label>' +
+
+                        '<select v-if="check_type(attr_type)" class="form-control" v-model="attr">'+
+                            '<option v-for="attr_option in attr_options">{{ attr_option }}<option>' +
+                        '</select>'+
+                        
+                        '<select v-else class="form-control" v-model="attr">'+
+                            '<option v-for="state_option in state_options">{{ state_option }}<option>' +
+                        '</select>'+
+                         
+                        '<label>影响属性</label>' +
+
+                        '<select class="form-control" v-model="role">'+
                             '<option>of_self</option><option>of_opponent</option>' +
                         '</select><label>影响对象</label>' +
-                        '<select class="form-control" v-model="role.attr">'+
-                            '<option v-for="typeattr in attr_type">{{ typeattr }}<option>' +
-                        '</select><label>影响属性</label>' +
-                    '</div>'
+                   '</div>',
+
+            methods: {
+                check_type : function(val) {
+                    return val == "attr";
+                }
+            }
         })
 
         Vue.component('cond', {
@@ -347,12 +366,10 @@
             },
 
             props: ['trans'],
-            template : '<div><div class="form-group-sm col-sm-2"><select v-model="trans.type" class="form-control">'+
-                            '<option>direct</option><option>indirect</option>' +
-                        '</select><label>赋值方式</label></div>' +
-
-                        '<operation :type_trans=_trans.type :operand=_trans.op></operation>' +
-                        '<role :role=trans.to></role>' +
+            template : '{{trans}}<div>' +
+                        
+                        //'<operation :type_trans=_trans.type :operand=_trans.op></operation>' +
+                        '<role :role=trans.to_whom></role>' +
                         '</div>',
             methods: {
             }
@@ -375,10 +392,12 @@
                             '<div class="form-group-sm col-sm-2">' +
                             '<vinput @submit="change_name" name="效果名" :value="_effect.name" ></vinput> ' +
                             '</div>' +
-                            '<cond :cond="_effect.round_cond"> </cond>'+
-                            '<trans :trans="_effect.trans"></trans>' +
+                            //'<cond :cond="_effect.round_cond"> </cond>'+
+                            '<div v-for ="trans of _effect.trans_list">' +
+                                "<trans :trans=trans></trans>" + 
+                            '</div>' +
                             '<div class="form-group-sm col-sm-2">' +
-                            // '<button @click="remove" class="btn btn-sm btn-primary">删此效果</button>' +
+                             '<button @click="remove" class="btn btn-sm btn-primary">删此效果</button>' +
                             '</div>'+
                             '<div class="h-divider"></div>' +
                         '</div>',
@@ -462,6 +481,7 @@
                         '<div class="row">' +
                             '<div class=" h-divider"> </div>' +
                             '<div class="form-group-sm col-sm-12"><h1>{{uppercase(_cast.name)}}</h1></div>' +
+                            '{{cast}}' +
                             '<div class=" h-divider"> </div>' +
                             
                             '<div class="form-group-sm col-sm-2">' +
@@ -473,14 +493,14 @@
                                 '<option v-for="type_option in class_options">{{type_option}}</option>'+
                             '</select><label>职业类型</label></div>'+
                         
-                            '<div class="form-group-sm col-md-1">' +
+                            '<div class="form-group-sm col-sm-1">' +
                             '<button @click="remove_cast_req" class="btn btn-sm btn-warning">删除</button></div>' +
-                            '<div class="form-group-sm col-md-2">' +
+                            '<div class="form-group-sm col-md-1">' +
                             '<button @click=send class="btn btn-sm btn-success">保存</button></div>' +
                         '</div>' +
                         
                         '<div class="l-indent" >' +
-                            '<div v-for="group of _cast.groups">' +
+                            '<div v-for="group of _cast.effect_prob_group_list">' +
                                 '<group :group="group" :name="_cast.name"></group>' +
                             '</div>' +
                         '</div></div>',
@@ -537,6 +557,7 @@
                 self = this;
 
                 $.get("/get_casts", function(data){
+                    console.log(data);
                     self.casts = data;
                 }).fail(function(error){
                     self.casts = [{name: error}]
