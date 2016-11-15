@@ -1,0 +1,18 @@
+{
+  "type":"array",
+  "title" : "技能释放概率组别",
+  "items" : {
+    "title" : "效果组",
+    "headerTemplate": "{{i}}组",
+    "properties" : {
+      "prob" : {
+        "type" : "number",
+        "title" : "技能施放概率"
+      },
+
+      "effects" : {
+        "$ref" : "effects.json"
+      }
+    }
+  }
+}

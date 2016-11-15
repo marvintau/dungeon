@@ -19,7 +19,7 @@
 
         <style type="text/css">
             body{
-                font-family:"Myriad Pro Condensed";
+                font-family:"Avenir";
                 margin: 30px;
                 /*background-color:#8A8A8A;    */
             }
@@ -28,13 +28,11 @@
                 margin: 0;
             }
 
-
             .h-divider{
                 margin-top:15px;
                 margin-bottom:15px;
                 height:1px;
                 width:100%;
-                
             }
 
             .l-indent{
@@ -196,33 +194,37 @@
         Vue.component('ref_attr', {
             data : function(){
                 return {
-                    type_options : ['attr', 'state'],
+
+                    _ref_attr : null,
+            
                     state_options : ['hp', 'rem_moves'],
                     attr_options : ['attack_disabled', 'cast_disabled', 'armor', 'hit', 'critical', 'dodge', 'resist', 'block', 'agility']
                 }
             },
 
-            props: ['attr_type', 'attr', 'role'],
-            template : '<div><div class="form-group-sm col-sm-2">'+
+            created : function(){
+                this._ref_attr = this.ref_attr;
+            },
 
-                        '<select class="form-control" v-model="attr_type">'+
+            props: ['referred'],
+            template : '<div><div class="form-group-sm col-sm-2">'+
+                        '<select class="form-control" v-model="referred.attr_type">'+
                             '<option>attr</option><option>state</option>'+
                         '</select>'+
                         
                         '<label>技能影响类型</label>' +
 
-                        '<select v-if="check_type(attr_type)" class="form-control" v-model="attr">'+
+                        '<select v-if="check_type(referred.attr_type)" class="form-control" v-model="referred.attr">'+
                             '<option v-for="attr_option in attr_options">{{ attr_option }}<option>' +
                         '</select>'+
-                        
-                        '<select v-else class="form-control" v-model="attr">'+
+                         '<select v-else class="form-control" v-model="referred.attr">'+
                             '<option v-for="state_option in state_options">{{ state_option }}<option>' +
                         '</select>'+
                          
                         '<label>影响属性</label>' +
 
-                        '<select class="form-control" v-model="role">'+
-                            '<option>of_self</option><option>of_opponent</option>' +
+                        '<select class="form-control" v-model="referred.role">'+
+                            '<option>off</option><option>def</option>' +
                         '</select><label>影响对象</label>' +
                    '</div>',
 
@@ -231,6 +233,56 @@
                     return val == "attr";
                 }
             }
+        })
+
+        Vue.component('ref', {
+            data : function(){
+                return {
+                    _ref : null,
+
+                    backup_ref : {"type" : "ref", "attr_type" : "state", "attr": "hp", "role" : "off"},
+
+                    backup_range : {"type" : "range", "min" : 0, "max" : 100},
+
+                    backup_value : {"type" : "value"}
+                }
+            },       
+    
+            created : function(){
+                this._ref = this.ref;
+            },
+
+            props: ['referred'],
+
+            template : '<div>' +
+                            '<div v-if="is_ref(referred.type)">' +
+                                '<ref_attr :referred=referred></ref>'
+                            '</div>'+
+
+                            '<div v-if="is_range(referred.type)">' +
+                                '<range :range=referred></range>'
+                            '</div>'+
+
+                            '<div v-if="is_value(referred.type)">' +
+                                '<vinput :value=referred :name="值"></ref>'
+                            '</div>'+
+
+                        '</div>'
+
+            methods: {
+                is_range: function(type) {
+                    return type == "range";
+                },
+
+                is_ref : function(type) {
+                    return type == "ref";
+                },
+
+                is_value : function(type) {
+                    return type == "value";
+                }
+            }
+        
         })
 
         Vue.component('cond', {
@@ -278,6 +330,24 @@
             }
         })
 
+        Vue.component('operand', {
+            data: function(){
+                return {
+                    _operand : null
+                };
+            },
+
+            created: function(){
+                this._operand = this.operand;
+            },
+
+            props : ['operand'],
+
+            template : '<div>' +
+                        '<>'
+                        '</div>'
+        })
+
         Vue.component('operation', {
             data : function(){
                 return {
@@ -287,70 +357,35 @@
                     temp_range : {"type": "range", "min": 0, "max":0},
 
                     temp_role : {"what":"attr", "whom":"of_opponent", "attr":"resist"},
-
-                    ops : ['set', 'add', 'times', 'linear'],
-
-                    _type_trans : null
+                    
+                    opcodes : ['set', 'add', 'add_mul', 'add_inc_mul']
+                    
                 }
             },
 
             created : function(){
 
-                this._type_trans = this.type_trans;
-
                 this._operand = this.operand;
 
-                if(this._operand.from.type){
-                    this.temp_range = this._operand.from;
-                }
             },
 
-            props : ['type_range', 'type_trans', 'operand'],
-            template : '<div>'+
-                            '<div class="form-group-sm col-sm-2">'+
-                                '<select v-model="operand.type" class="form-control">'+
-                                    '<option v-for="op in ops">{{op}}</option>'+
-                                '</select><label>操作类型</label>'+
-                                '<div v-if="is_linear(operand.type)"><vinput name="比例" value_type="float" :value="operand.ratio"></vinput></div>'+
-                                '<select class="form-control" v-model=temp_range.type>'+
-                                    '<option>range</option><option>value</option>' +
-                                '</select><label>影响对象</label>' +
-                        '</div>'+
-                            
+            props : ['operator'],
+                    template : '<div>{{operator}}'+
+                       '<div class="form-group-sm col-sm-2">' + 
+                       '<select class="form-control" v-model="operator.opcode">'+
+                       '<option v-for="opcode of opcodes">{{opcode}}</option>'+
+                       '</select>'+
 
-                            '<div v-if=trans_type_is_indirect(type_trans)>'+
-                                '<role :role=operand.from> </role>' +
-                            '</div>' +
 
-                            '<div v-else>'+
-                                '<range :range=operand.from> </range>'+
-                            '</div>'+
 
-                        '</div>',
+
+                       '</div>'+
+                 '</div>',
 
             methods : {
-                is_linear : function(type) {
-                    return type == "linear";
-                },
-
-                trans_type_is_indirect : function(type){
-                    return type == "indirect";
-                }
-
             },
 
             watch : {
-                type_trans : function(val){
-                    console.log("changed");
-
-                    if(val == "direct"){
-                        // this.temp_role = JSON.parse(JSON.stringify(this._operand.from));
-                        this._operand.from = this.temp_range;
-                    } else {
-                        // this.temp_range = JSON.parse(JSON.stringify(this._operand.from));
-                        this._operand.from = this.temp_role;
-                    }
-                }
             }
         })
 
@@ -366,10 +401,10 @@
             },
 
             props: ['trans'],
-            template : '{{trans}}<div>' +
+            template : '<div>' +
                         
-                        //'<operation :type_trans=_trans.type :operand=_trans.op></operation>' +
-                        '<role :role=trans.to_whom></role>' +
+                        '<operation :operator=_trans.operator></operation>' +
+                        '<ref_attr :referred="trans.to_whom"></ref_attr>' +
                         '</div>',
             methods: {
             }
@@ -394,7 +429,7 @@
                             '</div>' +
                             //'<cond :cond="_effect.round_cond"> </cond>'+
                             '<div v-for ="trans of _effect.trans_list">' +
-                                "<trans :trans=trans></trans>" + 
+                                '<trans :trans=trans></trans>' + 
                             '</div>' +
                             '<div class="form-group-sm col-sm-2">' +
                              '<button @click="remove" class="btn btn-sm btn-primary">删此效果</button>' +
@@ -481,7 +516,6 @@
                         '<div class="row">' +
                             '<div class=" h-divider"> </div>' +
                             '<div class="form-group-sm col-sm-12"><h1>{{uppercase(_cast.name)}}</h1></div>' +
-                            '{{cast}}' +
                             '<div class=" h-divider"> </div>' +
                             
                             '<div class="form-group-sm col-sm-2">' +

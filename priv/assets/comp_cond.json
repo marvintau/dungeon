@@ -1,0 +1,19 @@
+{
+  "type" : "array",
+  "title" : "更为复杂的条件列表",
+  "items" : {
+    "type" : "object",
+    "title": "条件",
+    "properties" : {
+      "value" : {
+        "type" : "string",
+        "title" : "要比较的值"
+        },
+        "op" :{
+          "type" : "string",
+          "enum" : [">", "==", "<"],
+          "title" : "比较运算符"
+        }
+      }
+    }
+  }

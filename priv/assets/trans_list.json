@@ -1,0 +1,27 @@
+{
+  "type" : "table",
+  "title" : "操作列表",
+  "items" : {
+    "title" : "操作",
+    "type" : "object",
+    "properties" : {
+      "operator" : {
+        "type" : "object",
+        "title" : "操作",
+        "properties" : {
+          "opcode" : {
+            "type" : "string",
+            "title" : "操作码",
+            "enumSource" : [{"source" : [{"title" : "直接设置", "value": "set"}, {"title" : "增减引用数字", "value":"add"}, {"title":"增减被操作属性的比例值", "value":"add_mul"}, {"title":"增减引用数字的比例值", "value":"add_inc_mul"}], "title" : "{{item.title}}", "value" : "{{item.value}}"}]
+          },
+
+          "note" : {
+            "type" : "string",
+            "title" : "附加效果",
+            "enumSource" : [{"source" : [{"title":"可被抵抗", "value":"resistable"}, {"title":"可被吸收", "value":"absorbable"}, {"title":"两个都有", "value":"both"}, {"title":"啥都没有", "value":"none"}], "title" : "{{item.title}}", "value" : "{{item.value}}"}]
+          }
+        }
+      }
+    }
+  }
+}

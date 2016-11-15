@@ -1,0 +1,20 @@
+{
+	"type" : "array",
+	"title" : "可爱的技能们",
+	"items" : {
+		"type" : "object",
+		"properties" : {
+			"name" : {
+				"type"  : "string"
+				},
+
+			"conds" : {
+				"$ref" : "conds.json"
+			},
+
+			"trans_list" : {
+				"$ref" : "trans_list.json"
+			}
+		}
+	}
+}

@@ -1,0 +1,12 @@
+{
+  "type" : "object",
+  "title" : "施放条件",
+  "properties" : {
+    "seq_cond" : {
+      "$ref" : "seq_cond.json"
+      },
+      "comp_cond_list": {
+        "$ref" : "comp_cond.json"
+      }
+    }
+  }

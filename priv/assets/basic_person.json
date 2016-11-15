@@ -1,0 +1,18 @@
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "技能ID",
+      "minLength": 4
+    },
+    "class" : {
+      "type": "string",
+      "title" : "职业类型"
+    },
+
+    "effect_prob_group_list" :{
+      "$ref" : "effect_group.json"
+    }
+  }
+}

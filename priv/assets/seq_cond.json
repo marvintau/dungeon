@@ -1,0 +1,22 @@
+{                              
+  "type" : "object",
+  "title" : "回合相关条件",
+  "properties" : {
+    "start" : {
+      "type" : "integer",
+      "headerTemplate" : "从释放后第{{self}}回合开始"
+      },
+
+      "last" : {
+        "type" : "integer",
+        "headerTemplate" : "持续{{self}}回合",
+        "default" : 1
+      },
+
+      "stage" : {
+        "type" : "string",
+        "title" : "释放阶段",
+        "enumSource" : [{"source" : [{"title" : "释放技能后", "value": "casting"}, {"title" : "回合开始时", "value":"settling"}, {"title":"每次攻击后", "value":"attacking"}], "title" : "{{item.title}}", "value" : "{{item.value}}"}]
+      }
+  }
+}
