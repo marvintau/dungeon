@@ -9,11 +9,16 @@
         "type" : "string",
         "title" : "要比较的值"
         },
-        "op" :{
-          "type" : "string",
-          "enum" : [">", "==", "<"],
-          "title" : "比较运算符"
-        }
+
+      "op" :{
+        "type" : "string",
+        "enum" : [">", "==", "<"],
+        "title" : "比较运算符"
+      },
+
+      "ref" : {
+        "$ref" : "ref.json"
       }
-    }
-  }
+    } 
+  } 
+}

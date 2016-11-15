@@ -1,8 +1,10 @@
 {
-	"type" : "array",
+	"type" : "table",
 	"title" : "可爱的技能们",
 	"items" : {
 		"type" : "object",
+		"headerTemplate" : "第{{i}}个可爱的技能",
+		"title" : "技能描述",
 		"properties" : {
 			"name" : {
 				"type"  : "string"

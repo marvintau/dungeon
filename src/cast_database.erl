@@ -98,19 +98,19 @@ create_casts() ->
 
         {holy_hand_grenade, general, [
             {1, [
-                {holy_hand_grenade, {{0, 1, casting}, []}, [{{add, {-500, -1}, none}, {hp, def}}]}
+                {holy_hand_grenade, {{0, 1, casting}, []}, [{{add, {-500, -1}, none}, {state, hp, def}}]}
             ]}
         ]},
 
         {talisman_of_death, general, [
             {1, [
-                {talisman_of_death, {{0, 1, casting}, []}, [{{add_mul, -0.15, resistable}, {hp, def, none}}]}
+                {talisman_of_death, {{0, 1, casting}, []}, [{{add_mul, -0.15, resistable}, {state, hp, def}}]}
             ]}
         ]},
 
         {talisman_of_spellshrouding, general, [
             {1, [
-                {talisman_of_spellshrouding, {{0, 1, casting}, []}, [{{add, -100, none}, {attr, off, resist}}]}
+                {talisman_of_spellshrouding, {{0, 1, casting}, []}, [{{add, -100, none}, {attr, resist, off}}]}
             ]}
         ]},
 

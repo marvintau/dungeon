@@ -1,0 +1,47 @@
+{
+	"type" : "object",
+	"oneOf" : [
+		{
+			"title" : "直接数字",
+			"type" : "object",
+			"properties" : {
+				"type" : {
+					"type" : "string",
+					"default" : "value",
+					"description" : "别碰"
+				},
+				"value" : {
+					"type" : "number",
+					"default" : 1
+				}
+			}
+		},
+
+		{
+			"title" : "区间",
+			"properties" : {
+				"type" : {
+					"type" : "string",
+					"default" : "range",
+					"description" : "别碰"
+				},
+				"min" : {
+					"title" : "最小",
+					"type" : "number",
+					"default" : 0
+				},
+
+				"max" : {
+					"title" : "最大",
+					"type" : "number",
+					"default" : 1
+				}
+			}
+		},
+
+		{
+			"title" : "引用其他属性",
+			"$ref" : "ref.json"
+		}
+	]
+}

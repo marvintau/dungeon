@@ -1,11 +1,44 @@
 {
 	"type" : "object",
+	"title" : "引用的角色属性",
 	"properties" : {
 		"type" : {
 			"type" : "string",
-			"title": "属性类型",
-			"enum" : ["state", "attr"]
-		}
+			"default" : "ref",
+			"description" : "别碰"
+		},
 
+		"attr_type" : {
+			"type" : "string",
+			"title": "属性类型",
+	        "enumSource" : [{"source" : [{"title":"状态项", "value":"state"}, {"title":"状态无关项", "value":"attr"}], "title" : "{{item.title}}", "value" : "{{item.value}}"}]
+
+		},
+
+		"attr" : {
+			"type" : "string", 
+			"title" : "属性",
+			"enumSource" : [{"source" : [
+				{"title":"血量", "value":"hp"},
+				{"title":"剩余攻击次数", "value":"rem_moves"},
+				{"title":"暴击", "value": "critical"},
+				{"title":"闪避", "value": "dodge"},
+				{"title": "格挡", "value": "block"},
+				{"title": "抵抗", "value": "resist"},
+				{"title": "敏捷", "value": "agility"},
+				{"title": "普通攻击后的结果", "value": "outcome"},
+				{"title": "攻击伤害倍数", "value": "damage_multiplier"},
+				{"title": "攻击附加伤害", "value": "damage_addon"},
+				{"title": "暴击伤害倍数", "value": "critical_multiplier"}
+
+			], "title" : "{{item.title}}", "value" : "{{item.value}}"}]
+		},
+
+		"role" : {
+			"type" : "string",
+			"headerTemplate" : "谁的",
+			"enumSource" : [{"source" : [{"title":"自己", "value":"off"}, {"title":"对方", "value":"def"}], "title" : "{{item.title}}", "value" : "{{item.value}}"}]			
+		}
 	}
+
 }
