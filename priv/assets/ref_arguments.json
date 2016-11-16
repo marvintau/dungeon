@@ -5,11 +5,6 @@
 		{
 			"title" : "只有增量",
 			"properties" : {
-				"type" : {
-					"type" : "string",
-					"default" : "inc",
-					"description" : "别碰"
-				},
 				"inc" : {
 					"title" : "增量",
 					"$ref" : "ref_value.json"
@@ -20,11 +15,6 @@
 		{
 			"title" : "增量和增量的ratio",
 			"properties" : {
-				"type" : {
-					"type" : "string",
-					"default" : "inc_mul",
-					"description" : "别碰"
-				},
 				"inc" : {
 					"title" : "增量",
 					"$ref" : "ref_value.json"

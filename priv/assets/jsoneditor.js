@@ -6372,7 +6372,7 @@ JSONEditor.AbstractTheme = Class.extend({
   },
   getTabHolder: function() {
     var el = document.createElement('div');
-    el.innerHTML = "<div style='float: left; width: 130px;' class='tabs'></div><div class='content' style='margin-left: 130px;'></div><div style='clear:both;'></div>";
+    el.innerHTML = "<div style='float: left; width: 200px;' class='tabs'></div><div class='content' style='margin-left: 200px;'></div><div style='clear:both;'></div>";
     return el;
   },
   applyStyles: function(el,styles) {
@@ -6404,11 +6404,12 @@ JSONEditor.AbstractTheme = Class.extend({
     this.applyStyles(el,{
       border: '1px solid #ccc',
       borderWidth: '1px 0 1px 1px',
-      textAlign: 'center',
-      lineHeight: '30px',
+      textAlign: 'left',
+      lineHeight: '50px',
       borderRadius: '5px',
       borderBottomRightRadius: 0,
       borderTopRightRadius: 0,
+      fontFamily: 'Helvetica',
       fontWeight: 'bold',
       cursor: 'pointer'
     });
@@ -6864,7 +6865,7 @@ JSONEditor.defaults.themes.foundation = JSONEditor.AbstractTheme.extend({
     var el = this.getButtonHolder();
     el.style.display = 'inline-block';
     el.style.marginLeft = '10px';
-    el.style.verticalAlign = 'middle';
+    el.style.verticalAlign = 'top';
     return el;
   },
   getButtonHolder: function() {
@@ -7132,7 +7133,7 @@ JSONEditor.defaults.themes.html = JSONEditor.AbstractTheme.extend({
     el.style.display = 'inline-block';
     el.style.marginLeft = '10px';
     el.style.fontSize = '.8em';
-    el.style.verticalAlign = 'middle';
+    el.style.verticalAlign = 'top';
     return el;
   },
   getTable: function() {

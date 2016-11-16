@@ -5,20 +5,20 @@
 -export([all_casts/0, casts/1, all_names/0, names_with/1]).
 
 ref({Type, Attribute, Role}) ->
-    {[{type, ref}, {attr_type, Type}, {attr, Attribute}, {role, Role}]};
+    {[{attr_type, Type}, {attr, Attribute}, {role, Role}]};
 ref({Min, Max}) ->
-    {[{type, range}, {min, Min}, {max, Max}]};
+    {[{min, Min}, {max, Max}]};
 ref(Value) ->
-    {[{type, value}, {value, Value}]}.
+    {[{value, Value}]}.
 
-ref_operand({Inc, Mul}) -> {[{type, inc_mul}, {inc, ref(Inc)}, {mul, ref(Mul)}]};
-ref_operand(Inc) -> {[{type, inc}, {inc, ref(Inc)}]}.
+operand({Inc, Mul}) -> {[{inc, ref(Inc)}, {mul, ref(Mul)}]};
+operand(Inc) -> {[{inc, ref(Inc)}]}.
 
-ref_operator({Opcode, Operand, Note}) ->
-    {[{opcode, Opcode}, {operand, ref_operand(Operand)}, {note, Note}]}.
+operator({Opcode, Operand, Note}) ->
+    {[{opcode, Opcode}, {operand, operand(Operand)}, {note, Note}]}.
 
 trans({Operator, ToWhom}) ->
-    {[{operator, ref_operator(Operator)}, {to_whom, ref(ToWhom)}]}.
+    {[{operator, operator(Operator)}, {to_whom, ref(ToWhom)}]}.
 
 trans_list(TransList) ->
     [trans(Trans) || Trans <- TransList].
@@ -49,7 +49,6 @@ effect_prob_group_list(EffectProbGroupList) ->
 
 cast({Name, Class, EffectProbGroupsList}) ->
     Cast = {[{name, Name}, {class, Class}, {effect_prob_group_list, effect_prob_group_list(EffectProbGroupsList)}]},
-    erlang:display(Cast),
     Cast.
 
 all_casts() ->

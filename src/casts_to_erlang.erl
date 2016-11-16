@@ -2,35 +2,47 @@
 
 -author('Yue Marvin Tao').
 
--export([cast/1]).
+-export([casts/1]).
 
-range({[{_, <<"range">>}, {_, {[{_, Min}, {_, Max}]} } ]}) ->
+ref({[{_, Type}, {_, Attribute}, {_, Role}]}) ->
+    {binary_to_atom(Type, utf8), binary_to_atom(Attribute, utf8), binary_to_atom(Role, utf8) };
+ref({[{_, Min}, {_, Max}]}) ->
     {Min, Max};
+ref({[{_, Value}]}) ->
+    Value.
 
-range({[_, {_, Value}]}) ->
-    if 
-        is_number(Value) or is_boolean(Value) -> Value;
-        is_binary(Value) -> binary_to_atom(Value, utf8)
-    end.
+operand({[{_, Inc}, {_, Mul}]}) -> {ref(Inc), ref(Mul)};
+operand({[{_, Inc}]}) -> ref(Inc).
 
-role({[{_, What}, {_, Whom}, {_, Attr}]}) ->
-    {role, binary_to_atom(What, utf8), binary_to_atom(Whom, utf8), binary_to_atom(Attr, utf8)}.
+operator({[{_, OpCode}, {_, Operand}, {_, Note}]}) ->
+    {binary_to_atom(OpCode, utf8), operand(Operand), binary_to_atom(Note, utf8) }.
 
-op(direct, {[{_, Type}, {_, From}]}) ->
-    {binary_to_atom(Type, utf8), range(From)};
-op(indirect, {[{_, Type}, {_, Ratio}, {_, Role}]}) ->
-    {binary_to_atom(Type, utf8), Ratio, role(Role)}.
+trans({[{_, Operator}, {_, To}]}) ->
+    {operator(Operator), ref(To)}.
 
-trans({[{_, <<"direct">>}, {_, Op}, {_, To}]}) ->
-    {direct, op(direct, Op), role(To)};
-trans({[{_, <<"indirect">>}, {_, Op}, {_, To}]}) ->
-    {indirect, op(indirect, Op), role(To)}.
+trans_list(TransList) ->
+    [trans(Trans) || Trans <- TransList].
 
-condition({[{_, Start}, {_, Last}, {_, Stage}]}) ->
+comp_cond({[{_, Value}, {_, Op}, {_, Ref}]}) ->
+
+    ParsedValue = case is_number(Value) of
+        true -> Value;
+        _ -> binary_to_atom(Value, utf8)
+    end,
+
+    {ParsedValue, binary_to_atom(Op, utf8), ref(Ref)}.
+
+comp_cond_list(CompCondList) ->
+    [comp_cond(CompCond) || CompCond <- CompCondList].
+
+seq_cond({[{_, Start}, {_, Last}, {_, Stage}]}) ->
     {Start, Last, binary_to_atom(Stage, utf8)}.
 
-single_effect({[{_, Name}, {_, Cond}, {_, Trans}, {_, React}]}) ->
-    {binary_to_atom(Name, utf8), condition(Cond), trans(Trans), binary_to_atom(React, utf8)}.
+conds({[{_, SeqCond}, {_, CompCondList}]}) ->
+    {seq_cond(SeqCond), comp_cond_list(CompCondList)}.
+
+single_effect({[{_, Cond}, {_, TransList}]}) ->
+    {conds(Cond), trans_list(TransList)}.
 
 effects(Effects) ->
     [single_effect(Effect) || Effect <- Effects].
@@ -42,6 +54,10 @@ groups(Groups) ->
    [single_group(Group) || Group <- Groups]. 
 
 cast(CastData) ->
+    % error_logger:info_report(CastData).
     {[{_, Name}, {_, Class}, {_, Groups}]} = CastData,
 
     {binary_to_atom(Name, utf8), binary_to_atom(Class, utf8), groups(Groups)}. 
+
+casts(Casts) ->
+    [cast(Cast) || Cast <- Casts].

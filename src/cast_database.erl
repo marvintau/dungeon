@@ -4,30 +4,21 @@
 
 -export([init_table/0, create_casts/0]).
 
--export([update_cast/1]).
--export([remove_cast/1]).
+-export([update_casts/1]).
 
 init_table() ->
+    ets:new(casts, [set, public, named_table]),
     create_casts().
 
-update_cast(Data) ->
-    Decoded = jiffy:decode(Data),
-    {Name, _, _} = Res = casts_to_erlang:cast(Decoded),
-    error_logger:info_report(ets:lookup(casts, Name)),
+update_casts(Data) ->
+    Res = casts_to_erlang:casts(Data),
+    error_logger:info_report(Res),
+    true = ets:delete_all_objects(casts),
     ets:insert(casts, Res),
-    error_logger:info_report(ets:lookup(casts, Name)),
     ok.
-
-remove_cast(Data) ->
-    Decoded = jiffy:decode(Data),
-    {Name, _, _} = casts_to_erlang:cast(Decoded),
-    error_logger:info_report(ets:lookup(casts, Name)),
-    ets:delete(casts, Name),
-    error_logger:info_report(length(ets:lookup(casts, Name))),
-    ok.
-
 
 create_casts() ->
+    true = ets:delete_all_objects(casts),
 
     Talents = [
         {brave_shield_counterback, talent, [
@@ -90,7 +81,7 @@ create_casts() ->
         {rune_of_the_void, general, [
             {1, [
                 {
-                {{0, 1, casting}, []},
+                {{0, 1, settling}, []},
                 [{{set, true, none}, {attr, cast_disabled, def}}
                 ]}
             ]}
@@ -104,7 +95,7 @@ create_casts() ->
 
         {talisman_of_death, general, [
             {1, [
-                { {{0, 1, casting}, []}, [{{add_mul, -0.15, resistable}, {state, hp, def}}]}
+                { {{0, 1, casting}, []}, [{{add, -100, none}, {state, hp, def}}]}
             ]}
         ]},
 
@@ -287,12 +278,11 @@ create_casts() ->
         ]}
     ],
 
-    ets:new(casts, [set, public, named_table]),
-
     ets:insert(casts, Talents),
     ets:insert(casts, CastsGeneral),
     ets:insert(casts, Mage),
     ets:insert(casts, Rogue),
     ets:insert(casts, Hunter),
-    ets:insert(casts, Warrior).
+    ets:insert(casts, Warrior),
+    ok.
 

@@ -109,7 +109,7 @@ apply_trans_logged(EffName, Trans, S, O, D) ->
     
     {EffectStatus, _Destination, TransedO, TransedD} = apply_trans(Trans, O, D),
 
-    {TransedO, TransedD, log(S, EffName, EffectStatus, Trans, O, D)}.
+    {TransedO, TransedD, log(S, EffName, EffectStatus, Trans, TransedO, TransedD)}.
 
 apply_trans_all(EffName, TransList, S, O, D) ->
     apply_trans_all(EffName, TransList, S, O, D, []).
@@ -139,7 +139,7 @@ seq_cond({StartingSeq, TerminalSeq, Phase}, #{seq:=CurrSeq, stage:=CurrStage}) -
 
 
     CalculatedPhase = case {Phase, StartingSeq} of
-        {casting, 0} -> casting;
+        {casting, 1} -> casting;
         {casting, _} -> settling;
         {_, _} -> Phase
     end,
@@ -164,6 +164,7 @@ apply_effect(Effect, State, {O, D}) ->
     case cond_check(Conds, State, O, D) of
         
         true ->
+            erlang:display("good"),
             apply_trans_all(Name, Specs, State, O, D);
         
         _    -> {O, D, []}
@@ -182,8 +183,7 @@ effect(_S, O, D, Log, []) ->
 
 effect(S, O, D, Log, [EffectSpec| Remaining]) ->
 
-
     {EffectedOffender, EffectedDefender, NewLog} = apply_effect(EffectSpec, S, {O, D}),
-    
+
     effect(S, EffectedOffender, EffectedDefender, lists:append(NewLog, Log), Remaining).
 

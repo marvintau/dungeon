@@ -23,6 +23,7 @@ start(_StartType, _StartArgs) ->
                    {"/dungeon/[...]", cowboy_static, {priv_dir, new_game_server, "assets"}},
                    {"/get_result", battle_handler, []},
                    {"/get_casts", cast_edit_handler, []},
+                   {"/reset_casts", cast_reset_handler, []},
                    {"/get_list", cast_list_handler, []},
                    {"/post_casts", cast_submit_handler, []},
                    {"/remove_cast", cast_remove_handler, []},

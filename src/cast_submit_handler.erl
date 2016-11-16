@@ -47,5 +47,6 @@ handle_casts_submit(Req, State) ->
     end,
 
     Data = jiffy:decode(ReqBody),
-    ok = cast_database:update_cast(Data),
+    Parsed = cast_database:update_casts(Data),
+    error_logger:info_report(Parsed),
     {true, NextReq, State}.

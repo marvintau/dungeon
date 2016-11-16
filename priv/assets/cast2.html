@@ -12,9 +12,9 @@
   <body>
 
     
-    <button id='submit'>Submit (console.log)</button>
-    <button id='restore'>Restore to Default</button>
-    <button id='enable_disable'>Disable/Enable Form</button>
+    <button id='submit'>提交</button>
+    <button id='refresh'>刷新</button>
+    <button id='recover'>重置</button>
     <span id='valid_indicator'></span>
     
     <div id='editor_holder'></div>
@@ -22,13 +22,26 @@
     <script>window.jQuery || document.write('<script src="bower_components/jquery/dist/jquery.min.js"><\/script>')</script>
 
     <script>
+      $.postJSON = function(url, data, callback) {
+          return jQuery.ajax({
+              headers: { 
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json' 
+              },
+              'type': 'POST',
+              'url': url,
+              'data': JSON.stringify(data),
+              'dataType': 'json',
+              'success': callback
+          });
+      };
+
       // This is the starting value for the editor
       // We will use this to seed the initial editor 
-      // and to provide a "Restore to Default" button.
+      // and to provide a "refresh to Default" button.
       var starting_value;
 
       $.get("/get_casts", function(data){
-          console.log(JSON.stringify(data));
           starting_value = data;
       }).fail(function(error){
           self.casts = [{name: error}]
@@ -69,29 +82,46 @@
         required_by_default: true
       });
       
+      editor.on('ready', function(){
+        $.get("/get_casts", function(data){
+            starting_value = data;
+        }).fail(function(error){
+            self.casts = [{name: error}]
+        });
+
+        editor.setValue(starting_value);
+      })
+
       // Hook up the submit button to log to the console
       document.getElementById('submit').addEventListener('click',function() {
         // Get the value from the editor
-        console.log(editor.getValue());
+        var casts_json = editor.getValue();
+
+        $.postJSON("/post_casts", casts_json, function(data){
+                        console.log("done");
+                    }).fail(function(error){
+                        console.log("error "+error);
+                    });
       });
       
-      // Hook up the Restore to Default button
-      document.getElementById('restore').addEventListener('click',function() {
+      // Hook up the refresh to Default button
+      document.getElementById('refresh').addEventListener('click',function() {
+        $.get("/get_casts", function(data){
+            starting_value = data;
+        }).fail(function(error){
+            self.casts = [{name: error}]
+        });
+
         editor.setValue(starting_value);
       });
-      
-      // Hook up the enable/disable button
-      document.getElementById('enable_disable').addEventListener('click',function() {
-        // Enable form
-        if(!editor.isEnabled()) {
-          editor.enable();
-        }
-        // Disable form
-        else {
-          editor.disable();
-        }
+            
+      document.getElementById('recover').addEventListener('click',function() {
+        $.get("/reset_casts", function(data){
+            alert("搞定，点下刷新");
+        }).fail(function(error){
+            self.casts = [{name: error}]
+        });
       });
-      
       // Hook up the validation indicator to update its 
       // status whenever the editor changes
       editor.on('change',function() {

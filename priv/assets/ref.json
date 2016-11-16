@@ -2,11 +2,6 @@
 	"type" : "object",
 	"title" : "引用的角色属性",
 	"properties" : {
-		"type" : {
-			"type" : "string",
-			"default" : "ref",
-			"description" : "别碰"
-		},
 
 		"attr_type" : {
 			"type" : "string",
@@ -29,8 +24,10 @@
 				{"title": "普通攻击后的结果", "value": "outcome"},
 				{"title": "攻击伤害倍数", "value": "damage_multiplier"},
 				{"title": "攻击附加伤害", "value": "damage_addon"},
-				{"title": "暴击伤害倍数", "value": "critical_multiplier"}
-
+				{"title": "暴击伤害倍数", "value": "critical_multiplier"},
+				{"title": "是否禁止放技能", "value": "cast_disabled"},
+				{"title": "是否禁止攻击", "value": "attack_disabled"}
+				
 			], "title" : "{{item.title}}", "value" : "{{item.value}}"}]
 		},
 
