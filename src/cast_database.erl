@@ -32,7 +32,7 @@ create_casts() ->
     Talents = [
         {brave_shield_counterback, talent, [
             {1, [
-                {brave_shield_counterback,
+                {
                  {{0, null, attacking}, [{attack, '==', {attr, outcome, def}}]},
                  [{{add, -125, absorbable},{state, hp, def}}]
                 }
@@ -41,7 +41,7 @@ create_casts() ->
 
         {blade_dance, talent, [
             {1, [
-                {blade_dance,
+                {
                  {{0, null, settling}, []},
                  [{{add_mul, 0.1, none}, {attr, critical, off}}, {{add_mul, 0.5, none}, {attr, critical_multiplier, off}}]
                 }
@@ -50,7 +50,7 @@ create_casts() ->
 
         {freeze, talent, [
             {1, [
-                {freeze,
+                {
                  {{0, 2, settling}, []},
                  [{{set, true, none}, {attr, cast_disabled, def}},
                   {{set, true, none}, {attr, attack_disabled, off}},
@@ -65,7 +65,7 @@ create_casts() ->
 
         {assault, talent, [
             {1, [
-                {assault,
+                {
                  {{0, null, settling}, [{dodge, '==', {attr, outcome, def}}]},
                  [{{add, 1, none}, {state, rem_moves, off}},
                   {{set, 0, none}, {attr, dodge, def}},
@@ -73,7 +73,7 @@ create_casts() ->
                   {{set, 0, none}, {attr, resist, def}}
                  ]
                 },
-                {assault,
+                {
                  {{0, null, settling}, [{block, '==', {attr, outcome, def}}]},
                  [{{add, 1, none}, {state, rem_moves, off}},
                   {{set, 0, none}, {attr, dodge, def}},
@@ -89,7 +89,7 @@ create_casts() ->
 
         {rune_of_the_void, general, [
             {1, [
-                {rune_of_the_void,
+                {
                 {{0, 1, casting}, []},
                 [{{set, true, none}, {attr, cast_disabled, def}}
                 ]}
@@ -98,25 +98,25 @@ create_casts() ->
 
         {holy_hand_grenade, general, [
             {1, [
-                {holy_hand_grenade, {{0, 1, casting}, []}, [{{add, {-500, -1}, none}, {state, hp, def}}]}
+                { {{0, 1, casting}, []}, [{{add, {-500, -1}, none}, {state, hp, def}}]}
             ]}
         ]},
 
         {talisman_of_death, general, [
             {1, [
-                {talisman_of_death, {{0, 1, casting}, []}, [{{add_mul, -0.15, resistable}, {state, hp, def}}]}
+                { {{0, 1, casting}, []}, [{{add_mul, -0.15, resistable}, {state, hp, def}}]}
             ]}
         ]},
 
         {talisman_of_spellshrouding, general, [
             {1, [
-                {talisman_of_spellshrouding, {{0, 1, casting}, []}, [{{add, -100, none}, {attr, resist, off}}]}
+                { {{0, 1, casting}, []}, [{{add, -100, none}, {attr, resist, off}}]}
             ]}
         ]},
 
         {poison_gas, general, [
             {0.5, [
-                {poison_gas,
+                {
                  {{0, 2, casting}, []},
                  [{{set, true, none}, {attr, attack_disabled, def}},
                   {{set, true, none}, {attr, cast_disabled, def}},
@@ -125,7 +125,7 @@ create_casts() ->
                  ]}
             ]},
             {0.5, [
-                {poison_gas,
+                {
                  {{0, 2, casting}, []},
                  [{{set, true, none}, {attr, attack_disabled, off}},
                   {{set, true, none}, {attr, cast_disabled, off}},
@@ -139,7 +139,7 @@ create_casts() ->
     Warrior = [
         {shield_wall, warrior, [
             {1, [
-                {shield_wall, {{0, 1, casting}, []},
+                { {{0, 1, casting}, []},
                 [{{set, 0, none}, {attr, dodge, off}},
                  {{set, 100, none}, {attr, block, off}},
                  {{set, 0, none}, {attr, hit_bonus, def}},
@@ -150,7 +150,7 @@ create_casts() ->
 
         {sure_hit, warrior, [
             {1, [
-                {sure_hit,
+                {
                  {{0, 2, casting}, []},
                  [{{set, 0, none}, {attr, resist, def}},
                   {{set, 0, none}, {attr, block, def}},
@@ -161,19 +161,19 @@ create_casts() ->
 
         {double_swing, warrior, [
             {1, [
-                {double_swing, {{0, 1, casting}, []}, [{{add, 2, none}, {state, rem_moves, off}}]}
+                { {{0, 1, casting}, []}, [{{add, 2, none}, {state, rem_moves, off}}]}
             ]}
         ]},
 
         {chain_lock, warrior, [
             {1, [
-                {chain_lock, {{0, 1, casting}, []}, [{{set, true, resistable}, {attr, attack_disabled, def}}]}
+                { {{0, 1, casting}, []}, [{{set, true, resistable}, {attr, attack_disabled, def}}]}
             ]}
         ]},
 
         {first_aid, warrior, [
             {1, [
-                {first_aid, {{0, 1, casting}, []}, [{{add_mul, 0.08, none}, {state, hp, off}}]}
+                { {{0, 1, casting}, []}, [{{add_mul, 0.08, none}, {state, hp, off}}]}
             ]}
         ]}
     ],
@@ -182,31 +182,31 @@ create_casts() ->
     Hunter = [
         {tornado, hunter, [
             {1, [
-                {tornado, {{0, 5, casting}, []}, [{{add_mul, -0.05, none}, {attr, hit_bonus, def}}]}
+                { {{0, 5, casting}, []}, [{{add_mul, -0.05, none}, {attr, hit_bonus, def}}]}
             ]}
         ]},
 
         {mend, hunter, [
             {1, [
-                {mend, {{0, 3, casting}, []}, [{{add_mul, 0.07, none}, {state, hp, off}}]}
+                { {{0, 3, casting}, []}, [{{add_mul, 0.07, none}, {state, hp, off}}]}
             ]}
         ]},
 
         {outbreak, hunter, [
             {1, [
-                {outbreak, {{0, 3, attacking}, []}, [{{add, -70, resistable}, {state, hp, def}}]}
+                { {{0, 3, attacking}, []}, [{{add, -70, resistable}, {state, hp, def}}]}
             ]}
         ]},
 
         {roots, hunter, [
             {1, [
-                {roots, {{0, 1, casting}, []}, [{{set, 1, resistable}, {state, rem_moves, def}}]}
+                { {{0, 1, casting}, []}, [{{set, 1, resistable}, {state, rem_moves, def}}]}
             ]}
         ]},
 
         {tree_hide, hunter, [
             {1, [
-                {tree_hide, {{0, 3, casting}, []}, [{{add, 0.5, resistable}, {attr, off, armor}}]}
+                { {{0, 3, casting}, []}, [{{add, 0.5, resistable}, {attr, off, armor}}]}
             ]}
         ]}
     ],
@@ -214,31 +214,31 @@ create_casts() ->
     Rogue = [
         {healing_potion, rogue, [
             {1, [
-                {healing_potion, {{0, 1, casting}, []}, [{{add, {175, 255}, resistable}, {state, hp, off}}]}
+                { {{0, 1, casting}, []}, [{{add, {175, 255}, resistable}, {state, hp, off}}]}
             ]}
         ]},
 
         {pierce_armor, rogue, [
             {1, [
-                {pierce_armor, {{0, 1, casting}, []}, [{{add, -50, resistable}, {attr, armor, def}}]}
+                { {{0, 1, casting}, []}, [{{add, -50, resistable}, {attr, armor, def}}]}
             ]}
         ]},
 
         {flurry, rogue, [
             {1, [
-                {flurry, {{0, 1, casting}, []}, [{{set, 3, none}, {state, rem_moves, off}}]}
+                { {{0, 1, casting}, []}, [{{set, 3, none}, {state, rem_moves, off}}]}
             ]}
         ]},
 
         {spellbreak, rogue, [
             {1, [
-                {spellbreak, {{0, 4, casting}, []}, [{{add_mul, 0.7, none}, {attr, resist, off}}]}
+                { {{0, 4, casting}, []}, [{{add_mul, 0.7, none}, {attr, resist, off}}]}
             ]}
         ]},
 
         {perfect_strike, rogue, [
             {1, [
-                {shield_wall, {{0, 1, casting}, []}, [
+                { {{0, 1, casting}, []}, [
                 {{set, 0, none}, {attr, dodge, def}},
                 {{set, 0, none}, {attr, block, def}},
                 {{set, 0, none}, {attr, hit_bonus, off}},
@@ -250,34 +250,39 @@ create_casts() ->
     Mage = [
         {vampiric_bolt, mage, [
             {1, [
-                {vampiric_bolt, {{0, 1, casting}, []}, [{{add_inc_mul, {{state, hp, def}, -0.1}, resistable}, {hp, off, none}}]},
-                {vampiric_bolt, {{0, 1, casting}, []}, [{{add_mul, 0.1, resistable}, {state, hp, def}}]}
+                { {{0, 1, casting}, []}, [{{add_inc_mul, {{state, hp, def}, -0.1}, resistable}, {hp, off, none}}]},
+                { {{0, 1, casting}, []}, [{{add_mul, 0.1, resistable}, {state, hp, def}}]}
             ]}
         ]},
 
         {arcane_surge, mage, [
             {1, [
-                {arcane_surge, {{0, 1, casting}, []}, [{{add, 2, none}, {state, rem_moves, off}}]}
+                { {{0, 1, casting}, []}, [{{add, 2, none}, {state, rem_moves, off}}]}
             ]}
         ]},
 
         {lower_resist, mage, [
             {1, [
-                {lower_resist, {{0, 1, casting}, []}, [{{set, true, none}, {attr, attack_disabled, off}}, {{set, true, none}, {attr, cast_disabled, off}}, {{set, 0, none}, {attr, dodge, off}}, {{set, 0, none}, {attr, off, block}}]}
+                { {{0, 1, casting}, []}, 
+                  [{{set, true, none}, {attr, attack_disabled, off}},
+                   {{set, true, none}, {attr, cast_disabled, off}},
+                   {{set, 0, none}, {attr, dodge, off}},
+                   {{set, 0, none}, {attr, off, block}}
+                  ]}
             ]}
         ]},
 
         {pyromania, mage, [
             {1, [
-                {pyromania, {{0, 3, casting}, []}, [{{add, -50, resistable}, {state, hp, def}}]},
-                {pyromania, {{0, 1, casting}, []}, [{{add_mul, -0.5, resistable}, {attr, critical, def}}]}
+                { {{0, 3, casting}, []}, [{{add, -50, resistable}, {state, hp, def}}]},
+                { {{0, 1, casting}, []}, [{{add_mul, -0.5, resistable}, {attr, critical, def}}]}
             ]}
         ]},
 
         {mind_blast, mage, [
             {1, [
-                {mind_blast, {{0, 1, casting}, []}, [{{add, -125, resistable}, {state, hp, def}}]},
-                {mind_blast, {{0, 1, casting}, []}, [{{set, 1, resistable}, {state, rem_moves, def}}]}
+                { {{0, 1, casting}, []}, [{{add, -125, resistable}, {state, hp, def}}]},
+                { {{0, 1, casting}, []}, [{{set, 1, resistable}, {state, rem_moves, def}}]}
             ]}
         ]}
     ],

@@ -23,20 +23,20 @@ condition({{Start, Last, Phase}, Others}, CurrSeq) ->
 % latter function is the actual entrance that takes cast name as argument, and
 % find the specification in database, and re-interpret it with battle context.
 
-parse_single_effect({Name, Cond, Trans}, #{seq:=CurrSeq}) ->
+parse_single_effect(Name, {Cond, Trans}, #{seq:=CurrSeq}) ->
     {Name, condition(Cond, CurrSeq), Trans}.
 
-parse_single_group({Prob, Effects}, S) ->
+parse_single_group(Name, {Prob, Effects}, S) ->
     case rand:uniform() < Prob of
-        true -> {success, lists:map(fun(Spec) -> parse_single_effect(Spec, S) end, Effects)};
+        true -> {success, lists:map(fun(Spec) -> parse_single_effect(Name, Spec, S) end, Effects)};
         _ -> {failed, bad_luck}
     end.
 
-parse_groups(Groups, S) ->
-   [parse_single_group(Group, S) || Group <- Groups]. 
+parse_groups(Name, Groups, S) ->
+   [parse_single_group(Name, Group, S) || Group <- Groups]. 
 
 parse_groups_logged({Name, _Type, Groups}, S, O, D) ->
-    Parsed = parse_groups(Groups, S),
+    Parsed = parse_groups(Name, Groups, S),
     {Logs, Effects} = lists:unzip([{log(Name, Outcome, S, O, D), CurrEffects} || {Outcome, CurrEffects} <- Parsed]),
 
     {Logs, [Effect || Effect <- lists:flatten(Effects), Effect =/=bad_luck]}.

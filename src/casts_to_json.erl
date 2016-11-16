@@ -35,8 +35,8 @@ comp_cond_list(CompCondList) ->
 conds({Seq, CompCondList}) ->
     {[{seq_cond, seq_cond(Seq)}, {comp_cond_list, comp_cond_list(CompCondList)}]}.
 
-effect({Name, Conds, TransList}) ->
-    {[{name, Name}, {conds, conds(Conds)}, {trans_list, trans_list(TransList)}]}.
+effect({Conds, TransList}) ->
+    {[{conds, conds(Conds)}, {trans_list, trans_list(TransList)}]}.
 
 effect_list(EffectList) ->
     [effect(Effect) || Effect <- EffectList].
