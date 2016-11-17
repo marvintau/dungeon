@@ -67,10 +67,10 @@ loop(_, #{state:=#{hp:=HP1}, id:=I1}, #{state:=#{hp:=HP2}, id:=I2}, Log) when HP
 % new round, the attributes should be restored in this stage. Meanwhile,
 % both players will be restored to primary hand.
 
-loop(#{seq:=Seq, stage:=attacking}=State,
+loop(#{seq:=Seq, stage:=Stage}=State,
      #{done:=already, prim_hand:=PrimHand1, orig_attr:=Orig1, state:=State1}=P1,
      #{done:=already, prim_hand:=PrimHand2, orig_attr:=Orig2, state:=State2}=P2,
-     L) ->
+     L) when (Stage == attacking) or (Stage == preparing)->
 
     NewP1 = P1#{state:=State1#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand1, attr=>Orig1},
     NewP2 = P2#{state:=State2#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand2, attr=>Orig2},
@@ -163,4 +163,6 @@ init_new_battle(Data) ->
 
     {P1, P2} = battle_parse:player_context_from_parsed_JSON(Data),
 
-    loop(#{seq=>0, stage=>attacking, mover=>maps:get(id, P1)}, P1, P2, []). 
+    {CastedP1, CastedP2, CastedLog} = battle_cast:cast_talented(P1, P2),
+
+    loop(#{seq=>0, stage=>preparing, mover=>maps:get(id, P1)}, CastedP1, CastedP2, CastedLog). 

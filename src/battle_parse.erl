@@ -9,7 +9,7 @@ parse_single_player(SinglePlayerData) ->
     {[
       {_, ID}, {_, HP}, {_, PrimType}, {_, PrimMax}, {_, PrimMin}, {_, SecdType},
       {_, SecdMax}, {_, SecdMin}, {_, Armor}, {_, HitBonus}, {_, Critic}, {_, Dodge},
-      {_, Resist}, {_, Block}, {_, Agi}, {_, CastList}
+      {_, Resist}, {_, Block}, {_, Agi}, {_, Talented}, {_, CastList}
      ]} = SinglePlayerData,
 
     #{
@@ -31,6 +31,7 @@ parse_single_player(SinglePlayerData) ->
         secd_hand  => {secd, binary_to_atom(SecdType, utf8), {SecdMin, SecdMax}},
         prim_hand  => {prim, binary_to_atom(PrimType, utf8), {PrimMin, PrimMax}},
 
+        talented => binary_to_atom(Talented, utf8),
         casts => lists:map(fun(X) -> binary_to_atom(X, utf8) end, CastList),
         effects => [],
 

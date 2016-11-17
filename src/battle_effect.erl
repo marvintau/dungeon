@@ -164,7 +164,6 @@ apply_effect(Effect, State, {O, D}) ->
     case cond_check(Conds, State, O, D) of
         
         true ->
-            erlang:display("good"),
             apply_trans_all(Name, Specs, State, O, D);
         
         _    -> {O, D, []}

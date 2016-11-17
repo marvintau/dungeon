@@ -42,6 +42,7 @@ $.setData = function () {
     $('#resist1').val("35");
     $('#block1').val("35");
     $('#agi1').val("50");
+    $('#talented_skill1').val("blade_dance");
 
     ms1.clear();
     ms1.setValue(perm_slice(ms1.getData()));
@@ -63,6 +64,7 @@ $.setData = function () {
     $('#resist2').val("35");
     $('#block2').val("0");
     $('#agi2').val("75");
+    $('#talented_skill2').val("blade_dance");
 
     ms2.clear();
     ms2.setValue(perm_slice(ms2.getData()));
@@ -90,6 +92,8 @@ $.getData = function () {
             block : parseInt($('#block1').val()),
             agility : parseInt($('#agi1').val()),
 
+            talented : $('#talented_skill1').val(),
+
             cast_list : pad_with_null(ms1.getValue())
 
         },
@@ -112,6 +116,8 @@ $.getData = function () {
             resist : parseInt($('#resist2').val()),
             block : parseInt($('#block2').val()),
             agility : parseInt($('#agi2').val()),
+
+            talented_skill2 : $('#talented_skill2').val(),
 
             cast_list : pad_with_null(ms2.getValue())
         }
