@@ -101,7 +101,6 @@ loop(#{mover:=Mover}=State, P1, #{id:=Mover, done:=already}=P2, L) ->
     loop(State#{mover:=swap(Mover, P1, P2)}, P1, P2, L);
 
 
-
 % ------------------------ LOOP FOR ATTACK  ---------------------------
 % In order to guarantee that there is no status dependency, all status
 % modification regarding attributes will be restored except HP, number
