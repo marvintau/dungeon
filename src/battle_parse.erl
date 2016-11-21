@@ -37,9 +37,9 @@ parse_single_player(SinglePlayerData) ->
 
         orig_attr => #{
             diff => 0,
-            attack_disabled => false,
-            cast_disabled => false,
-            effect_invalidated => false,
+            attack_disabled => 0,
+            cast_disabled => 0,
+            effect_invalidated => 0,
             armor      => Armor,
             hit_bonus  => HitBonus,
             critical   => Critic,

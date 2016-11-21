@@ -68,7 +68,7 @@ trans({add_inc_mul, {Inc, Mul}, Absorbing}, ToWhom) ->
 % handled as absorbable.
 
 apply_trans({{Opcode, Oper, AddCond}, {_T, _A, P}=ToWhom}, O, D) ->
-    
+
     RefOperand = case Oper of
         {Tr, Ar, Pr} -> ref_whom_get({Tr, Ar, Pr}, O, D);
         {{_, _, _} = TAP1, {_, _, _}=TAP2} -> ref_whom_get({TAP1, TAP2}, O, D);
@@ -106,7 +106,9 @@ log(_, _, _, _, _, _) -> {[]}.
 % apply all the transfers sequentially over the player context, and returns log.
 
 apply_trans_logged(EffName, Trans, S, O, D) ->
-    
+   
+    erlang:display({EffName, Trans}),
+
     {EffectStatus, _Destination, TransedO, TransedD} = apply_trans(Trans, O, D),
 
     {TransedO, TransedD, log(S, EffName, EffectStatus, Trans, TransedO, TransedD)}.
@@ -181,7 +183,6 @@ effect(_S, O, D, Log, []) ->
     {O, D, Log};
 
 effect(S, O, D, Log, [EffectSpec| Remaining]) ->
-
     {EffectedOffender, EffectedDefender, NewLog} = apply_effect(EffectSpec, S, {O, D}),
 
     effect(S, EffectedOffender, EffectedDefender, lists:append(NewLog, Log), Remaining).

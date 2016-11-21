@@ -48,13 +48,8 @@ trans(Action, #{mover:=Mover}=S, #{id:=I1}=P1, #{id:=I2}=P2, L) ->
 
 loop(_, #{state:=#{hp:=HP1}, id:=I1}, #{state:=#{hp:=HP2}, id:=I2}, Log) when HP1 < 0 orelse HP2 < 0 ->
 
-    Winner = if
-        HP1 < 0 -> I2;
-        HP2 < 0 -> I1
-    end,
-
     {done, jiffy:encode({[
-        {proc, lists:reverse(Log)}, {res, Winner}
+        {proc, lists:reverse([L || L <- Log, L =/= {[]}])}
     ]} )};
 
 
@@ -71,6 +66,8 @@ loop(#{seq:=Seq, stage:=Stage}=State,
      #{done:=already, prim_hand:=PrimHand1, orig_attr:=Orig1, state:=State1}=P1,
      #{done:=already, prim_hand:=PrimHand2, orig_attr:=Orig2, state:=State2}=P2,
      L) when (Stage == attacking) or (Stage == preparing)->
+
+    erlang:display(Seq),
 
     NewP1 = P1#{state:=State1#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand1, attr=>Orig1},
     NewP2 = P2#{state:=State2#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand2, attr=>Orig2},
@@ -110,7 +107,7 @@ loop(#{stage:=attacking}=S, A, B, L) ->
 
     {AttackA, AttackB, AttackLog} = trans(fun(State, #{attr:=CurrAttr}=O, D, Log) ->
         case maps:get(attack_disabled, CurrAttr) of
-            false ->
+            0 ->
                 {MovedO, MovedD, MovedLog} = battle_attack:attack(State, O, D, Log),
 
                 DoneMovedO = case maps:get(rem_moves, maps:get(state, MovedO)) of
@@ -133,7 +130,7 @@ loop(#{stage:=casting}=S, A, B, L) ->
 
     {CastA, CastB, CastLog} = trans(fun(State, #{attr:=CurrAttr}=O, D, Log) ->
         case maps:get(cast_disabled, CurrAttr) of
-            false ->        
+            0 ->        
                 {MovedO, MovedD, MovedLog} = battle_cast:cast(State, O, D, Log),
                 battle_effect:effect(State, MovedO#{done:=already}, MovedD, MovedLog);
             _ ->

@@ -43,8 +43,8 @@ create_casts() ->
             {1, [
                 {
                  {{0, 2, settling}, []},
-                 [{{set, true, none}, {attr, cast_disabled, def}},
-                  {{set, true, none}, {attr, attack_disabled, off}},
+                 [{{set, 1, none}, {attr, cast_disabled, def}},
+                  {{set, 1, none}, {attr, attack_disabled, off}},
                   {{set, 0, none}, {attr, dodge, def}},
                   {{set, 0, none}, {attr, block, def}},
                   {{set, 0, none}, {attr, resist, def}},
@@ -82,7 +82,7 @@ create_casts() ->
             {1, [
                 {
                 {{0, 1, settling}, []},
-                [{{set, true, none}, {attr, cast_disabled, def}}
+                [{{set, 1, none}, {attr, cast_disabled, def}}
                 ]}
             ]}
         ]},
@@ -109,8 +109,8 @@ create_casts() ->
             {0.5, [
                 {
                  {{0, 2, casting}, []},
-                 [{{set, true, none}, {attr, attack_disabled, def}},
-                  {{set, true, none}, {attr, cast_disabled, def}},
+                 [{{set, 1, none}, {attr, attack_disabled, def}},
+                  {{set, 1, none}, {attr, cast_disabled, def}},
                   {{set, 0, none}, {attr, dodge, def}},
                   {{set, 0, none}, {attr, block, def}}
                  ]}
@@ -118,8 +118,8 @@ create_casts() ->
             {0.5, [
                 {
                  {{0, 2, casting}, []},
-                 [{{set, true, none}, {attr, attack_disabled, off}},
-                  {{set, true, none}, {attr, cast_disabled, off}},
+                 [{{set, 1, none}, {attr, attack_disabled, off}},
+                  {{set, 1, none}, {attr, cast_disabled, off}},
                   {{set, 0, none}, {attr, dodge, off}},
                   {{set, 0, none}, {attr, block, off}}
                  ]}
@@ -158,7 +158,7 @@ create_casts() ->
 
         {chain_lock, warrior, [
             {1, [
-                { {{0, 1, casting}, []}, [{{set, true, resistable}, {attr, attack_disabled, def}}]}
+                { {{0, 1, casting}, []}, [{{set, 1, resistable}, {attr, attack_disabled, def}}]}
             ]}
         ]},
 
@@ -255,8 +255,8 @@ create_casts() ->
         {lower_resist, mage, [
             {1, [
                 { {{0, 1, casting}, []}, 
-                  [{{set, true, none}, {attr, attack_disabled, off}},
-                   {{set, true, none}, {attr, cast_disabled, off}},
+                  [{{set, 1, none}, {attr, attack_disabled, off}},
+                   {{set, 1, none}, {attr, cast_disabled, off}},
                    {{set, 0, none}, {attr, dodge, off}},
                    {{set, 0, none}, {attr, off, block}}
                   ]}

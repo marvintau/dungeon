@@ -4,26 +4,26 @@
 
 -export([casts/1]).
 
-ref({[{_, Type}, {_, Attribute}, {_, Role}]}) ->
+ref({[{<<"attr_type">>, Type}, {<<"attr">>, Attribute}, {<<"role">>, Role}]}) ->
     {binary_to_atom(Type, utf8), binary_to_atom(Attribute, utf8), binary_to_atom(Role, utf8) };
-ref({[{_, Min}, {_, Max}]}) ->
+ref({[{<<"min">>, Min}, {<<"max">>, Max}]}) ->
     {Min, Max};
-ref({[{_, Value}]}) ->
+ref({[{<<"value">>, Value}]}) ->
     Value.
 
-operand({[{_, Inc}, {_, Mul}]}) -> {ref(Inc), ref(Mul)};
-operand({[{_, Inc}]}) -> ref(Inc).
+operand({[{<<"inc">>, Inc}, {<<"mul">>, Mul}]}) -> {ref(Inc), ref(Mul)};
+operand({[{<<"inc">>, Inc}]}) -> ref(Inc).
 
-operator({[{_, OpCode}, {_, Operand}, {_, Note}]}) ->
+operator({[{<<"opcode">>, OpCode}, {<<"operand">>, Operand}, {<<"note">>, Note}]}) ->
     {binary_to_atom(OpCode, utf8), operand(Operand), binary_to_atom(Note, utf8) }.
 
-trans({[{_, Operator}, {_, To}]}) ->
-    {operator(Operator), ref(To)}.
+trans({[{<<"operator">>, Operator}, {<<"to_whom">>, ToWhom}]}) ->
+    {operator(Operator), ref(ToWhom)}.
 
 trans_list(TransList) ->
     [trans(Trans) || Trans <- TransList].
 
-comp_cond({[{_, Value}, {_, Op}, {_, Ref}]}) ->
+comp_cond({[{<<"value">>, Value}, {<<"op">>, Op}, {<<"ref">>, Ref}]}) ->
 
     ParsedValue = case is_number(Value) of
         true -> Value;
@@ -35,14 +35,14 @@ comp_cond({[{_, Value}, {_, Op}, {_, Ref}]}) ->
 comp_cond_list(CompCondList) ->
     [comp_cond(CompCond) || CompCond <- CompCondList].
 
-seq_cond({[{_, Start}, {_, Last}, {_, Stage}]}) ->
+seq_cond({[{<<"start">>, Start}, {<<"last">>, Last}, {<<"stage">>, Stage}]}) ->
     {Start, Last, binary_to_atom(Stage, utf8)}.
 
-conds({[{_, SeqCond}, {_, CompCondList}]}) ->
+conds({[{<<"seq_cond">>, SeqCond}, {<<"comp_cond_list">>, CompCondList}]}) ->
     {seq_cond(SeqCond), comp_cond_list(CompCondList)}.
 
-single_effect({[{_, Cond}, {_, TransList}]}) ->
-    {conds(Cond), trans_list(TransList)}.
+single_effect({[{<<"conds">>, Conds}, {<<"trans_list">>, TransList}]}) ->
+    {conds(Conds), trans_list(TransList)}.
 
 effects(Effects) ->
     [single_effect(Effect) || Effect <- Effects].
