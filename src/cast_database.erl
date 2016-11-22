@@ -57,7 +57,7 @@ create_casts() ->
         {assault, talent, [
             {1, [
                 {
-                 {{0, null, settling}, [{dodge, '==', {attr, outcome, def}}]},
+                 {{0, null, attacking}, [{dodge, '==', {attr, outcome, def}}]},
                  [{{add, 1, none}, {state, rem_moves, off}},
                   {{set, 0, none}, {attr, dodge, def}},
                   {{set, 0, none}, {attr, block, def}},
@@ -65,7 +65,7 @@ create_casts() ->
                  ]
                 },
                 {
-                 {{0, null, settling}, [{block, '==', {attr, outcome, def}}]},
+                 {{0, null, attacking}, [{block, '==', {attr, outcome, def}}]},
                  [{{add, 1, none}, {state, rem_moves, off}},
                   {{set, 0, none}, {attr, dodge, def}},
                   {{set, 0, none}, {attr, block, def}},

@@ -37,14 +37,14 @@ swap(Mover, #{id:=A}, #{id:=Mover}) -> A.
 
 trans(Action, #{mover:=Mover}=S, #{id:=I1}=P1, #{id:=I2}=P2, L) ->
 
-    erlang:display({I2, maps:get(attack_disabled, maps:get(attr, P2))}),
+    erlang:display({I2, maps:get(rem_moves, maps:get(state, P2))}),
 
     {Res1, Res2, ResLog} = case Mover of
         I1 -> Action(S, P1, P2, L);
         I2 -> {NewP2, NewP1, NewLog} = Action(S, P2, P1, L), {NewP1, NewP2, NewLog}
     end,
    
-    erlang:display({maps:get(id, P2), maps:get(attack_disabled, maps:get(attr, P2))}),
+    erlang:display({I2, maps:get(rem_moves, maps:get(state, P2))}),
 
     {Res1, Res2, ResLog}.
 
@@ -102,7 +102,7 @@ loop(#{seq:=Seq, stage:=Stage}=State,
 loop(#{stage:=Stage, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=P2, L) ->
 
     erlang:display({swapping, Stage, Mover, 1}),
-    erlang:display({maps:get(id, P2), maps:get(attack_disabled, maps:get(attr, P2))}),
+    erlang:display({maps:get(id, P2), maps:get(rem_moves, maps:get(state, P2))}),
 
     NewStage = case Stage of
         settling -> casting;
@@ -113,12 +113,12 @@ loop(#{stage:=Stage, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=
 
 loop(#{mover:=Mover}=State, #{id:=Mover, done:=already}=P1, #{done:=not_yet}=P2, L) ->
     erlang:display({swapping, Mover, 2}),
-    erlang:display({maps:get(id, P2), maps:get(attack_disabled, maps:get(attr, P2))}),
+    erlang:display({maps:get(id, P2), maps:get(rem_moves, maps:get(state, P2))}),
     loop(State#{mover:=swap(Mover, P1, P2)}, P1, P2, L);
 
 loop(#{mover:=Mover}=State, #{done:=not_yet}=P1, #{id:=Mover, done:=already}=P2, L) ->
     erlang:display({swapping, Mover, 3}),
-    erlang:display({maps:get(id, P2), maps:get(attack_disabled, maps:get(attr, P2))}),
+    erlang:display({maps:get(id, P2), maps:get(rem_moves, maps:get(state, P2))}),
     loop(State#{mover:=swap(Mover, P1, P2)}, P1, P2, L);
 
 
@@ -178,6 +178,9 @@ loop(#{stage:=casting, mover:=Mover}=S, A, B, L) ->
 
 
 % ---------------------- LOOP FOR SETTLEMENT -----------------------------
+
+% settlement is the stage that carries out the effects lasted from prior
+% rounds. The order follows the order of casting. 
 
 loop(#{stage:=settling, mover:=Mover}=S, A, B, L) ->
 
