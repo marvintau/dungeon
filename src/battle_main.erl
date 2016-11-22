@@ -16,19 +16,18 @@
 % attack will be put here.
 
 toss(#{id:=A, casts:=[rune_of_the_void|_]}, _) -> 
-    erlang:display({tossed, rune}),
     A;
 toss(_, #{id:=B, casts:=[rune_of_the_void|_]}) -> 
-    erlang:display({tossed, rune}),
     B;
 
 toss(#{id:=A, attr:=#{agility:=AgiA}},
      #{id:=B, attr:=#{agility:=AgiB}}) ->
-    erlang:display({tossed, normally}),
     case rand:uniform() * (AgiA + AgiB) > AgiA of
         true -> B;
         _    -> A
-    end.
+    end,
+    
+    A.
 
 % ----------- HELPER FUNCTION FOR SWAPPING OFFENDER/DEFENDER -----------
 
@@ -37,11 +36,17 @@ swap(Mover, #{id:=A}, #{id:=Mover}) -> A.
 
 
 trans(Action, #{mover:=Mover}=S, #{id:=I1}=P1, #{id:=I2}=P2, L) ->
-    
-    case Mover of
+
+    erlang:display({I2, maps:get(attack_disabled, maps:get(attr, P2))}),
+
+    {Res1, Res2, ResLog} = case Mover of
         I1 -> Action(S, P1, P2, L);
         I2 -> {NewP2, NewP1, NewLog} = Action(S, P2, P1, L), {NewP1, NewP2, NewLog}
-    end.
+    end,
+   
+    erlang:display({maps:get(id, P2), maps:get(attack_disabled, maps:get(attr, P2))}),
+
+    {Res1, Res2, ResLog}.
 
 % ======================= MAIN BATTLE LOOP ============================
 
@@ -76,12 +81,15 @@ loop(#{seq:=Seq, stage:=Stage}=State,
      #{done:=already, prim_hand:=PrimHand2, orig_attr:=Orig2, state:=State2}=P2,
      L) when (Stage == attacking) or (Stage == preparing)->
 
-    erlang:display(Seq),
-
     NewP1 = P1#{state:=State1#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand1, attr=>Orig1},
     NewP2 = P2#{state:=State2#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand2, attr=>Orig2},
 
-    loop(State#{seq:=Seq+1, stage:=settling, mover:=toss(NewP1, NewP2)}, NewP1, NewP2, L);
+    NewMover = toss(NewP1, NewP2),
+
+    erlang:display(' '),
+    erlang:display({tossing, Seq, NewMover}),
+
+    loop(State#{seq:=Seq+1, stage:=settling, mover:=NewMover}, NewP1, NewP2, L);
 
 
 % ---------------- SWAPPING OFFENDER AND DEFENDER --------------------
@@ -93,6 +101,9 @@ loop(#{seq:=Seq, stage:=Stage}=State,
 
 loop(#{stage:=Stage, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=P2, L) ->
 
+    erlang:display({swapping, Stage, Mover, 1}),
+    erlang:display({maps:get(id, P2), maps:get(attack_disabled, maps:get(attr, P2))}),
+
     NewStage = case Stage of
         settling -> casting;
         casting -> attacking
@@ -100,10 +111,14 @@ loop(#{stage:=Stage, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=
     
     loop(State#{stage:=NewStage, mover:=swap(Mover, P1, P2)}, P1#{done:=not_yet}, P2#{done:=not_yet}, L);
 
-loop(#{mover:=Mover}=State, #{id:=Mover, done:=already}=P1, P2, L) ->
+loop(#{mover:=Mover}=State, #{id:=Mover, done:=already}=P1, #{done:=not_yet}=P2, L) ->
+    erlang:display({swapping, Mover, 2}),
+    erlang:display({maps:get(id, P2), maps:get(attack_disabled, maps:get(attr, P2))}),
     loop(State#{mover:=swap(Mover, P1, P2)}, P1, P2, L);
 
-loop(#{mover:=Mover}=State, P1, #{id:=Mover, done:=already}=P2, L) ->
+loop(#{mover:=Mover}=State, #{done:=not_yet}=P1, #{id:=Mover, done:=already}=P2, L) ->
+    erlang:display({swapping, Mover, 3}),
+    erlang:display({maps:get(id, P2), maps:get(attack_disabled, maps:get(attr, P2))}),
     loop(State#{mover:=swap(Mover, P1, P2)}, P1, P2, L);
 
 
@@ -112,12 +127,13 @@ loop(#{mover:=Mover}=State, P1, #{id:=Mover, done:=already}=P2, L) ->
 % modification regarding attributes will be restored except HP, number
 % of remaining attacks current gamer in move.
 
-loop(#{stage:=attacking}=S, A, B, L) ->
+loop(#{stage:=attacking, mover:=Mover}=S, A, B, L) ->
 
-    {AttackA, AttackB, AttackLog} = trans(fun(State, #{attr:=CurrAttr}=O, D, Log) ->
+    {AttackA, AttackB, AttackLog} = trans(fun(State, #{state:=StateO, attr:=CurrAttr}=O, D, Log) ->
+
         case maps:get(attack_disabled, CurrAttr) of
             0 ->
-                erlang:display({attack, normal}),
+                erlang:display({attack, Mover, normal}),
                 {MovedO, MovedD, MovedLog} = battle_attack:attack(State, O, D, Log),
 
                 DoneMovedO = case maps:get(rem_moves, maps:get(state, MovedO)) of
@@ -127,8 +143,9 @@ loop(#{stage:=attacking}=S, A, B, L) ->
 
                 battle_effect:effect(State, DoneMovedO, MovedD, MovedLog);
             _ ->
-                erlang:display({attack, disabled}),
-                {O#{done:=already}, D, Log}
+                erlang:display({attack, Mover, disabled}),
+
+                {O#{done:=already, state:=StateO#{rem_moves:=0}}, D, Log}
         end
     end, S, A, B, L),
 
@@ -137,17 +154,23 @@ loop(#{stage:=attacking}=S, A, B, L) ->
 
 % ------------------------- LOOP FOR CAST -----------------------------
 
-loop(#{stage:=casting}=S, A, B, L) ->
+loop(#{stage:=casting, mover:=Mover}=S, A, B, L) ->
 
-    {CastA, CastB, CastLog} = trans(fun(State, #{attr:=CurrAttr}=O, D, Log) ->
+    {CastA, CastB, CastLog} = trans(fun(State, #{casts:=Casts, attr:=CurrAttr}=O, D, Log) ->
         case maps:get(cast_disabled, CurrAttr) of
             0 ->        
-                erlang:display({cast, normal}),
+                erlang:display({Mover, cast, normal}),
                 {MovedO, MovedD, MovedLog} = battle_cast:cast(State, O, D, Log),
                 battle_effect:effect(State, MovedO#{done:=already}, MovedD, MovedLog);
             _ ->
-                erlang:display({cast, disabled}),
-                {O#{done:=already}, D, Log}
+                erlang:display({Mover, cast, disabled}),
+
+                ConsumedCasts = case Casts of
+                    [] -> [];
+                    [_|RemCasts] -> RemCasts
+                end,
+
+                {O#{casts:=ConsumedCasts, done:=already}, D, Log}
         end
     end, S, A, B, L),
 
@@ -156,7 +179,9 @@ loop(#{stage:=casting}=S, A, B, L) ->
 
 % ---------------------- LOOP FOR SETTLEMENT -----------------------------
 
-loop(#{stage:=settling}=S, A, B, L) ->
+loop(#{stage:=settling, mover:=Mover}=S, A, B, L) ->
+
+    erlang:display({settling, Mover}),
 
     {SettleO, SettleD, SettleLog} = trans(fun(State, O, D, Log) ->
 

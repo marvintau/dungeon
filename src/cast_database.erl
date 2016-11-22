@@ -42,7 +42,7 @@ create_casts() ->
         {freeze, talent, [
             {1, [
                 {
-                 {{0, 3, settling}, []},
+                 {{0, 10, settling}, []},
                  [{{set, 1, none}, {attr, cast_disabled, def}},
                   {{set, 1, none}, {attr, attack_disabled, def}},
                   {{set, 0, none}, {attr, dodge, def}},

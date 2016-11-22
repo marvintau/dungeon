@@ -98,9 +98,9 @@ log(#{seq:=Seq, stage:=Stage, mover:=Mover},
 
 attack(S,
        #{curr_hand:={HandType, AttackType, DamageRange}, prim_hand:=PrimHand, secd_hand:=SecdHand,
-         attr:=#{damage_multiplier:=DamageMul, critical_multiplier:=CritMul, damage_addon:=DamageAddon}=CurrAttr,
+         attr:=#{damage_multiplier:=DamageMul, critical_multiplier:=CritMul, damage_addon:=DamageAddon},
          state:=#{rem_moves:=RemMoves}=StateA}=A,
-       #{attr:=#{armor:=Armor}, state:=#{hp:=H2}=StateD}=D, L) ->
+       #{attr:=#{armor:=Armor}=CurrAttrD, state:=#{hp:=H2}=StateD}=D, L) ->
 
     Outcome = rotate(prepare_roulette_from(A, D), 120),
     
@@ -116,12 +116,12 @@ attack(S,
         prim -> A#{curr_hand:=SecdHand};
         secd -> A#{curr_hand:=PrimHand}
     end,
-    NextD = D#{attr:=CurrAttr#{damage_taken:=AddedDamage, outcome:=Outcome}, state:=StateD#{hp:=H2 - AddedDamage}},
+    NextD = D#{attr:=CurrAttrD#{damage_taken:=AddedDamage, outcome:=Outcome}, state:=StateD#{hp:=H2 - AddedDamage}},
 
 
     NextLog = case is_no_damage_move(A) of
         true -> L;
         _ -> [log(S, A, NextD) | L]
     end,
-    
+   
     {NextA#{state:=StateA#{rem_moves:=RemMoves-1}}, NextD, NextLog}.
