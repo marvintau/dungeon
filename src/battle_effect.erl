@@ -92,7 +92,7 @@ apply_trans({{Opcode, Oper, AddCond}, {_T, _A, P}=ToWhom}, O, D) ->
 log(#{seq:=Seq, stage:=Stage, mover:=Mover}, EffName, Outcome, {_, {T, hp, P}}, O, D) ->
 
     {[
-        { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, D)},
+        { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, who(P, O, D))},
         { hand, none}, { action, EffName},
         { outcome, Outcome }, { damage, maps:get(diff, maps:get(T, who(P, O, D))) },
         { offender_hp, maps:get(hp, maps:get(state, O)) },

@@ -60,10 +60,9 @@ all_names() ->
     {done, casts(AllCasts)}.
 
 names_with(Class) ->
-    Talented = lists:flatten(ets:match(casts, {'$1', talent, '_'})),
     General = lists:flatten(ets:match(casts, {'$1', general, '_'})),
     ClassCast = lists:flatten(ets:match(casts, {'$1', Class, '_'})),
-    lists:append([Talented, ClassCast, General]).
+    lists:append([ClassCast, General]).
 
 casts(Data) ->
     {[{<<"id">>, _ID}, {<<"class">>, Class}]} = Data,

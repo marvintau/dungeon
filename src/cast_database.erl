@@ -24,7 +24,7 @@ create_casts() ->
         {brave_shield_counterback, talent, [
             {1, [
                 {
-                 {{0, null, attacking}, [{attack, '==', {attr, outcome, def}}]},
+                 {{0, null, attacking}, [{block, '==', {attr, outcome, def}}]},
                  [{{add, -125, absorbable},{state, hp, def}}]
                 }
             ]}
@@ -42,9 +42,9 @@ create_casts() ->
         {freeze, talent, [
             {1, [
                 {
-                 {{0, 2, settling}, []},
+                 {{0, 3, settling}, []},
                  [{{set, 1, none}, {attr, cast_disabled, def}},
-                  {{set, 1, none}, {attr, attack_disabled, off}},
+                  {{set, 1, none}, {attr, attack_disabled, def}},
                   {{set, 0, none}, {attr, dodge, def}},
                   {{set, 0, none}, {attr, block, def}},
                   {{set, 0, none}, {attr, resist, def}},
@@ -80,10 +80,7 @@ create_casts() ->
 
         {rune_of_the_void, general, [
             {1, [
-                {
-                {{0, 1, settling}, []},
-                [{{set, 1, none}, {attr, cast_disabled, def}}
-                ]}
+                { {{0, 1, settling}, []}, [{{set, 1, none}, {attr, cast_disabled, def}} ]}
             ]}
         ]},
 

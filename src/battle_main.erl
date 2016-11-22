@@ -15,11 +15,16 @@
 % Any cast that might change the normal way of determine the order of
 % attack will be put here.
 
-toss(#{id:=A, casts:=[rune_of_the_void|_]}, _) -> A;
-toss(_, #{id:=B, casts:=[rune_of_the_void|_]}) -> B;
+toss(#{id:=A, casts:=[rune_of_the_void|_]}, _) -> 
+    erlang:display({tossed, rune}),
+    A;
+toss(_, #{id:=B, casts:=[rune_of_the_void|_]}) -> 
+    erlang:display({tossed, rune}),
+    B;
 
 toss(#{id:=A, attr:=#{agility:=AgiA}},
      #{id:=B, attr:=#{agility:=AgiB}}) ->
+    erlang:display({tossed, normally}),
     case rand:uniform() * (AgiA + AgiB) > AgiA of
         true -> B;
         _    -> A
@@ -48,8 +53,12 @@ trans(Action, #{mover:=Mover}=S, #{id:=I1}=P1, #{id:=I2}=P2, L) ->
 
 loop(_, #{state:=#{hp:=HP1}, id:=I1}, #{state:=#{hp:=HP2}, id:=I2}, Log) when HP1 < 0 orelse HP2 < 0 ->
 
+    Winner = if HP1 < 0 -> I2;
+                HP2 < 0 -> I1
+             end,
+
     {done, jiffy:encode({[
-        {proc, lists:reverse([L || L <- Log, L =/= {[]}])}
+        {proc, lists:reverse([L || L <- Log, L =/= {[]}])}, {res,Winner}
     ]} )};
 
 
@@ -108,6 +117,7 @@ loop(#{stage:=attacking}=S, A, B, L) ->
     {AttackA, AttackB, AttackLog} = trans(fun(State, #{attr:=CurrAttr}=O, D, Log) ->
         case maps:get(attack_disabled, CurrAttr) of
             0 ->
+                erlang:display({attack, normal}),
                 {MovedO, MovedD, MovedLog} = battle_attack:attack(State, O, D, Log),
 
                 DoneMovedO = case maps:get(rem_moves, maps:get(state, MovedO)) of
@@ -117,6 +127,7 @@ loop(#{stage:=attacking}=S, A, B, L) ->
 
                 battle_effect:effect(State, DoneMovedO, MovedD, MovedLog);
             _ ->
+                erlang:display({attack, disabled}),
                 {O#{done:=already}, D, Log}
         end
     end, S, A, B, L),
@@ -131,9 +142,11 @@ loop(#{stage:=casting}=S, A, B, L) ->
     {CastA, CastB, CastLog} = trans(fun(State, #{attr:=CurrAttr}=O, D, Log) ->
         case maps:get(cast_disabled, CurrAttr) of
             0 ->        
+                erlang:display({cast, normal}),
                 {MovedO, MovedD, MovedLog} = battle_cast:cast(State, O, D, Log),
                 battle_effect:effect(State, MovedO#{done:=already}, MovedD, MovedLog);
             _ ->
+                erlang:display({cast, disabled}),
                 {O#{done:=already}, D, Log}
         end
     end, S, A, B, L),
