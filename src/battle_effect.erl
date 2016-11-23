@@ -143,6 +143,10 @@ cond_list(TrueValue, [], _, _) -> TrueValue.
 seq_cond({StartingSeq, TerminalSeq, Phase}, #{seq:=CurrSeq, stage:=CurrStage}) ->
 
 
+    % If StartingSeq - CurrSeq is zero, that means we are in the current round
+    % that the effect is casted, which means the effect should be applied right
+    % after the casting. Otherwise, the effect is in the following rounds after
+    % casted, which should be applied in settling stage.
     CalculatedPhase = case {Phase, StartingSeq - CurrSeq} of
         {casting, 0} -> casting;
         {casting, _} -> settling;
