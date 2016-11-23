@@ -25,9 +25,7 @@ toss(#{id:=A, attr:=#{agility:=AgiA}},
     case rand:uniform() * (AgiA + AgiB) > AgiA of
         true -> B;
         _    -> A
-    end,
-    
-    A.
+    end.
 
 % ----------- HELPER FUNCTION FOR SWAPPING OFFENDER/DEFENDER -----------
 
@@ -37,14 +35,14 @@ swap(Mover, #{id:=A}, #{id:=Mover}) -> A.
 
 trans(Action, #{mover:=Mover}=S, #{id:=I1}=P1, #{id:=I2}=P2, L) ->
 
-    erlang:display({I2, maps:get(rem_moves, maps:get(state, P2))}),
+    %erlang:display({I2, maps:get(rem_moves, maps:get(state, P2))}),
 
     {Res1, Res2, ResLog} = case Mover of
         I1 -> Action(S, P1, P2, L);
         I2 -> {NewP2, NewP1, NewLog} = Action(S, P2, P1, L), {NewP1, NewP2, NewLog}
     end,
    
-    erlang:display({I2, maps:get(rem_moves, maps:get(state, P2))}),
+    %erlang:display({I2, maps:get(rem_moves, maps:get(state, P2))}),
 
     {Res1, Res2, ResLog}.
 
@@ -87,7 +85,7 @@ loop(#{seq:=Seq, stage:=Stage}=State,
     NewMover = toss(NewP1, NewP2),
 
     erlang:display(' '),
-    erlang:display({tossing, Seq, NewMover}),
+    erlang:display({tossing, Seq+1, NewMover}),
 
     loop(State#{seq:=Seq+1, stage:=settling, mover:=NewMover}, NewP1, NewP2, L);
 
@@ -102,7 +100,7 @@ loop(#{seq:=Seq, stage:=Stage}=State,
 loop(#{stage:=Stage, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=P2, L) ->
 
     erlang:display({swapping, Stage, Mover, 1}),
-    erlang:display({maps:get(id, P2), maps:get(rem_moves, maps:get(state, P2))}),
+    %erlang:display({maps:get(id, P2), maps:get(rem_moves, maps:get(state, P2))}),
 
     NewStage = case Stage of
         settling -> casting;
@@ -113,12 +111,12 @@ loop(#{stage:=Stage, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=
 
 loop(#{mover:=Mover}=State, #{id:=Mover, done:=already}=P1, #{done:=not_yet}=P2, L) ->
     erlang:display({swapping, Mover, 2}),
-    erlang:display({maps:get(id, P2), maps:get(rem_moves, maps:get(state, P2))}),
+    %erlang:display({maps:get(id, P2), maps:get(rem_moves, maps:get(state, P2))}),
     loop(State#{mover:=swap(Mover, P1, P2)}, P1, P2, L);
 
 loop(#{mover:=Mover}=State, #{done:=not_yet}=P1, #{id:=Mover, done:=already}=P2, L) ->
     erlang:display({swapping, Mover, 3}),
-    erlang:display({maps:get(id, P2), maps:get(rem_moves, maps:get(state, P2))}),
+    %erlang:display({maps:get(id, P2), maps:get(rem_moves, maps:get(state, P2))}),
     loop(State#{mover:=swap(Mover, P1, P2)}, P1, P2, L);
 
 
@@ -140,8 +138,9 @@ loop(#{stage:=attacking, mover:=Mover}=S, A, B, L) ->
                     0 -> MovedO#{done:=already};
                     _ -> MovedO
                 end,
-
-                battle_effect:effect(State, DoneMovedO, MovedD, MovedLog);
+                
+                {DefReactedD, DefReactedO, DefReactedLog} = battle_effect:effect(State, MovedD, DoneMovedO, MovedLog),
+                battle_effect:effect(State, DefReactedO, DefReactedD, DefReactedLog);
             _ ->
                 erlang:display({attack, Mover, disabled}),
 

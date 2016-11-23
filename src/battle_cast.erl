@@ -26,6 +26,7 @@ condition({{Start, Last, Phase}, Others}, CurrSeq) ->
 % find the specification in database, and re-interpret it with battle context.
 
 parse_single_effect(Name, {Cond, Trans}, #{seq:=CurrSeq}) ->
+    erlang:display({conds, condition(Cond, CurrSeq)}),
     {Name, condition(Cond, CurrSeq), Trans}.
 
 parse_single_group(Name, {Prob, Effects}, S) ->
@@ -38,6 +39,7 @@ parse_groups(Name, Groups, S) ->
    [parse_single_group(Name, Group, S) || Group <- Groups]. 
 
 log(CastName, Outcome, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
+
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, D)},
         { hand, none}, { action, CastName},

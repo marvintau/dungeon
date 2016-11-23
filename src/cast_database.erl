@@ -80,7 +80,7 @@ create_casts() ->
 
         {rune_of_the_void, general, [
             {1, [
-                { {{0, 1, settling}, []}, [{{set, 1, none}, {attr, cast_disabled, def}} ]}
+                { {{0, 1, casting}, []}, [{{set, 1, none}, {attr, cast_disabled, def}} ]}
             ]}
         ]},
 
@@ -98,7 +98,7 @@ create_casts() ->
 
         {talisman_of_spellshrouding, general, [
             {1, [
-                { {{0, 1, casting}, []}, [{{add, -100, none}, {attr, resist, off}}]}
+                { {{0, 1, casting}, []}, [{{add_mul, 1, none}, {attr, resist, off}}]}
             ]}
         ]},
 

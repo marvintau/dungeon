@@ -98,6 +98,7 @@ log(#{seq:=Seq, stage:=Stage, mover:=Mover}, EffName, Outcome, {_, {T, hp, P}}, 
         { offender_hp, maps:get(hp, maps:get(state, O)) },
         { defender_hp, maps:get(hp, maps:get(state, D)) }
     ]};
+
 log(_, _, _, _, _, _) -> {[]}.
 
 % ======================== APPLY ALL TRANSFERS IN A LIST ========================
@@ -107,7 +108,6 @@ log(_, _, _, _, _, _) -> {[]}.
 
 apply_trans_logged(EffName, Trans, S, O, D) ->
    
-    erlang:display({EffName, Trans}),
 
     {EffectStatus, _Destination, TransedO, TransedD} = apply_trans(Trans, O, D),
 
@@ -116,6 +116,9 @@ apply_trans_logged(EffName, Trans, S, O, D) ->
 apply_trans_all(EffName, TransList, S, O, D) ->
     apply_trans_all(EffName, TransList, S, O, D, []).
 apply_trans_all(EffName, [Trans | RemTrans], S, O, D, Logs) ->
+
+    erlang:display({EffName, Trans}),
+
     {AppliedO, AppliedD, L} = apply_trans_logged(EffName, Trans, S, O, D),
     apply_trans_all(EffName, RemTrans, S, AppliedO, AppliedD, [L | Logs]);
 apply_trans_all(_EffName, [], _S, O, D, Logs) ->
@@ -140,8 +143,8 @@ cond_list(TrueValue, [], _, _) -> TrueValue.
 seq_cond({StartingSeq, TerminalSeq, Phase}, #{seq:=CurrSeq, stage:=CurrStage}) ->
 
 
-    CalculatedPhase = case {Phase, StartingSeq} of
-        {casting, 1} -> casting;
+    CalculatedPhase = case {Phase, StartingSeq - CurrSeq} of
+        {casting, 0} -> casting;
         {casting, _} -> settling;
         {_, _} -> Phase
     end,
@@ -168,7 +171,10 @@ apply_effect(Effect, State, {O, D}) ->
         true ->
             apply_trans_all(Name, Specs, State, O, D);
         
-        _    -> {O, D, []}
+        _    ->
+            {Seq, _} = Conds,
+            erlang:display({non_effected, Name, seq_cond(Seq, State)}),
+            {O, D, []}
     end.
 
 
@@ -177,8 +183,12 @@ apply_effect(Effect, State, {O, D}) ->
 % context and log.
 
 effect(S, #{effects:=Effects}=O, D, Log) ->
+
     effect(S, O, D, Log, Effects).
 
+effect(_S, #{hp:=H1}=O, #{hp:=H2}=D, Log, _) when (H1 =< 0) or (H2 =< 0) ->
+    {O, D, Log};
+    
 effect(_S, O, D, Log, []) ->
     {O, D, Log};
 
