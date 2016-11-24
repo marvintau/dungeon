@@ -158,29 +158,39 @@ $.postJSON = function(url, data, callback) {
     });
 };
 
+$.make_graph = function(requestData){
+    MG.data_graphic({
+        title: "Battle Stats",
+        data: data,
+        width: 650,
+        height: 150,
+        target: '#chart-section'
+    })
+}
+
 $("#submit").on('click', function(){
 
-    OutgoingData = $.getData();
+    $.make_graph($.getData());
 
-    $.postJSON("/get_result", $.getData(), function(data){
+    // $.postJSON("/get_result", $.getData(), function(data){
 
-        IncomingData = data;
-        IncomingData.player1 = OutgoingData.player1;
-        IncomingData.player2 = OutgoingData.player2;
+    //     IncomingData = data;
+    //     IncomingData.player1 = OutgoingData.player1;
+    //     IncomingData.player2 = OutgoingData.player2;
 
-        console.log(JSON.stringify(IncomingData));
+    //     console.log(JSON.stringify(IncomingData));
 
-        $('#table-section').empty();
+    //     $('#table-section').empty();
 
-        var table = $.makeTable(data.proc);
-        $(table).appendTo("#table-section");
+    //     var table = $.makeTable(data.proc);
+    //     $(table).appendTo("#table-section");
 
-        var res ="<div class=\"cap\"><br>Win:" + data.win + "</b>";
-        $(res).appendTo("#table");
+    //     var res ="<div class=\"cap\"><br>Win:" + data.win + "</b>";
+    //     $(res).appendTo("#table");
 
-    }, "json").fail(function() {
-        console.log( "error" );
-    }); 
+    // }, "json").fail(function() {
+    //     console.log( "error" );
+    // }); 
 });
 
 $("#reset").on('click', function(){
@@ -226,3 +236,5 @@ $("#class2").change(function(){
         console.log("error");
     });
 });
+
+

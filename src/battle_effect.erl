@@ -89,7 +89,7 @@ apply_trans({{Opcode, Oper, AddCond}, {_T, _A, P}=ToWhom}, O, D) ->
         {_, def} -> {effected, ToWhom, O, trans({Opcode, RefOperand, AddCond}, RefWhom)}
     end.
 
-log(#{seq:=Seq, stage:=Stage, mover:=Mover}, EffName, Outcome, {_, {T, hp, P}}, O, D) ->
+log(#{seq:=Seq, stage:=Stage, mover:=Mover}, EffName, Outcome, {_, {T, Attr, P}}, O, D) when (Outcome==resisted) or (Attr==hp)->
 
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, who(P, O, D))},
@@ -177,7 +177,6 @@ apply_effect(Effect, State, {O, D}) ->
         
         _    ->
             {Seq, _} = Conds,
-            erlang:display({non_effected, Name, seq_cond(Seq, State)}),
             {O, D, []}
     end.
 
