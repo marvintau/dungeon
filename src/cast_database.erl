@@ -238,7 +238,7 @@ create_casts() ->
     Mage = [
         {vampiric_bolt, mage, [
             {1, [
-                { {{0, 1, casting}, []}, [{{add_inc_mul, {{state, hp, def}, -0.1}, resistable}, {hp, off, none}}]},
+                { {{0, 1, casting}, []}, [{{add_inc_mul, {{state, hp, def}, -0.1}, resistable}, {attr, hp, off}}]},
                 { {{0, 1, casting}, []}, [{{add_mul, 0.1, resistable}, {state, hp, def}}]}
             ]}
         ]},
