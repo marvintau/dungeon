@@ -54,14 +54,14 @@ trans(Action, #{mover:=Mover}=S, #{id:=I1}=P1, #{id:=I2}=P2, L) ->
 % When exiting the main loop, the log will be reversed to it's natural
 % order.
 
-loop(_, #{state:=#{hp:=HP1}, id:=I1}, #{state:=#{hp:=HP2}, id:=I2}, Log) when HP1 < 0 orelse HP2 < 0 ->
+loop(_, #{state:=#{hp:=HP1}, id:=I1}, #{state:=#{hp:=HP2}, id:=I2}, Log, FullLog) when HP1 < 0 orelse HP2 < 0 ->
 
     Winner = if HP1 < 0 -> I2;
                 HP2 < 0 -> I1
              end,
 
     {done, jiffy:encode({[
-        {proc, lists:reverse([L || L <- Log, L =/= {[]}])}, {res,Winner}
+        {proc, lists:reverse([L || L <- Log, L =/= {[]}])}, {full_log, lists:reverse(FullLog)}, {res,Winner}
     ]} )};
 
 
@@ -77,7 +77,7 @@ loop(_, #{state:=#{hp:=HP1}, id:=I1}, #{state:=#{hp:=HP2}, id:=I2}, Log) when HP
 loop(#{seq:=Seq, stage:=Stage}=State,
      #{done:=already, prim_hand:=PrimHand1, orig_attr:=Orig1, state:=State1}=P1,
      #{done:=already, prim_hand:=PrimHand2, orig_attr:=Orig2, state:=State2}=P2,
-     L) when (Stage == attacking) or (Stage == preparing)->
+     L, FL) when (Stage == attacking) or (Stage == preparing)->
 
     NewP1 = P1#{state:=State1#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand1, attr=>Orig1},
     NewP2 = P2#{state:=State2#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand2, attr=>Orig2},
@@ -87,7 +87,7 @@ loop(#{seq:=Seq, stage:=Stage}=State,
     erlang:display(' '),
     erlang:display({tossing, Seq+1, NewMover}),
 
-    loop(State#{seq:=Seq+1, stage:=settling, mover:=NewMover}, NewP1, NewP2, L);
+    loop(State#{seq:=Seq+1, stage:=settling, mover:=NewMover}, NewP1, NewP2, L, FL);
 
 
 % ---------------- SWAPPING OFFENDER AND DEFENDER --------------------
@@ -97,7 +97,7 @@ loop(#{seq:=Seq, stage:=Stage}=State,
 % simply change to defender without changing anything else. If defender,
 % we need to switch to the next phase.
 
-loop(#{stage:=Stage, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=P2, L) ->
+loop(#{stage:=Stage, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=P2, L, FL) ->
 
     erlang:display({swapping, Stage, Mover, 1}),
     %erlang:display({maps:get(id, P2), maps:get(rem_moves, maps:get(state, P2))}),
@@ -107,17 +107,17 @@ loop(#{stage:=Stage, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=
         casting -> attacking
     end,
     
-    loop(State#{stage:=NewStage, mover:=swap(Mover, P1, P2)}, P1#{done:=not_yet}, P2#{done:=not_yet}, L);
+    loop(State#{stage:=NewStage, mover:=swap(Mover, P1, P2)}, P1#{done:=not_yet}, P2#{done:=not_yet}, L, FL);
 
-loop(#{mover:=Mover}=State, #{id:=Mover, done:=already}=P1, #{done:=not_yet}=P2, L) ->
+loop(#{mover:=Mover}=State, #{id:=Mover, done:=already}=P1, #{done:=not_yet}=P2, L, FL) ->
     erlang:display({swapping, Mover, 2}),
     %erlang:display({maps:get(id, P2), maps:get(rem_moves, maps:get(state, P2))}),
-    loop(State#{mover:=swap(Mover, P1, P2)}, P1, P2, L);
+    loop(State#{mover:=swap(Mover, P1, P2)}, P1, P2, L, FL);
 
-loop(#{mover:=Mover}=State, #{done:=not_yet}=P1, #{id:=Mover, done:=already}=P2, L) ->
+loop(#{mover:=Mover}=State, #{done:=not_yet}=P1, #{id:=Mover, done:=already}=P2, L, FL) ->
     erlang:display({swapping, Mover, 3}),
     %erlang:display({maps:get(id, P2), maps:get(rem_moves, maps:get(state, P2))}),
-    loop(State#{mover:=swap(Mover, P1, P2)}, P1, P2, L);
+    loop(State#{mover:=swap(Mover, P1, P2)}, P1, P2, L, FL);
 
 
 % ------------------------ LOOP FOR ATTACK  ---------------------------
@@ -125,7 +125,7 @@ loop(#{mover:=Mover}=State, #{done:=not_yet}=P1, #{id:=Mover, done:=already}=P2,
 % modification regarding attributes will be restored except HP, number
 % of remaining attacks current gamer in move.
 
-loop(#{stage:=attacking, mover:=Mover}=S, A, B, L) ->
+loop(#{stage:=attacking, mover:=Mover}=S, A, B, L, FL) ->
 
     {AttackA, AttackB, AttackLog} = trans(fun(State, #{state:=StateO, attr:=CurrAttr}=O, D, Log) ->
 
@@ -148,12 +148,13 @@ loop(#{stage:=attacking, mover:=Mover}=S, A, B, L) ->
         end
     end, S, A, B, L),
 
-    loop(S, AttackA, AttackB, AttackLog);
+    loop(S, AttackA, AttackB, AttackLog,
+         [#{seq=>maps:get(seq, S), a=>maps:get(hp, maps:get(state, AttackA)), b=>maps:get(hp, maps:get(state, AttackB))} | FL]);
 
 
 % ------------------------- LOOP FOR CAST -----------------------------
 
-loop(#{stage:=casting, mover:=Mover}=S, A, B, L) ->
+loop(#{stage:=casting, mover:=Mover}=S, A, B, L, FL) ->
 
     {CastA, CastB, CastLog} = trans(fun(State, #{casts:=Casts, attr:=CurrAttr}=O, D, Log) ->
         case maps:get(cast_disabled, CurrAttr) of
@@ -173,7 +174,8 @@ loop(#{stage:=casting, mover:=Mover}=S, A, B, L) ->
         end
     end, S, A, B, L),
 
-    loop(S, CastA, CastB, CastLog);
+    loop(S, CastA, CastB, CastLog,
+         [#{seq=>maps:get(seq, S), a=>maps:get(hp, maps:get(state, CastA)), b=>maps:get(hp, maps:get(state, CastB))} | FL]);
 
 
 % ---------------------- LOOP FOR SETTLEMENT -----------------------------
@@ -181,17 +183,18 @@ loop(#{stage:=casting, mover:=Mover}=S, A, B, L) ->
 % settlement is the stage that carries out the effects lasted from prior
 % rounds. The order follows the order of casting. 
 
-loop(#{stage:=settling, mover:=Mover}=S, A, B, L) ->
+loop(#{stage:=settling, mover:=Mover}=S, A, B, L, FL) ->
 
     erlang:display({settling, Mover}),
 
-    {SettleO, SettleD, SettleLog} = trans(fun(State, O, D, Log) ->
+    {SettleA, SettleB, SettleLog} = trans(fun(State, O, D, Log) ->
 
         battle_effect:effect(State, O#{done:=already}, D, Log)
 
     end, S, A, B, L),
 
-    loop(S, SettleO, SettleD, SettleLog).
+    loop(S, SettleA, SettleB, SettleLog,
+         [#{seq=>maps:get(seq, S), a=>maps:get(hp, maps:get(state, SettleA)), b=>maps:get(hp, maps:get(state, SettleB))} | FL]).
 
 
 
@@ -201,4 +204,4 @@ init_new_battle(Data) ->
 
     {CastedP1, CastedP2, CastedLog} = battle_cast:cast_talented(P1, P2),
 
-    loop(#{seq=>0, stage=>preparing, mover=>maps:get(id, P1)}, CastedP1, CastedP2, CastedLog). 
+    loop(#{seq=>0, stage=>preparing, mover=>maps:get(id, P1)}, CastedP1, CastedP2, CastedLog, []). 

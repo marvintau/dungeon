@@ -158,39 +158,65 @@ $.postJSON = function(url, data, callback) {
     });
 };
 
-$.make_graph = function(requestData){
-    MG.data_graphic({
-        title: "Battle Stats",
-        data: data,
-        width: 650,
-        height: 150,
-        target: '#chart-section'
-    })
+
+
+$.make_graph = function(full_log){
+
+    var seq = full_log.map(function(record){return record["seq"]}),
+        a = full_log.map(function(record){return record["a"]}),
+        b = full_log.map(function(record){return record["b"]});
+
+    var a_trace = {x:seq, y:a, type:"scatter", mode:"marker", nticks:30, marker:{color:"#862F39"}, fill:"tozeroy"},
+        b_trace = {x:seq, y:b, type:"scatter", mode:"marker", nticks:30, marker:{color:"#E3D4BF"}, fill:"tozeroy"};
+
+        var layout = {
+          xaxis: {
+            autotick: false,
+            ticks: 'outside',
+            tick0: 0,
+            dtick: 1,
+            ticklen: 8,
+            tickcolor: '#000',
+            range: [1, 20]
+          },
+          yaxis: {
+            autotick: false,
+            ticks: 'outside',
+            tick0: 0,
+            dtick: 1000,
+            ticklen: 8,
+
+            tickcolor: '#000',
+            range: [0, 5000]
+          }
+        };
+
+    Plotly.newPlot('chart-section', [a_trace, b_trace], layout);
 }
 
 $("#submit").on('click', function(){
 
-    $.make_graph($.getData());
+    OutgoingData = $.getData()
 
-    // $.postJSON("/get_result", $.getData(), function(data){
+    $.postJSON("/get_result", OutgoingData, function(data){
 
-    //     IncomingData = data;
-    //     IncomingData.player1 = OutgoingData.player1;
-    //     IncomingData.player2 = OutgoingData.player2;
+        IncomingData = data;
+        IncomingData.player1 = OutgoingData.player1;
+        IncomingData.player2 = OutgoingData.player2;
 
-    //     console.log(JSON.stringify(IncomingData));
+        $('#table-section').empty();
 
-    //     $('#table-section').empty();
+        var table = $.makeTable(data.proc, OutgoingData.player1.id, OutgoingData.player2.id);
+        $(table).appendTo("#table-section");
 
-    //     var table = $.makeTable(data.proc);
-    //     $(table).appendTo("#table-section");
+        $.make_graph(data.full_log);  
 
-    //     var res ="<div class=\"cap\"><br>Win:" + data.win + "</b>";
-    //     $(res).appendTo("#table");
+        var res ="<div class=\"cap\"><br>Win:" + data.win + "</b>";
+        $(res).appendTo("#table");
 
-    // }, "json").fail(function() {
-    //     console.log( "error" );
-    // }); 
+    }, "json").fail(function() {
+        console.log( "error" );
+    }); 
 });
 
 $("#reset").on('click', function(){
@@ -200,7 +226,7 @@ $("#reset").on('click', function(){
 $("#class1").ready(function(){
     $.postJSON("/get_list", {id: $('#id1').val(), class:$('#class1').val()}, function(data){
         console.log(data);
-        ms1 = $('#cast-list-1').magicSuggest({data:data, maxSuggestion:5, allowFreeEntries:false});
+        ms1 = $('#cast-list-1').magicSuggest({data:data, maxSelection:50, maxSuggestion:5, allowFreeEntries:false});
     }, "json").fail(function(){
         console.log("error");
     });
@@ -208,12 +234,10 @@ $("#class1").ready(function(){
 
 $("#class1").change(function(){
 
-    console.log('changed');
-
     $.postJSON("/get_list", {id: $('#id1').val(), class:$('#class1').val()}, function(data){
         ms1.clear(); 
         ms1.setData(data);
-
+        console.log(JSON.stringify(ms1.getData()));
     }, "json").fail(function(){
         console.log("error");
     });

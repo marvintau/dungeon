@@ -49,7 +49,10 @@ trans({add, Inc, Cond}, {_, _, P}=ToWhom) when (Cond == absorbable) or (Cond== b
     ArmorRatio = 1 - ref({attr, armor, P}) / 10000,
     trans({set, ref(ToWhom) + ref(Inc) * ArmorRatio, none}, ToWhom);
 
-trans({add, Inc, none}, ToWhom) ->
+% handles when there is no additional status, or resistable but not actually
+% resisted.
+
+trans({add, Inc, Cond}, ToWhom) when(Cond == none) or (Cond==resistable)->
     trans({set, ref(ToWhom) + ref(Inc), none}, ToWhom);
 
 trans({add_mul, Mul, Absorbing}, ToWhom) ->
@@ -90,6 +93,7 @@ apply_trans({{Opcode, Oper, AddCond}, {_T, _A, P}=ToWhom}, O, D) ->
     end.
 
 log(#{seq:=Seq, stage:=Stage, mover:=Mover}, EffName, Outcome, {_, {T, Attr, P}}, O, D) when (Outcome==resisted) or (Attr==hp)->
+
 
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, who(P, O, D))},

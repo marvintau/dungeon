@@ -24,7 +24,7 @@ create_casts() ->
         {brave_shield_counterback, talent, [
             {1, [
                 {
-                 {{0, null, attacking}, [{block, '==', {attr, outcome, def}}]},
+                 {{0, null, attacking}, [{block, '==', {attr, outcome, off}}]},
                  [{{add, -125, absorbable},{state, hp, def}}]
                 }
             ]}
@@ -194,7 +194,7 @@ create_casts() ->
 
         {tree_hide, hunter, [
             {1, [
-                { {{0, 3, casting}, []}, [{{add, 0.5, resistable}, {attr, off, armor}}]}
+                { {{0, 3, casting}, []}, [{{add, 0.5, resistable}, {attr, armor, off}}]}
             ]}
         ]}
     ],
@@ -202,7 +202,7 @@ create_casts() ->
     Rogue = [
         {healing_potion, rogue, [
             {1, [
-                { {{0, 1, casting}, []}, [{{add, {175, 255}, resistable}, {state, hp, off}}]}
+                { {{0, 1, casting}, []}, [{{add, {175, 255}, none}, {state, hp, off}}]}
             ]}
         ]},
 
