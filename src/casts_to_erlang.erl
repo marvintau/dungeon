@@ -4,15 +4,15 @@
 
 -export([casts/1]).
 
-ref({[{<<"attr_type">>, Type}, {<<"attr">>, Attribute}, {<<"role">>, Role}]}) ->
-    {binary_to_atom(Type, utf8), binary_to_atom(Attribute, utf8), binary_to_atom(Role, utf8) };
+ref({[{<<"attr">>, Attribute}, {<<"role">>, Role}]}) ->
+    {attr, binary_to_atom(Attribute, utf8), binary_to_atom(Role, utf8) };
 ref({[{<<"min">>, Min}, {<<"max">>, Max}]}) ->
     {Min, Max};
 ref({[{<<"value">>, Value}]}) ->
     Value.
 
 operand({[{<<"inc">>, Inc}, {<<"mul">>, Mul}]}) -> {ref(Inc), ref(Mul)};
-operand({[{<<"inc">>, Inc}]}) -> ref(Inc).
+operand({[{<<"inc">>, Inc}]}) -> {ref(Inc)}.
 
 operator({[{<<"opcode">>, OpCode}, {<<"operand">>, Operand}, {<<"note">>, Note}]}) ->
     {binary_to_atom(OpCode, utf8), operand(Operand), binary_to_atom(Note, utf8) }.
@@ -47,8 +47,8 @@ single_effect({[{<<"conds">>, Conds}, {<<"trans_list">>, TransList}]}) ->
 effects(Effects) ->
     [single_effect(Effect) || Effect <- Effects].
 
-single_group({[{_, Prob}, {_, Effects}]}) ->
-    {Prob, effects(Effects)}.
+single_group({[{_, Prob}, {_, ToWhom}, {_, Effects}]}) ->
+    {Prob, binary_to_atom(ToWhom, utf8), effects(Effects)}.
 
 groups(Groups) ->
    [single_group(Group) || Group <- Groups]. 

@@ -166,8 +166,8 @@ $.make_graph = function(full_log){
         a = full_log.map(function(record){return record["a"]}),
         b = full_log.map(function(record){return record["b"]});
 
-    var a_trace = {x:seq, y:a, type:"scatter", mode:"marker", nticks:30, marker:{color:"#862F39"}, fill:"tozeroy"},
-        b_trace = {x:seq, y:b, type:"scatter", mode:"marker", nticks:30, marker:{color:"#E3D4BF"}, fill:"tozeroy"};
+    var a_trace = {x:seq, y:a, type:"scatter", mode:"line", nticks:30, line:{width:1, color:"#862F39"}, fill:"tozeroy"},
+        b_trace = {x:seq, y:b, type:"scatter", mode:"line", nticks:30, line:{width:1, color:"#E3D4BF"}, fill:"tozeroy"};
 
         var layout = {
           xaxis: {
@@ -194,6 +194,36 @@ $.make_graph = function(full_log){
     Plotly.newPlot('chart-section', [a_trace, b_trace], layout);
 }
 
+$("#submit-20").on('click', function(){
+
+    var OutgoingData = $.getData()
+
+    result = {};
+
+
+
+    for(var i = 0; i < 1000; i++){
+        $.postJSON("/get_result", OutgoingData, function(data){
+
+            // var IncomingData = data.full_log;
+
+            $('#table-section').empty();
+
+            // $.make_graph(data.full_log);  
+
+            result[data.res] = (result[data.res]||0) + 1;
+            
+            $("<span>"+JSON.stringify(result)+"</span>").appendTo("#table-section");
+
+
+        }, "json").fail(function() {
+            console.log( "error" );
+        }); 
+
+    }
+});
+
+
 $("#submit").on('click', function(){
 
     OutgoingData = $.getData()
@@ -211,7 +241,7 @@ $("#submit").on('click', function(){
 
         $.make_graph(data.full_log);  
 
-        var res ="<div class=\"cap\"><br>Win:" + data.win + "</b>";
+        var res ="<div class=\"cap\"><br>Win:" + data.res + "</b>";
         $(res).appendTo("#table");
 
     }, "json").fail(function() {

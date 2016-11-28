@@ -4,12 +4,6 @@
 
 -export([init_new_battle/1 ]).
 
-% ------------------- HELPER FUNCTION FOR LOGGING ---------------------
-
-% casting doesn't make any direct damage or other effects. Logging
-% casting just for the convenience of playing animation.
-
-
 % ------------- HELPER FUNCTION FOR CHOOSING NEW OFFENDER --------------
 
 % Any cast that might change the normal way of determine the order of

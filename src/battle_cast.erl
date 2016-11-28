@@ -29,19 +29,24 @@ parse_single_effect(Name, {Cond, Trans}, #{seq:=CurrSeq}) ->
     erlang:display({conds, condition(Cond, CurrSeq)}),
     {Name, condition(Cond, CurrSeq), Trans}.
 
-parse_single_group(Name, {Prob, Effects}, S) ->
+parse_single_group(Name, {Prob, ToWhom, Effects}, S) ->
     case rand:uniform() < Prob of
-        true -> {success, lists:map(fun(Spec) -> parse_single_effect(Name, Spec, S) end, Effects)};
-        _ -> {failed, bad_luck}
+        true -> {success, ToWhom, lists:map(fun(Spec) -> parse_single_effect(Name, Spec, S) end, Effects)};
+        _ -> {failed, ToWhom, bad_luck}
     end.
 
 parse_groups(Name, Groups, S) ->
    [parse_single_group(Name, Group, S) || Group <- Groups]. 
 
-log(CastName, Outcome, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
+log(CastName, ToWhom, Outcome, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
+
+    ToWhomID = case ToWhom of
+        off -> maps:get(id, O);
+        def -> maps:get(id, D)
+    end,
 
     {[
-        { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, D)},
+        { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, ToWhomID},
         { hand, none}, { action, CastName},
         { outcome, Outcome }, { damage, 0 },
         { offender_hp, maps:get(hp, maps:get(state, O)) },
@@ -50,7 +55,7 @@ log(CastName, Outcome, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
 
 parse_groups_logged({Name, _Type, Groups}, S, O, D) ->
     Parsed = parse_groups(Name, Groups, S),
-    {Logs, Effects} = lists:unzip([{log(Name, Outcome, S, O, D), CurrEffects} || {Outcome, CurrEffects} <- Parsed]),
+    {Logs, Effects} = lists:unzip([{log(Name, ToWhom, Outcome, S, O, D), CurrEffects} || {Outcome, ToWhom, CurrEffects} <- Parsed]),
 
     {Logs, [Effect || Effect <- lists:flatten(Effects), Effect =/=bad_luck]}.
 

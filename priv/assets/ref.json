@@ -3,19 +3,13 @@
 	"title" : "引用的角色属性",
 	"properties" : {
 
-		"attr_type" : {
-			"type" : "string",
-			"title": "属性类型",
-	        "enumSource" : [{"source" : [{"title":"状态项", "value":"state"}, {"title":"状态无关项", "value":"attr"}], "title" : "{{item.title}}", "value" : "{{item.value}}"}]
-
-		},
-
 		"attr" : {
 			"type" : "string", 
 			"title" : "属性",
 			"enumSource" : [{"source" : [
 				{"title":"血量", "value":"hp"},
 				{"title":"剩余攻击次数", "value":"rem_moves"},
+				{"title":"护甲", "value":"armor"},
 				{"title":"暴击", "value": "critical"},
 				{"title":"闪避", "value": "dodge"},
 				{"title": "格挡", "value": "block"},

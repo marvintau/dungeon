@@ -14,17 +14,25 @@ who(def, _, D) ->D.
 % ========================== REFERRING OPERAND ==================================
 % expecting {Type, Attribute, PlayerID} or {Type, Attribute, offender/defender}.
 
-ref({Type, Attr, P}) ->
+ref({attr, Attr, P}) ->
+
+    Type = case Attr of
+        hp -> state;
+        rem_moves -> state;
+        _ -> attr
+    end,
+
     maps:get(Attr, maps:get(Type, P));
+
 ref({Low, High}) ->
     round(Low + rand:uniform() * (High - Low));
 ref(SingleValue) -> SingleValue.
 
-ref_whom({T, A, P}, O, D) -> {T, A, who(P, O, D)};
-ref_whom({TAP1, TAP2}, O, D) -> {ref_whom(TAP1, O, D), ref_whom(TAP2, O, D)}.
+% only used for referring destination
+ref_whom({T, A, P}, O, D) -> {T, A, who(P, O, D)}.
 
 ref_whom_get({T, A, P}, O, D) -> ref(ref_whom({T, A, P}, O, D));
-ref_whom_get({TAP1, TAP2}, O, D) -> {ref_whom_get(TAP1, O, D), ref_whom_get(TAP2, O, D)}.
+ref_whom_get(Other, _O, _D) -> ref(Other).
 
 % =========================== TRANSFER FUNCTIONS ===============================
 % Apply transfer operations over specific attributes of player context. The type
@@ -37,7 +45,14 @@ ref_whom_get({TAP1, TAP2}, O, D) -> {ref_whom_get(TAP1, O, D), ref_whom_get(TAP2
 % expecting {Opcode, Value, React} where opcode of set/add/add_mul/add_inc_mul,
 % and Value of number, interval or {type, attribute, off/def} triple.
 
-trans({set, New, _}, {Type, Attr, P}) ->
+trans({set, New, _}, {attr, Attr, P}) ->
+
+    Type = case Attr of
+        hp -> state;
+        rem_moves -> state;
+        _ -> attr
+    end,
+
     #{Type:=#{Attr:=Old}=TypeInstance} = P,
     ReferredNew = ref(New),
     case is_number(ReferredNew) of
@@ -73,16 +88,16 @@ trans({add_inc_mul, {Inc, Mul}, Absorbing}, ToWhom) ->
 apply_trans({{Opcode, Oper, AddCond}, {_T, _A, P}=ToWhom}, O, D) ->
 
     RefOperand = case Oper of
-        {Tr, Ar, Pr} -> ref_whom_get({Tr, Ar, Pr}, O, D);
-        {{_, _, _} = TAP1, {_, _, _}=TAP2} -> ref_whom_get({TAP1, TAP2}, O, D);
-        Value -> ref(Value)
+        {Ref1, Ref2} -> {ref_whom_get(Ref1, O, D), ref_whom_get(Ref2, O, D)};
+        {Ref} -> ref_whom_get(Ref, O, D)
     end,
 
     RefWhom = ref_whom(ToWhom, O, D),
 
     IsResisted = case AddCond of
-        resistable -> rand:uniform() > maps:get(resist, maps:get(attr, D));
-        both -> rand:uniform() > maps:get(resist, maps:get(attr, D));
+        resistable ->
+                rand:uniform() * 100 > maps:get(resist, maps:get(attr, D));
+        both -> rand:uniform() * 100 > maps:get(resist, maps:get(attr, D));
         _ -> false
     end,
 
@@ -92,13 +107,13 @@ apply_trans({{Opcode, Oper, AddCond}, {_T, _A, P}=ToWhom}, O, D) ->
         {_, def} -> {effected, ToWhom, O, trans({Opcode, RefOperand, AddCond}, RefWhom)}
     end.
 
-log(#{seq:=Seq, stage:=Stage, mover:=Mover}, EffName, Outcome, {_, {T, Attr, P}}, O, D) when (Outcome==resisted) or (Attr==hp)->
+log(#{seq:=Seq, stage:=Stage, mover:=Mover}, EffName, Outcome, {_, {_, Attr, P}}, O, D) when (Outcome==resisted) or (Attr==hp)->
 
 
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, who(P, O, D))},
         { hand, none}, { action, EffName},
-        { outcome, Outcome }, { damage, maps:get(diff, maps:get(T, who(P, O, D))) },
+        { outcome, Outcome }, { damage, maps:get(diff, maps:get(state, who(P, O, D))) },
         { offender_hp, maps:get(hp, maps:get(state, O)) },
         { defender_hp, maps:get(hp, maps:get(state, D)) }
     ]};

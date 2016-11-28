@@ -4,15 +4,15 @@
 
 -export([all_casts/0, casts/1, all_names/0, names_with/1]).
 
-ref({Type, Attribute, Role}) ->
-    {[{attr_type, Type}, {attr, Attribute}, {role, Role}]};
+ref({attr, Attribute, Role}) ->
+    {[{attr, Attribute}, {role, Role}]};
 ref({Min, Max}) ->
     {[{min, Min}, {max, Max}]};
 ref(Value) ->
     {[{value, Value}]}.
 
 operand({Inc, Mul}) -> {[{inc, ref(Inc)}, {mul, ref(Mul)}]};
-operand(Inc) -> {[{inc, ref(Inc)}]}.
+operand({Inc}) -> {[{inc, ref(Inc)}]}.
 
 operator({Opcode, Operand, Note}) ->
     {[{opcode, Opcode}, {operand, operand(Operand)}, {note, Note}]}.
@@ -41,8 +41,8 @@ effect({Conds, TransList}) ->
 effect_list(EffectList) ->
     [effect(Effect) || Effect <- EffectList].
 
-effect_prob_group({Prob, EffectList}) ->
-    {[{prob, Prob}, {effects, effect_list(EffectList)}]}.
+effect_prob_group({Prob, ToWhom, EffectList}) ->
+    {[{prob, Prob}, {towhom, ToWhom}, {effects, effect_list(EffectList)}]}.
 
 effect_prob_group_list(EffectProbGroupList) ->
     [effect_prob_group(EffectProbGroup) || EffectProbGroup <- EffectProbGroupList].

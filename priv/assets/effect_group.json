@@ -10,6 +10,12 @@
         "title" : "技能施放概率"
       },
 
+      "towhom" : {
+        "type" : "string",
+        "title" : "技能施放概率",
+        "enumSource" : [{"source" : [{"title":"自己", "value":"off"}, {"title":"对手", "value":"def"}], "title" : "{{item.title}}", "value" : "{{item.value}}"}]
+      },
+
       "effects" : {
         "$ref" : "effects.json"
       }
