@@ -1,26 +1,20 @@
 -module(battle_attack).
 -author('Yue Marvin Tao').
 
--export([attack/4]).
+-export([attack/4, attack_effected/4, bin/2]).
 
 % ------------------------ ROTATE ROULETTE ----------------------------
 % get the random choice result according to the probability of each 
 % option.
 
-rotate(Roulette, MaxLimit) ->
+bin(GivenVal, [Bin|Bins]) -> bin(GivenVal, Bin, Bins, 1).
+bin(_, _, [], Ith) -> Ith;
+bin(GivenVal, Accum, _, Ith) when GivenVal < Accum -> Ith;
+bin(GivenVal, Accum, [Bin|Bins], Ith) -> bin(GivenVal, Accum+Bin, Bins, Ith+1).
 
-    Cumulative = lists:foldl(fun(X, Rem) -> [X + hd(Rem) | Rem] end, [0], Roulette),
+rotate(Roulette, Rand) ->
 
-    MaxCumu = hd(Cumulative),
-
-    NewCumulative = [I + (MaxLimit - MaxCumu) || I <- Cumulative],
-
-    Rand = rand:uniform() * hd(NewCumulative),
-    
-    ResultIndex = length(element(1, lists:splitwith(fun(X) -> X >= Rand end, NewCumulative))),
-
-
-    lists:nth(ResultIndex, [critical, block, resist, dodge, attack]).
+    element(bin(Rand * 120, Roulette), {attack, dodge, resist, block, critical}).
 
 
 % ----------------------- PREPARE ROULETTE ----------------------------
@@ -30,10 +24,16 @@ rotate(Roulette, MaxLimit) ->
 % blocked if the defender is carrying a shield, or can be only dodged
 % otherwise.
 
+% Notably, the MAX_LIMIT is the max size of the Roulette. excluding the
+% part of Dodge, Resist, Block and Critical, the remaining part will left
+% for plain attack.
+
 prepare_roulette_from(
     #{curr_hand:={_, Curr, _}, attr:=#{hit_bonus:=Hit, critical:=Critical}},
     #{secd_hand:={_, Secd, _}, attr:=#{resist:=Res, block:=Blo, dodge:=Dod}}
 ) ->
+
+    MAX_LIMIT = 120,
 
     {Dodge, Resist, Block} = case {Curr, Secd} of
         
@@ -54,46 +54,46 @@ prepare_roulette_from(
         _ -> 0
     end,
 
-    [NewDodge, Resist, Block, Critical].
+    [MAX_LIMIT - NewDodge - Resist - Block - Critical, NewDodge, Resist, Block, Critical].
 
 % --------------- PLAYER AS MAGE ------------------------------
 % Magic attack cannot be blocked, thus make sure that block has
 % been set 0 before turning the roulette.
 
-calculate_damage(magic, resist, {Lower, _}, _Armor) ->
-    round(rand:uniform() * Lower / 10);
+calculate_damage(magic, resist, {Lower, _}, _Armor, Rand) ->
+    round(Rand * Lower / 10);
 
-calculate_damage(magic, critical, {Lower, Upper}, _Armor) ->
-    round(2*(Lower + rand:uniform() * (Upper - Lower)));
+calculate_damage(magic, critical, {Lower, Upper}, _Armor, Rand) ->
+    round(2*(Lower + Rand * (Upper - Lower)));
 
-calculate_damage(magic, _, {Lower, Upper}, _Armor) ->
-    round(Lower + rand:uniform() * (Upper - Lower));
+calculate_damage(magic, _, {Lower, Upper}, _Armor, Rand) ->
+    round(Lower + Rand * (Upper - Lower));
 
-calculate_damage(physical, dodge, _, _) -> 0;
-calculate_damage(physical, block, _, _) -> 0;
-calculate_damage(physical, critical, {Lower, Upper}, Armor) ->
-    round(2*(Lower + rand:uniform() * (Upper - Lower)) * (1 - Armor * 0.0001));
+calculate_damage(physical, dodge, _, _, _) -> 0;
+calculate_damage(physical, block, _, _, _) -> 0;
+calculate_damage(physical, critical, {Lower, Upper}, Armor, Rand) ->
+    round(2*(Lower + Rand * (Upper - Lower)) * (1 - Armor * 0.0001));
 
-calculate_damage(physical, _, {Lower, Upper}, Armor) ->
-    round((Lower + rand:uniform() * (Upper - Lower)) * (1 - Armor * 0.0001));
+calculate_damage(physical, _, {Lower, Upper}, Armor, Rand) ->
+    round((Lower + Rand * (Upper - Lower)) * (1 - Armor * 0.0001));
 
-calculate_damage(_, _, _, _) -> 0.
+calculate_damage(_, _, _, _, _) -> 0.
 
 % ============= SINGLE ATTACK DAMAGE CALCULATION ======================
 
-is_no_damage_move(#{curr_hand:={secd, Type, _}}) when (Type==shield) or (Type==bare) -> true;
+is_no_damage_move(#{curr_hand:={secd, bare, _}})-> true;
+is_no_damage_move(#{curr_hand:={secd, shield, _}})-> true;
 is_no_damage_move(_) -> false.
 
 log(#{seq:=Seq, stage:=Stage, mover:=Mover},
-    #{curr_hand:={Which, WeaponType, _}}=O,
-    #{attr:=#{outcome:=Outcome, damage_taken:=Damage}}=D)  ->
+    #{state:=#{hp:=HpO}, curr_hand:={Which, WeaponType, _}},
+    #{id:=IdD, state:=#{hp:=HpD}, attr:=#{outcome:=Outcome, damage_taken:=Damage}})  ->
     
     {[
-        { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, D)},
+        { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, IdD},
         { hand, Which}, { action, WeaponType},
         { outcome, Outcome }, { damage, Damage },
-        { offender_hp, maps:get(hp, maps:get(state, O)) },
-        { defender_hp, maps:get(hp, maps:get(state, D)) }
+        { offender_hp, HpO}, { defender_hp, HpD}
     ]}.
 
 attack(S,
@@ -102,9 +102,13 @@ attack(S,
          state:=#{rem_moves:=RemMoves}=StateA}=A,
        #{attr:=#{armor:=Armor}=CurrAttrD, state:=#{hp:=H2}=StateD}=D, L) ->
 
-    Outcome = rotate(prepare_roulette_from(A, D), 120),
+    S0 = rand:seed_s(exsplus),
+    {Rand1, S1} = rand:uniform_s(S0),
+    {Rand2, _} = rand:uniform_s(S1),
+
+    Outcome = rotate(prepare_roulette_from(A, D), Rand1),
     
-    Damage = calculate_damage(AttackType, Outcome, DamageRange, Armor),
+    Damage = calculate_damage(AttackType, Outcome, DamageRange, Armor, Rand2),
 
     AddedDamage = case Outcome of
         critical -> Damage * CritMul + DamageAddon;
@@ -125,3 +129,19 @@ attack(S,
     end,
    
     {NextA#{state:=StateA#{rem_moves:=RemMoves-1}}, NextD, NextLog}.
+
+
+attack_effected(State, #{attr:=#{attack_disabled:=0}}=O, D, Log) ->
+
+    {#{state:=#{rem_moves:=RemMovesO}}=MovedO, MovedD, MovedLog} = battle_attack:attack(State, O, D, Log),
+
+    DoneMovedO = case RemMovesO of
+        0 -> MovedO#{done:=already};
+        _ -> MovedO
+    end,
+    
+    {DefReactedD, DefReactedO, DefReactedLog} = battle_effect:effect(State, MovedD, DoneMovedO, MovedLog),
+    battle_effect:effect(State, DefReactedO, DefReactedD, DefReactedLog);
+
+attack_effected(_State, #{state:=StateO}=O, D, Log) ->
+    {O#{done:=already, state:=StateO#{rem_moves:=0}}, D, Log}.

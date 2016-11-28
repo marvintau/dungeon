@@ -2,16 +2,18 @@
 
 -author('Yue Marvin Tao').
 
--export([init_new_battle/1 ]).
+-export([init_new_battle/1, battle_test_100/2 ]).
+
+-export([test/0]).
 
 % ------------- HELPER FUNCTION FOR CHOOSING NEW OFFENDER --------------
 
 % Any cast that might change the normal way of determine the order of
 % attack will be put here.
 
-toss(#{id:=A, casts:=[rune_of_the_void|_]}, _) -> 
+toss(#{casts:=[rune_of_the_void|_], id:=A}, _) -> 
     A;
-toss(_, #{id:=B, casts:=[rune_of_the_void|_]}) -> 
+toss(_, #{casts:=[rune_of_the_void|_], id:=B}) -> 
     B;
 
 toss(#{id:=A, attr:=#{agility:=AgiA}},
@@ -24,21 +26,8 @@ toss(#{id:=A, attr:=#{agility:=AgiA}},
 % ----------- HELPER FUNCTION FOR SWAPPING OFFENDER/DEFENDER -----------
 
 swap(Mover, #{id:=Mover}, #{id:=B}) -> B;
-swap(Mover, #{id:=A}, #{id:=Mover}) -> A.
+swap(_, #{id:=A}, _) -> A.
 
-
-trans(Action, #{mover:=Mover}=S, #{id:=I1}=P1, #{id:=I2}=P2, L) ->
-
-    %erlang:display({I2, maps:get(rem_moves, maps:get(state, P2))}),
-
-    {Res1, Res2, ResLog} = case Mover of
-        I1 -> Action(S, P1, P2, L);
-        I2 -> {NewP2, NewP1, NewLog} = Action(S, P2, P1, L), {NewP1, NewP2, NewLog}
-    end,
-   
-    %erlang:display({I2, maps:get(rem_moves, maps:get(state, P2))}),
-
-    {Res1, Res2, ResLog}.
 
 % ======================= MAIN BATTLE LOOP ============================
 
@@ -78,8 +67,8 @@ loop(#{seq:=Seq, stage:=Stage}=State,
 
     NewMover = toss(NewP1, NewP2),
 
-    erlang:display(' '),
-    erlang:display({tossing, Seq+1, NewMover}),
+%    erlang:display(' '),
+%    erlang:display({tossing, Seq+1, NewMover}),
 
     loop(State#{seq:=Seq+1, stage:=settling, mover:=NewMover}, NewP1, NewP2, L, FL);
 
@@ -93,7 +82,7 @@ loop(#{seq:=Seq, stage:=Stage}=State,
 
 loop(#{stage:=Stage, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=P2, L, FL) ->
 
-    erlang:display({swapping, Stage, Mover, 1}),
+    %erlang:display({swapping, Stage, Mover, 1}),
     %erlang:display({maps:get(id, P2), maps:get(rem_moves, maps:get(state, P2))}),
 
     NewStage = case Stage of
@@ -104,12 +93,12 @@ loop(#{stage:=Stage, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=
     loop(State#{stage:=NewStage, mover:=swap(Mover, P1, P2)}, P1#{done:=not_yet}, P2#{done:=not_yet}, L, FL);
 
 loop(#{mover:=Mover}=State, #{id:=Mover, done:=already}=P1, #{done:=not_yet}=P2, L, FL) ->
-    erlang:display({swapping, Mover, 2}),
+    %erlang:display({swapping, Mover, 2}),
     %erlang:display({maps:get(id, P2), maps:get(rem_moves, maps:get(state, P2))}),
     loop(State#{mover:=swap(Mover, P1, P2)}, P1, P2, L, FL);
 
 loop(#{mover:=Mover}=State, #{done:=not_yet}=P1, #{id:=Mover, done:=already}=P2, L, FL) ->
-    erlang:display({swapping, Mover, 3}),
+    %erlang:display({swapping, Mover, 3}),
     %erlang:display({maps:get(id, P2), maps:get(rem_moves, maps:get(state, P2))}),
     loop(State#{mover:=swap(Mover, P1, P2)}, P1, P2, L, FL);
 
@@ -119,57 +108,26 @@ loop(#{mover:=Mover}=State, #{done:=not_yet}=P1, #{id:=Mover, done:=already}=P2,
 % modification regarding attributes will be restored except HP, number
 % of remaining attacks current gamer in move.
 
-loop(#{stage:=attacking, mover:=Mover}=S, A, B, L, FL) ->
+loop(#{stage:=attacking, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L, FL) ->
 
-    {AttackA, AttackB, AttackLog} = trans(fun(State, #{state:=StateO, attr:=CurrAttr}=O, D, Log) ->
+    {#{state:=#{hp:=HpA}}=AttackA, #{state:=#{hp:=HpB}}=AttackB, AttackLog} = case Mover of
+        IDA -> battle_attack:attack_effected(S, A, B, L);
+        IDB -> {NewB, NewA, NewLog} = battle_attack:attack_effected(S, B, A, L), {NewA, NewB, NewLog}
+    end,
 
-        case maps:get(attack_disabled, CurrAttr) of
-            0 ->
-                erlang:display({attack, Mover, normal}),
-                {MovedO, MovedD, MovedLog} = battle_attack:attack(State, O, D, Log),
-
-                DoneMovedO = case maps:get(rem_moves, maps:get(state, MovedO)) of
-                    0 -> MovedO#{done:=already};
-                    _ -> MovedO
-                end,
-                
-                {DefReactedD, DefReactedO, DefReactedLog} = battle_effect:effect(State, MovedD, DoneMovedO, MovedLog),
-                battle_effect:effect(State, DefReactedO, DefReactedD, DefReactedLog);
-            _ ->
-                erlang:display({attack, Mover, disabled}),
-
-                {O#{done:=already, state:=StateO#{rem_moves:=0}}, D, Log}
-        end
-    end, S, A, B, L),
-
-    loop(S, AttackA, AttackB, AttackLog,
-         [#{seq=>maps:get(seq, S), a=>maps:get(hp, maps:get(state, AttackA)), b=>maps:get(hp, maps:get(state, AttackB))} | FL]);
+    loop(S, AttackA, AttackB, AttackLog, [#{seq=>Seq, a=>HpA, b=>HpB} | FL]);
 
 
 % ------------------------- LOOP FOR CAST -----------------------------
 
-loop(#{stage:=casting, mover:=Mover}=S, A, B, L, FL) ->
+loop(#{stage:=casting, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L, FL) ->
 
-    {CastA, CastB, CastLog} = trans(fun(State, #{casts:=Casts, attr:=CurrAttr}=O, D, Log) ->
-        case maps:get(cast_disabled, CurrAttr) of
-            0 ->        
-                erlang:display({Mover, cast, normal}),
-                {MovedO, MovedD, MovedLog} = battle_cast:cast(State, O, D, Log),
-                battle_effect:effect(State, MovedO#{done:=already}, MovedD, MovedLog);
-            _ ->
-                erlang:display({Mover, cast, disabled}),
+    {#{state:=#{hp:=HpA}}=CastA, #{state:=#{hp:=HpB}}=CastB, CastLog} = case Mover of
+        IDA -> battle_cast:cast_effected(S, A, B, L);
+        IDB -> {NewB, NewA, NewLog} = battle_cast:cast_effected(S, B, A, L), {NewA, NewB, NewLog}
+    end,
 
-                ConsumedCasts = case Casts of
-                    [] -> [];
-                    [_|RemCasts] -> RemCasts
-                end,
-
-                {O#{casts:=ConsumedCasts, done:=already}, D, Log}
-        end
-    end, S, A, B, L),
-
-    loop(S, CastA, CastB, CastLog,
-         [#{seq=>maps:get(seq, S), a=>maps:get(hp, maps:get(state, CastA)), b=>maps:get(hp, maps:get(state, CastB))} | FL]);
+    loop(S, CastA, CastB, CastLog, [#{seq=>Seq, a=>HpA, b=>HpB} | FL]);
 
 
 % ---------------------- LOOP FOR SETTLEMENT -----------------------------
@@ -177,25 +135,36 @@ loop(#{stage:=casting, mover:=Mover}=S, A, B, L, FL) ->
 % settlement is the stage that carries out the effects lasted from prior
 % rounds. The order follows the order of casting. 
 
-loop(#{stage:=settling, mover:=Mover}=S, A, B, L, FL) ->
+loop(#{stage:=settling, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L, FL) ->
 
-    erlang:display({settling, Mover}),
+    {#{state:=#{hp:=HpA}}=SettleA, #{state:=#{hp:=HpB}}=SettleB, SettleLog} = case Mover of
+        IDA -> battle_effect:effect(S, A#{done:=already}, B, L);
+        IDB -> {NewB, NewA, NewLog} = battle_cast:cast_effected(S, B#{done:=already}, A, L), {NewA, NewB, NewLog}
+    end,
 
-    {SettleA, SettleB, SettleLog} = trans(fun(State, O, D, Log) ->
-
-        battle_effect:effect(State, O#{done:=already}, D, Log)
-
-    end, S, A, B, L),
-
-    loop(S, SettleA, SettleB, SettleLog,
-         [#{seq=>maps:get(seq, S), a=>maps:get(hp, maps:get(state, SettleA)), b=>maps:get(hp, maps:get(state, SettleB))} | FL]).
+    loop(S, SettleA, SettleB, SettleLog, [#{seq=>Seq, a=>HpA, b=>HpB} | FL]).
 
 
 
 init_new_battle(Data) ->
 
-    {P1, P2} = battle_parse:player_context_from_parsed_JSON(Data),
+    {#{id:=Id}=P1, P2} = battle_parse:player_context_from_parsed_JSON(Data),
 
     {CastedP1, CastedP2, CastedLog} = battle_cast:cast_talented(P1, P2),
 
-    loop(#{seq=>0, stage=>preparing, mover=>maps:get(id, P1)}, CastedP1, CastedP2, CastedLog, []). 
+    loop(#{seq=>0, stage=>preparing, mover=>Id}, CastedP1, CastedP2, CastedLog, []). 
+
+
+battle_test_100(_Data, 0) ->ok;
+
+battle_test_100(Data, Time) ->
+    init_new_battle(Data),
+    battle_test_100(Data, Time-1).
+
+
+test() ->
+    Data = {[{<<"player1">>,{[{<<"id">>,<<"Maxim">>},{<<"hp">>,3400},{<<"prim_type">>,<<"physical">>},{<<"prim_max">>,235},{<<"prim_min">>,190},{<<"secd_type">>,<<"shield">>},{<<"secd_max">>,0},{<<"secd_min">>,0},{<<"armor">>,5400},{<<"hit">>,15},{<<"critic">>,20},{<<"dodge">>,20},{<<"resist">>,35},{<<"block">>,35},{<<"agility">>,50},{<<"talented">>,<<"blade_dance">>},{<<"cast_list">>,[<<"none">>,<<"poison_gas">>,<<"first_aid">>,<<"chain_lock">>,<<"shield_wall">>]}]}},{<<"player2">>,{[{<<"id">>,<<"Scarlett">>},{<<"hp">>,2700},{<<"prim_type">>,<<"physical">>},{<<"prim_max">>,205},{<<"prim_min">>,190},{<<"secd_type">>,<<"physical">>},{<<"secd_max">>,190},{<<"secd_min">>,175},{<<"armor">>,4500},{<<"hit">>,35},{<<"critic">>,30},{<<"dodge">>,30},{<<"resist">>,35},{<<"block">>,0},{<<"agility">>,75},{<<"talented_skill2">>,<<"blade_dance">>},{<<"cast_list">>,[<<"holy_hand_grenade">>,<<"poison_gas">>,<<"sure_hit">>,<<"talisman_of_death">>,<<"none">>]}]}}]},
+
+    fprof:apply(?MODULE, battle_test_100, [Data, 100]),
+    fprof:profile(),
+    fprof:analyse({dest, "prof.fprof"}).

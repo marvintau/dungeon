@@ -16,7 +16,10 @@
 
 start(_StartType, _StartArgs) ->
 
+
     cast_database:init_table(),
+
+
 
     Dispatch = cowboy_router:compile([
             {'_', [
@@ -26,7 +29,6 @@ start(_StartType, _StartArgs) ->
                    {"/reset_casts", cast_reset_handler, []},
                    {"/get_list", cast_list_handler, []},
                    {"/post_casts", cast_submit_handler, []},
-                   {"/remove_cast", cast_remove_handler, []},
                    {"/login", login_handler, []}
                   ]}
         ]),

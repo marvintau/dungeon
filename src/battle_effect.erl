@@ -14,15 +14,12 @@ who(def, _, D) ->D.
 % ========================== REFERRING OPERAND ==================================
 % expecting {Type, Attribute, PlayerID} or {Type, Attribute, offender/defender}.
 
-ref({attr, Attr, P}) ->
+ref({attr, hp, #{state:=#{hp:=Hp}}}) -> Hp;
+ref({attr, rem_moves, #{state:=#{rem_moves:=RemMoves}}}) -> RemMoves;
 
-    Type = case Attr of
-        hp -> state;
-        rem_moves -> state;
-        _ -> attr
-    end,
-
-    maps:get(Attr, maps:get(Type, P));
+ref({attr, Attr, P}) -> 
+    #{attr:=#{Attr:=Value}} = P,
+    Value;
 
 ref({Low, High}) ->
     round(Low + rand:uniform() * (High - Low));
@@ -45,7 +42,7 @@ ref_whom_get(Other, _O, _D) -> ref(Other).
 % expecting {Opcode, Value, React} where opcode of set/add/add_mul/add_inc_mul,
 % and Value of number, interval or {type, attribute, off/def} triple.
 
-trans({set, New, _}, {attr, Attr, P}) ->
+trans({set, Imm, _}, {attr, Attr, P}) ->
 
     Type = case Attr of
         hp -> state;
@@ -53,21 +50,27 @@ trans({set, New, _}, {attr, Attr, P}) ->
         _ -> attr
     end,
 
-    #{Type:=#{Attr:=Old}=TypeInstance} = P,
-    ReferredNew = ref(New),
-    case is_number(ReferredNew) of
-        true -> P#{Type:=TypeInstance#{Attr:=round(ref(New)), diff:=round(ref(New) - Old)}};
-        _    -> P#{Type:=TypeInstance#{Attr:=ref(New)}}
+    #{Type:=#{Attr:=Orig}=TypeInstance} = P,
+
+    ReferredImm = ref(Imm),
+
+    case is_number(ReferredImm) of
+        true -> P#{Type:=TypeInstance#{Attr:=round(ReferredImm), diff:=round(Orig - ReferredImm)}};
+        _    -> P#{Type:=TypeInstance#{Attr:=ReferredImm}}
     end;
 
-trans({add, Inc, Cond}, {_, _, P}=ToWhom) when (Cond == absorbable) or (Cond== both)->
+trans({add, Inc, absorbable}, {_, _, P}=ToWhom) ->
+    ArmorRatio = 1 - ref({attr, armor, P}) / 10000,
+    trans({set, ref(ToWhom) + ref(Inc) * ArmorRatio, none}, ToWhom);
+
+trans({add, Inc, both}, {_, _, P}=ToWhom) ->
     ArmorRatio = 1 - ref({attr, armor, P}) / 10000,
     trans({set, ref(ToWhom) + ref(Inc) * ArmorRatio, none}, ToWhom);
 
 % handles when there is no additional status, or resistable but not actually
 % resisted.
 
-trans({add, Inc, Cond}, ToWhom) when(Cond == none) or (Cond==resistable)->
+trans({add, Inc, _}, ToWhom) ->
     trans({set, ref(ToWhom) + ref(Inc), none}, ToWhom);
 
 trans({add_mul, Mul, Absorbing}, ToWhom) ->
@@ -107,15 +110,28 @@ apply_trans({{Opcode, Oper, AddCond}, {_T, _A, P}=ToWhom}, O, D) ->
         {_, def} -> {effected, ToWhom, O, trans({Opcode, RefOperand, AddCond}, RefWhom)}
     end.
 
-log(#{seq:=Seq, stage:=Stage, mover:=Mover}, EffName, Outcome, {_, {_, Attr, P}}, O, D) when (Outcome==resisted) or (Attr==hp)->
 
+log(#{seq:=Seq, stage:=Stage, mover:=Mover}, EffName, _, {_, {_, hp, P}}, #{state:=#{hp:=HpO}}=O, #{state:=#{hp:=HpD}}=D) ->
+
+    Def = who(P, O, D),
+    #{id:=DefId, state:=#{diff:=Damage}} = Def,
+
+    {[
+        { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, DefId},
+        { hand, none}, { action, EffName},
+        { outcome, effected }, { damage, Damage },
+        { offender_hp, HpO },
+        { defender_hp, HpD }
+    ]};
+
+log(#{seq:=Seq, stage:=Stage, mover:=Mover}, EffName, resisted, {_, {_, _, P}}, #{state:=#{hp:=HpO}}=O, #{state:=#{hp:=HpD}}=D) ->
 
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, who(P, O, D))},
         { hand, none}, { action, EffName},
-        { outcome, Outcome }, { damage, maps:get(diff, maps:get(state, who(P, O, D))) },
-        { offender_hp, maps:get(hp, maps:get(state, O)) },
-        { defender_hp, maps:get(hp, maps:get(state, D)) }
+        { outcome, resisted }, { damage, maps:get(diff, maps:get(state, who(P, O, D))) },
+        { offender_hp, HpO },
+        { defender_hp, HpD }
     ]};
 
 log(_, _, _, _, _, _) -> {[]}.
@@ -136,8 +152,6 @@ apply_trans_all(EffName, TransList, S, O, D) ->
     apply_trans_all(EffName, TransList, S, O, D, []).
 apply_trans_all(EffName, [Trans | RemTrans], S, O, D, Logs) ->
 
-    erlang:display({EffName, Trans}),
-
     {AppliedO, AppliedD, L} = apply_trans_logged(EffName, Trans, S, O, D),
     apply_trans_all(EffName, RemTrans, S, AppliedO, AppliedD, [L | Logs]);
 apply_trans_all(_EffName, [], _S, O, D, Logs) ->
@@ -148,13 +162,15 @@ apply_trans_all(_EffName, [], _S, O, D, Logs) ->
 % attributes checking, such as the outcome of last attack.
 cond_single({Val, '==', TAP}, O, D) -> 
     Val == ref_whom_get(TAP, O, D);
-cond_single({Val, '>', TAP}, O, D) -> Val > ref_whom_get(TAP, O, D);
-cond_single({Val, '<', TAP}, O, D) -> Val < ref_whom_get(TAP, O, D).
+cond_single({Val, '>', TAP}, O, D) ->
+    Val > ref_whom_get(TAP, O, D);
+cond_single({Val, '<', TAP}, O, D) ->
+    Val < ref_whom_get(TAP, O, D).
 
-cond_list(CondList, O, D) -> cond_list(true, CondList, O, D).
-cond_list(TrueValue, [Cond | RemConds], O, D) ->
-    cond_list(TrueValue and cond_single(Cond, O, D), RemConds, O, D);
-cond_list(TrueValue, [], _, _) -> TrueValue.
+cond_list(CondList, O, D) -> cond_list(CondList, O, D, true).
+cond_list([Cond | RemConds], O, D, TrueValue) ->
+    cond_list(RemConds, O, D, TrueValue and cond_single(Cond, O, D));
+cond_list([], _, _, TrueValue) -> TrueValue.
 
 
 % ====================== SEQUENTIAL CONDITION CHECK =============================
@@ -195,7 +211,6 @@ apply_effect(Effect, State, {O, D}) ->
             apply_trans_all(Name, Specs, State, O, D);
         
         _    ->
-            {Seq, _} = Conds,
             {O, D, []}
     end.
 

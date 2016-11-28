@@ -4,7 +4,7 @@
 
 -export([cast/4]).
 
--export([cast_talented/2]).
+-export([cast_talented/2, cast_effected/4]).
 
 
 % to assign the sequence number of terminal condition, and the cast initiator.
@@ -26,7 +26,6 @@ condition({{Start, Last, Phase}, Others}, CurrSeq) ->
 % find the specification in database, and re-interpret it with battle context.
 
 parse_single_effect(Name, {Cond, Trans}, #{seq:=CurrSeq}) ->
-    erlang:display({conds, condition(Cond, CurrSeq)}),
     {Name, condition(Cond, CurrSeq), Trans}.
 
 parse_single_group(Name, {Prob, ToWhom, Effects}, S) ->
@@ -85,3 +84,16 @@ cast_talented(#{talented:=TalentedP1}=P1, #{talented:=TalentedP2}=P2) ->
     {P2CastedLogs, P2Effect} = parse_cast(TalentedP2, S2, P2, P1),
 
     {P1#{effects:=P1Effect}, P2#{effects:=P2Effect}, lists:append(P1CastedLogs, P2CastedLogs)}.
+
+
+cast_effected(State, #{attr:=#{cast_disabled:=0}}=O, D, Log) ->
+    {MovedO, MovedD, MovedLog} = battle_cast:cast(State, O, D, Log),
+    battle_effect:effect(State, MovedO#{done:=already}, MovedD, MovedLog);
+
+cast_effected(_State, #{casts:=Casts}=O, D, Log) ->
+    ConsumedCasts = case Casts of
+        [] -> [];
+        [_|RemCasts] -> RemCasts
+    end,
+
+    {O#{casts:=ConsumedCasts, done:=already}, D, Log}.

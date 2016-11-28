@@ -39,7 +39,6 @@ handle_post(Req, State) ->
 
     {ReqBody, NextReq} = try cowboy_req:read_body(Req) of
         {ok, ReqBodyRaw, NewReq} ->
-            error_logger:info_report(ReqBodyRaw),
             {ReqBodyRaw, NewReq}
     catch
         error:Error ->
