@@ -6,6 +6,8 @@ Mnesia.nonode@nohost
 *.beam
 *.plt
 *.swp
+*.fprof
+*.trace
 *.swo
 .erlang.cookie
 ebin
