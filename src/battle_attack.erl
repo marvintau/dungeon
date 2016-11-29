@@ -3,6 +3,10 @@
 
 -export([attack/4, attack_effected/4, bin/2]).
 
+
+
+rand() -> element(3, erlang:timestamp())/1000000.
+
 % ------------------------ ROTATE ROULETTE ----------------------------
 % get the random choice result according to the probability of each 
 % option.
@@ -12,9 +16,9 @@ bin(_, _, [], Ith) -> Ith;
 bin(GivenVal, Accum, _, Ith) when GivenVal < Accum -> Ith;
 bin(GivenVal, Accum, [Bin|Bins], Ith) -> bin(GivenVal, Accum+Bin, Bins, Ith+1).
 
-rotate(Roulette, Rand) ->
+rotate(Roulette) ->
 
-    element(bin(Rand * 120, Roulette), {attack, dodge, resist, block, critical}).
+    element(bin(rand:uniform() * 120, Roulette), {attack, dodge, resist, block, critical}).
 
 
 % ----------------------- PREPARE ROULETTE ----------------------------
@@ -60,24 +64,24 @@ prepare_roulette_from(
 % Magic attack cannot be blocked, thus make sure that block has
 % been set 0 before turning the roulette.
 
-calculate_damage(magic, resist, {Lower, _}, _Armor, Rand) ->
-    round(Rand * Lower / 10);
+calculate_damage(magic, resist, {Lower, _}, _Armor) ->
+    round(rand() * Lower / 10);
 
-calculate_damage(magic, critical, {Lower, Upper}, _Armor, Rand) ->
-    round(2*(Lower + Rand * (Upper - Lower)));
+calculate_damage(magic, critical, {Lower, Upper}, _Armor) ->
+    round(2*(Lower + rand() * (Upper - Lower)));
 
-calculate_damage(magic, _, {Lower, Upper}, _Armor, Rand) ->
-    round(Lower + Rand * (Upper - Lower));
+calculate_damage(magic, _, {Lower, Upper}, _Armor) ->
+    round(Lower + rand() * (Upper - Lower));
 
-calculate_damage(physical, dodge, _, _, _) -> 0;
-calculate_damage(physical, block, _, _, _) -> 0;
-calculate_damage(physical, critical, {Lower, Upper}, Armor, Rand) ->
-    round(2*(Lower + Rand * (Upper - Lower)) * (1 - Armor * 0.0001));
+calculate_damage(physical, dodge, _, _) -> 0;
+calculate_damage(physical, block, _, _) -> 0;
+calculate_damage(physical, critical, {Lower, Upper}, Armor) ->
+    round(2*(Lower + rand() * (Upper - Lower)) * (1 - Armor * 0.0001));
 
-calculate_damage(physical, _, {Lower, Upper}, Armor, Rand) ->
-    round((Lower + Rand * (Upper - Lower)) * (1 - Armor * 0.0001));
+calculate_damage(physical, _, {Lower, Upper}, Armor) ->
+    round((Lower + rand() * (Upper - Lower)) * (1 - Armor * 0.0001));
 
-calculate_damage(_, _, _, _, _) -> 0.
+calculate_damage(_, _, _, _) -> 0.
 
 % ============= SINGLE ATTACK DAMAGE CALCULATION ======================
 
@@ -102,13 +106,9 @@ attack(S,
          state:=#{rem_moves:=RemMoves}=StateA}=A,
        #{attr:=#{armor:=Armor}=CurrAttrD, state:=#{hp:=H2}=StateD}=D, L) ->
 
-    S0 = rand:seed_s(exsplus),
-    {Rand1, S1} = rand:uniform_s(S0),
-    {Rand2, _} = rand:uniform_s(S1),
-
-    Outcome = rotate(prepare_roulette_from(A, D), Rand1),
+    Outcome = rotate(prepare_roulette_from(A, D)),
     
-    Damage = calculate_damage(AttackType, Outcome, DamageRange, Armor, Rand2),
+    Damage = calculate_damage(AttackType, Outcome, DamageRange, Armor),
 
     AddedDamage = case Outcome of
         critical -> Damage * CritMul + DamageAddon;

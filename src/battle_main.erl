@@ -6,6 +6,9 @@
 
 -export([test/0]).
 
+rand() ->
+    element(3, erlang:timestamp())/1000000.
+
 % ------------- HELPER FUNCTION FOR CHOOSING NEW OFFENDER --------------
 
 % Any cast that might change the normal way of determine the order of
@@ -18,7 +21,7 @@ toss(_, #{casts:=[rune_of_the_void|_], id:=B}) ->
 
 toss(#{id:=A, attr:=#{agility:=AgiA}},
      #{id:=B, attr:=#{agility:=AgiB}}) ->
-    case rand:uniform() * (AgiA + AgiB) > AgiA of
+    case rand() * (AgiA + AgiB) > AgiA of
         true -> B;
         _    -> A
     end.
@@ -165,6 +168,6 @@ battle_test_100(Data, Time) ->
 test() ->
     Data = {[{<<"player1">>,{[{<<"id">>,<<"Maxim">>},{<<"hp">>,3400},{<<"prim_type">>,<<"physical">>},{<<"prim_max">>,235},{<<"prim_min">>,190},{<<"secd_type">>,<<"shield">>},{<<"secd_max">>,0},{<<"secd_min">>,0},{<<"armor">>,5400},{<<"hit">>,15},{<<"critic">>,20},{<<"dodge">>,20},{<<"resist">>,35},{<<"block">>,35},{<<"agility">>,50},{<<"talented">>,<<"blade_dance">>},{<<"cast_list">>,[<<"none">>,<<"poison_gas">>,<<"first_aid">>,<<"chain_lock">>,<<"shield_wall">>]}]}},{<<"player2">>,{[{<<"id">>,<<"Scarlett">>},{<<"hp">>,2700},{<<"prim_type">>,<<"physical">>},{<<"prim_max">>,205},{<<"prim_min">>,190},{<<"secd_type">>,<<"physical">>},{<<"secd_max">>,190},{<<"secd_min">>,175},{<<"armor">>,4500},{<<"hit">>,35},{<<"critic">>,30},{<<"dodge">>,30},{<<"resist">>,35},{<<"block">>,0},{<<"agility">>,75},{<<"talented_skill2">>,<<"blade_dance">>},{<<"cast_list">>,[<<"holy_hand_grenade">>,<<"poison_gas">>,<<"sure_hit">>,<<"talisman_of_death">>,<<"none">>]}]}}]},
 
-    fprof:apply(?MODULE, battle_test_100, [Data, 100]),
+    fprof:apply(?MODULE, battle_test_100, [Data, 1000]),
     fprof:profile(),
     fprof:analyse({dest, "prof.fprof"}).

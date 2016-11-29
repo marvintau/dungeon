@@ -48,7 +48,7 @@ create_casts() ->
                   {{set, {0}, none}, {attr, dodge, def}},
                   {{set, {0}, none}, {attr, block, def}},
                   {{set, {0}, none}, {attr, resist, def}},
-                  {{set, {120}, none}, {attr, critical, off}}
+                  {{set, {119}, none}, {attr, critical, off}}
                  ]
                 }
             ]}
@@ -129,7 +129,7 @@ create_casts() ->
             {1, off, [
                 { {{0, 1, casting}, []},
                 [{{set, {0}, none}, {attr, dodge, off}},
-                 {{set, {150}, none}, {attr, block, off}},
+                 {{set, {119}, none}, {attr, block, off}},
                  {{set, {0}, none}, {attr, hit_bonus, def}},
                  {{set, {0}, none}, {attr, critical, def}}
                 ]}
@@ -231,7 +231,7 @@ create_casts() ->
                 {{set, {0}, none}, {attr, dodge, def}},
                 {{set, {0}, none}, {attr, block, def}},
                 {{set, {0}, none}, {attr, hit_bonus, off}},
-                {{set, {100}, none}, {attr, critical, off}}]}
+                {{set, {119}, none}, {attr, critical, off}}]}
             ]}
         ]}
     ],

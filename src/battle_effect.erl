@@ -11,6 +11,9 @@ who(off, O, _) -> O;
 who(def, _, D) ->D.
 
 
+rand() ->
+    element(3, erlang:timestamp())/1000000.
+
 % ========================== REFERRING OPERAND ==================================
 % expecting {Type, Attribute, PlayerID} or {Type, Attribute, offender/defender}.
 
@@ -22,7 +25,7 @@ ref({attr, Attr, P}) ->
     Value;
 
 ref({Low, High}) ->
-    round(Low + rand:uniform() * (High - Low));
+    round(Low + rand() * (High - Low));
 ref(SingleValue) -> SingleValue.
 
 % only used for referring destination
@@ -99,8 +102,8 @@ apply_trans({{Opcode, Oper, AddCond}, {_T, _A, P}=ToWhom}, O, D) ->
 
     IsResisted = case AddCond of
         resistable ->
-                rand:uniform() * 100 > maps:get(resist, maps:get(attr, D));
-        both -> rand:uniform() * 100 > maps:get(resist, maps:get(attr, D));
+                rand() * 100 > maps:get(resist, maps:get(attr, D));
+        both -> rand() * 100 > maps:get(resist, maps:get(attr, D));
         _ -> false
     end,
 

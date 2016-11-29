@@ -7,6 +7,8 @@
 -export([cast_talented/2, cast_effected/4]).
 
 
+rand() -> element(3, erlang:timestamp())/1000000.
+
 % to assign the sequence number of terminal condition, and the cast initiator.
 
 % If the cast effects in the current round, then the Start (sequential number
@@ -29,7 +31,7 @@ parse_single_effect(Name, {Cond, Trans}, #{seq:=CurrSeq}) ->
     {Name, condition(Cond, CurrSeq), Trans}.
 
 parse_single_group(Name, {Prob, ToWhom, Effects}, S) ->
-    case rand:uniform() < Prob of
+    case rand() < Prob of
         true -> {success, ToWhom, lists:map(fun(Spec) -> parse_single_effect(Name, Spec, S) end, Effects)};
         _ -> {failed, ToWhom, bad_luck}
     end.
