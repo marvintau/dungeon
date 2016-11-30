@@ -27,8 +27,8 @@ condition({{Start, Last, Phase}, Others}, CurrSeq) ->
 % latter function is the actual entrance that takes cast name as argument, and
 % find the specification in database, and re-interpret it with battle context.
 
-parse_single_effect(Name, {Cond, Trans}, #{seq:=CurrSeq}) ->
-    {Name, condition(Cond, CurrSeq), Trans}.
+parse_single_effect(Name, {Cond, Trans}, #{seq:=CurrSeq, mover:=Mover}) ->
+    {Name, Mover, condition(Cond, CurrSeq), Trans}.
 
 parse_single_group(Name, {Prob, ToWhom, Effects}, S) ->
     case rand() < Prob of

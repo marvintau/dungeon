@@ -139,7 +139,9 @@ attack_effected(State, #{attr:=#{attack_disabled:=0}}=O, D, Log) ->
     end,
 
     {DefReactedD, DefReactedO, DefReactedLog} = battle_effect:effect(State, MovedD, DoneMovedO, MovedLog),
-    battle_effect:effect(State, DefReactedO, DefReactedD, DefReactedLog);
+    {ReactedO, ReactedD, ReactedLog} = battle_effect:effect(State, DefReactedO, DefReactedD, DefReactedLog),
+
+    {ReactedO, ReactedD, ReactedLog};
 
 attack_effected(_State, #{state:=StateO}=O, D, Log) ->
     {O#{done:=already, state:=StateO#{rem_moves:=0}}, D, Log}.

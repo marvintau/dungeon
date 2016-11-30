@@ -22,7 +22,7 @@ create_casts() ->
 
     Talents = [
         {brave_shield_counterback, talent, [
-            {1, def, [
+            {1, off, [
                 {
                  {{0, null, attacking}, [{block, '==', {attr, outcome, off}}]},
                  [{{add, {-125}, absorbable},{attr, hp, def}}]
@@ -239,8 +239,7 @@ create_casts() ->
     Mage = [
         {vampiric_bolt, mage, [
             {1, def, [
-                { {{0, 1, casting}, []}, [{{add_inc_mul, {{attr, hp, def}, 0.1}, resistable}, {attr, hp, off}}]},
-                { {{0, 1, casting}, []}, [{{add_mul, {-0.1}, resistable}, {attr, hp, def}}]}
+                { {{0, 1, casting}, []}, [{{add_inc_mul, {{attr, hp, def}, 0.1}, none}, {attr, hp, off}}, {{add_mul, {-0.1}, none}, {attr, hp, def}}]}
             ]}
         ]},
 

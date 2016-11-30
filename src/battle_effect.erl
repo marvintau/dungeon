@@ -112,9 +112,20 @@ apply_trans({{Opcode, Oper, AddCond}, {_T, _A, P}=ToWhom}, O, D) ->
     end.
 
 
-log(#{seq:=Seq, stage:=Stage, mover:=Mover}, EffName, _, {_, {_, hp, P}}, #{state:=#{hp:=HpO}}=O, #{state:=#{hp:=HpD}}=D) ->
+log(#{seq:=Seq, stage:=Stage}, EffName, Mover, resisted, {_, {_, _, P}}, #{state:=#{hp:=HpO}}=O, #{state:=#{hp:=HpD}}=D) ->
 
+    Def = who(P, O, D),
+    #{id:=DefId} = Def,
 
+    {[
+        { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, DefId},
+        { hand, none}, { action, EffName},
+        { outcome, resisted }, { damage, 0 },
+        { offender_hp, HpO },
+        { defender_hp, HpD }
+    ]};
+
+log(#{seq:=Seq, stage:=Stage}, EffName, Mover, _, {_, {_, hp, P}}, #{state:=#{hp:=HpO}}=O, #{state:=#{hp:=HpD}}=D) ->
 
     Def = who(P, O, D),
     #{id:=DefId, state:=#{diff:=Damage}} = Def,
@@ -127,24 +138,15 @@ log(#{seq:=Seq, stage:=Stage, mover:=Mover}, EffName, _, {_, {_, hp, P}}, #{stat
         { defender_hp, HpD }
     ]};
 
-log(#{seq:=Seq, stage:=Stage, mover:=Mover}, EffName, resisted, {_, {_, _, P}}, #{state:=#{hp:=HpO}}=O, #{state:=#{hp:=HpD}}=D) ->
 
-    {[
-        { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, maps:get(id, who(P, O, D))},
-        { hand, none}, { action, EffName},
-        { outcome, resisted }, { damage, maps:get(diff, maps:get(state, who(P, O, D))) },
-        { offender_hp, HpO },
-        { defender_hp, HpD }
-    ]};
-
-log(_, _, _, _, _, _) -> {[]}.
+log(_, _, _, _, _, _, _) -> {[]}.
 
 % ======================== APPLY ALL TRANSFERS IN A LIST ========================
 % For each trans operation, apply_trans_with_log combines the player context with
 % log. Since the transfers are written in a list, the apply_trans_all.g_nested will
 % apply all the transfers sequentially over the player context, and returns log.
 
-apply_trans_logged(EffName, Trans, S, O, D) ->
+apply_trans_logged(EffName, Mover, Trans, S, O, D) ->
    
     {EffectStatus, _Destination, TransedO, TransedD} = apply_trans(Trans, O, D),
 
@@ -154,15 +156,15 @@ apply_trans_logged(EffName, Trans, S, O, D) ->
     end,
 
 
-    {TransedO, TransedD, log(S, EffName, EffectStatus, Trans, TransedO, TransedD)}.
+    {TransedO, TransedD, log(S, EffName, Mover, EffectStatus, Trans, TransedO, TransedD)}.
 
-apply_trans_all(EffName, TransList, S, O, D) ->
-    apply_trans_all(EffName, TransList, S, O, D, []).
-apply_trans_all(EffName, [Trans | RemTrans], S, O, D, Logs) ->
+apply_trans_all(EffName, Mover, TransList, S, O, D) ->
+    apply_trans_all(EffName, Mover, TransList, S, O, D, []).
+apply_trans_all(EffName, Mover, [Trans | RemTrans], S, O, D, Logs) ->
 
-    {AppliedO, AppliedD, L} = apply_trans_logged(EffName, Trans, S, O, D),
-    apply_trans_all(EffName, RemTrans, S, AppliedO, AppliedD, [L | Logs]);
-apply_trans_all(_EffName, [], _S, O, D, Logs) ->
+    {AppliedO, AppliedD, L} = apply_trans_logged(EffName, Mover, Trans, S, O, D),
+    apply_trans_all(EffName, Mover, RemTrans, S, AppliedO, AppliedD, [L | Logs]);
+apply_trans_all(_EffName, _Mover, [], _S, O, D, Logs) ->
     {O, D, Logs}.
 
 % ======================== CHECK SINGLE CONDITION ===============================
@@ -211,12 +213,12 @@ cond_check({SeqCond, CondList}, S, O, D) ->
 
 apply_effect(Effect, State, {O, D}) ->
 
-    {Name, Conds, Specs} = Effect,
+    {Name, Mover, Conds, Specs} = Effect,
 
     case cond_check(Conds, State, O, D) of
         
         true ->
-            apply_trans_all(Name, Specs, State, O, D);
+            apply_trans_all(Name, Mover, Specs, State, O, D);
         
         _    ->
             {O, D, []}

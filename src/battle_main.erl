@@ -111,14 +111,14 @@ loop(#{mover:=Mover}=State, #{done:=not_yet}=P1, #{id:=Mover, done:=already}=P2,
 % modification regarding attributes will be restored except HP, number
 % of remaining attacks current gamer in move.
 
-loop(#{stage:=attacking, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L, FL) ->
+loop(#{stage:=attacking, mover:=Mover, seq:=Seq}=S, #{id:=IDA, attr:=AttrA}=A, #{id:=IDB, attr:=AttrB}=B, L, FL) ->
 
     {#{state:=#{hp:=HpA}}=AttackA, #{state:=#{hp:=HpB}}=AttackB, AttackLog} = case Mover of
         IDA -> battle_attack:attack_effected(S, A, B, L);
         IDB -> {NewB, NewA, NewLog} = battle_attack:attack_effected(S, B, A, L), {NewA, NewB, NewLog}
     end,
 
-    loop(S, AttackA, AttackB, AttackLog, [#{seq=>Seq, a=>HpA, b=>HpB} | FL]);
+    loop(S, AttackA#{attr:=AttrA#{outcome:=none}}, AttackB#{attr:=AttrB#{outcome:=none}}, AttackLog, [#{seq=>Seq, a=>HpA, b=>HpB} | FL]);
 
 
 % ------------------------- LOOP FOR CAST -----------------------------
