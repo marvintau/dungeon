@@ -10,10 +10,6 @@
 who(off, O, _) -> O;
 who(def, _, D) ->D.
 
-
-rand() ->
-    element(3, erlang:timestamp())/1000000.
-
 % ========================== REFERRING OPERAND ==================================
 % expecting {Type, Attribute, PlayerID} or {Type, Attribute, offender/defender}.
 
@@ -25,7 +21,7 @@ ref({attr, Attr, P}) ->
     Value;
 
 ref({Low, High}) ->
-    round(Low + rand() * (High - Low));
+    round(Low + rand:uniform() * (High - Low));
 ref(SingleValue) -> SingleValue.
 
 % only used for referring destination
@@ -54,6 +50,8 @@ trans({set, Imm, _}, {attr, Attr, P}) ->
     end,
 
     #{Type:=#{Attr:=Orig}=TypeInstance} = P,
+
+    erlang:display(Attr),
 
     ReferredImm = ref(Imm),
 
@@ -102,8 +100,8 @@ apply_trans({{Opcode, Oper, AddCond}, {_T, _A, P}=ToWhom}, O, D) ->
 
     IsResisted = case AddCond of
         resistable ->
-                rand() * 100 > maps:get(resist, maps:get(attr, D));
-        both -> rand() * 100 > maps:get(resist, maps:get(attr, D));
+                rand:uniform() * 120 > maps:get(resist, maps:get(attr, D));
+        both -> rand:uniform() * 120 > maps:get(resist, maps:get(attr, D));
         _ -> false
     end,
 
@@ -115,6 +113,8 @@ apply_trans({{Opcode, Oper, AddCond}, {_T, _A, P}=ToWhom}, O, D) ->
 
 
 log(#{seq:=Seq, stage:=Stage, mover:=Mover}, EffName, _, {_, {_, hp, P}}, #{state:=#{hp:=HpO}}=O, #{state:=#{hp:=HpD}}=D) ->
+
+
 
     Def = who(P, O, D),
     #{id:=DefId, state:=#{diff:=Damage}} = Def,
@@ -146,8 +146,13 @@ log(_, _, _, _, _, _) -> {[]}.
 
 apply_trans_logged(EffName, Trans, S, O, D) ->
    
-
     {EffectStatus, _Destination, TransedO, TransedD} = apply_trans(Trans, O, D),
+
+    case EffName == talisman_of_death of
+        true -> erlang:display(Trans);
+        _ -> ok
+    end,
+
 
     {TransedO, TransedD, log(S, EffName, EffectStatus, Trans, TransedO, TransedD)}.
 

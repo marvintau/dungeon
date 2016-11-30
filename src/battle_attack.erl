@@ -16,10 +16,6 @@ bin(_, _, [], Ith) -> Ith;
 bin(GivenVal, Accum, _, Ith) when GivenVal < Accum -> Ith;
 bin(GivenVal, Accum, [Bin|Bins], Ith) -> bin(GivenVal, Accum+Bin, Bins, Ith+1).
 
-rotate(Roulette) ->
-
-    element(bin(rand:uniform() * 120, Roulette), {attack, dodge, resist, block, critical}).
-
 
 % ----------------------- PREPARE ROULETTE ----------------------------
 % Roulette is generated from the player's attribute, the current weapon
@@ -32,7 +28,7 @@ rotate(Roulette) ->
 % part of Dodge, Resist, Block and Critical, the remaining part will left
 % for plain attack.
 
-prepare_roulette_from(
+roulette(
     #{curr_hand:={_, Curr, _}, attr:=#{hit_bonus:=Hit, critical:=Critical}},
     #{secd_hand:={_, Secd, _}, attr:=#{resist:=Res, block:=Blo, dodge:=Dod}}
 ) ->
@@ -58,7 +54,9 @@ prepare_roulette_from(
         _ -> 0
     end,
 
-    [MAX_LIMIT - NewDodge - Resist - Block - Critical, NewDodge, Resist, Block, Critical].
+    Roulette = [MAX_LIMIT - NewDodge - Resist - Block - Critical, NewDodge, Resist, Block, Critical],
+
+    element(bin(rand:uniform() * 120, Roulette), {attack, dodge, resist, block, critical}).
 
 % --------------- PLAYER AS MAGE ------------------------------
 % Magic attack cannot be blocked, thus make sure that block has
@@ -106,7 +104,7 @@ attack(S,
          state:=#{rem_moves:=RemMoves}=StateA}=A,
        #{attr:=#{armor:=Armor}=CurrAttrD, state:=#{hp:=H2}=StateD}=D, L) ->
 
-    Outcome = rotate(prepare_roulette_from(A, D)),
+    Outcome = roulette(A, D),
     
     Damage = calculate_damage(AttackType, Outcome, DamageRange, Armor),
 
@@ -139,7 +137,7 @@ attack_effected(State, #{attr:=#{attack_disabled:=0}}=O, D, Log) ->
         0 -> MovedO#{done:=already};
         _ -> MovedO
     end,
-    
+
     {DefReactedD, DefReactedO, DefReactedLog} = battle_effect:effect(State, MovedD, DoneMovedO, MovedLog),
     battle_effect:effect(State, DefReactedO, DefReactedD, DefReactedLog);
 

@@ -142,7 +142,7 @@ loop(#{stage:=settling, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L
 
     {#{state:=#{hp:=HpA}}=SettleA, #{state:=#{hp:=HpB}}=SettleB, SettleLog} = case Mover of
         IDA -> battle_effect:effect(S, A#{done:=already}, B, L);
-        IDB -> {NewB, NewA, NewLog} = battle_cast:cast_effected(S, B#{done:=already}, A, L), {NewA, NewB, NewLog}
+        IDB -> {NewB, NewA, NewLog} = battle_effect:effect(S, B#{done:=already}, A, L), {NewA, NewB, NewLog}
     end,
 
     loop(S, SettleA, SettleB, SettleLog, [#{seq=>Seq, a=>HpA, b=>HpB} | FL]).

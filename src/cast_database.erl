@@ -92,7 +92,7 @@ create_casts() ->
 
         {talisman_of_death, general, [
             {1, def, [
-                { {{0, 1, casting}, []}, [{{add, {-100}, resistable}, {attr, hp, def}}]}
+                { {{0, 1, casting}, []}, [{{add_mul, {-0.15}, resistable}, {attr, hp, def}}]}
             ]}
         ]},
 

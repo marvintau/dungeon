@@ -209,12 +209,9 @@ $("#submit-20").on('click', function(){
 
             $('#table-section').empty();
 
-            // $.make_graph(data.full_log);  
-
             result[data.res] = (result[data.res]||0) + 1;
             
             $("<span>"+JSON.stringify(result)+"</span>").appendTo("#table-section");
-
 
         }, "json").fail(function() {
             console.log( "error" );
@@ -230,10 +227,6 @@ $("#submit").on('click', function(){
 
     $.postJSON("/get_result", OutgoingData, function(data){
 
-        IncomingData = data;
-        IncomingData.player1 = OutgoingData.player1;
-        IncomingData.player2 = OutgoingData.player2;
-
         $('#table-section').empty();
 
         var table = $.makeTable(data.proc, OutgoingData.player1.id, OutgoingData.player2.id);
@@ -243,6 +236,13 @@ $("#submit").on('click', function(){
 
         var res ="<div class=\"cap\"><br>Win:" + data.res + "</b>";
         $(res).appendTo("#table");
+
+
+        data.player1 = OutgoingData.player1;
+        data.player2 = OutgoingData.player2;
+        delete data.full_log;
+        console.log(JSON.stringify(data));
+
 
     }, "json").fail(function() {
         console.log( "error" );
