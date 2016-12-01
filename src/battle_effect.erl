@@ -100,8 +100,8 @@ apply_trans({{Opcode, Oper, AddCond}, {_T, _A, P}=ToWhom}, O, D) ->
 
     IsResisted = case AddCond of
         resistable ->
-                rand:uniform() * 120 > maps:get(resist, maps:get(attr, D));
-        both -> rand:uniform() * 120 > maps:get(resist, maps:get(attr, D));
+                rand:uniform() * 120 < maps:get(resist, maps:get(attr, D));
+        both -> rand:uniform() * 120 < maps:get(resist, maps:get(attr, D));
         _ -> false
     end,
 
