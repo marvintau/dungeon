@@ -13,3 +13,10 @@ seq({{Start, null, Phase}, Others}, CurrSeq) ->
 seq({{Start, Last, Phase}, Others}, CurrSeq) ->
     {{CurrSeq + Start, CurrSeq + Start + Last, Phase}, Others}.
 
+
+% comp({Val, '==', TAP}, O, D) -> 
+%     Val == ref_whom_get(TAP, O, D);
+% comp({Val, '>', TAP}, O, D) ->
+%     Val > ref_whom_get(TAP, O, D);
+% comp({Val, '<', TAP}, O, D) ->
+%     Val < ref_whom_get(TAP, O, D).
