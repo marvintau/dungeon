@@ -1,18 +1,29 @@
 -module(ref).
 
--export([ref/1]).
+-compile({no_auto_import,[get/1]}).
+-export([get/1, val/1, set/2]).
 
 % Ref: a frequently used data structure that refers to an attribute
 % of specific player.
 
-ref({ref, hp, #{state:=#{hp:=Hp}}}) -> Hp;
-ref({ref, rem_moves, #{state:=#{rem_moves:=RemMoves}}}) -> RemMoves;
+get({AttrType, Attr, P}) ->
+	#{AttrType:=#{Attr:=Val}} = P, Val.
 
-ref({ref, Attr, P}) -> 
-    #{attr:=#{Attr:=Value}} = P,
-    Value;
 
-ref({Low, High}) ->
+set({AttrType, Attr, P}=Ref, Val) when is_number(Val) ->
+	#{AttrType:=AttrSet} = P,
+	P#{AttrType:=AttrSet#{ Attr:=round(Val), diff:=round(Val-get(Ref)) }};
+
+set({AttrType, Attr, P}, Val) ->
+	#{AttrType:=AttrSet} = P,
+	P#{AttrType:=AttrSet#{ Attr:=round(Val) }}.
+
+
+val({_, _, _}=Ref) ->
+	get(Ref);
+
+val({Low, High}) ->
     round(Low + rand:uniform() * (High - Low));
-ref(SingleValue) -> SingleValue.
+
+val(SingleValue) -> SingleValue.
 

@@ -16,8 +16,8 @@ who(def, _, D) ->D.
 % only used for referring destination
 ref_whom({T, A, P}, O, D) -> {T, A, who(P, O, D)}.
 
-ref_whom_get({T, A, P}, O, D) -> ref:ref(ref_whom({T, A, P}, O, D));
-ref_whom_get(Other, _O, _D) -> ref:ref(Other).
+ref_whom_get({T, A, P}, O, D) -> ref:val(ref_whom({T, A, P}, O, D));
+ref_whom_get(Other, _O, _D) -> ref:val(Other).
 
 % =========================== TRANSFER FUNCTIONS ===============================
 % Apply transfer operations over specific attributes of player context. The type

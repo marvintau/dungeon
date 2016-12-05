@@ -19,7 +19,7 @@ parse_single_player(SinglePlayerData) ->
         % State is the data that will be modified during a battle, and the result will
         % be preserved.
 
-        state      => #{
+        state => #{
             hp         => HP,
             rem_moves  => 0,
             diff => 0

@@ -12,3 +12,4 @@ seq({{Start, null, Phase}, Others}, CurrSeq) ->
 
 seq({{Start, Last, Phase}, Others}, CurrSeq) ->
     {{CurrSeq + Start, CurrSeq + Start + Last, Phase}, Others}.
+
