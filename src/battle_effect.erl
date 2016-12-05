@@ -13,22 +13,11 @@ who(def, _, D) ->D.
 % ========================== REFERRING OPERAND ==================================
 % expecting {Type, Attribute, PlayerID} or {Type, Attribute, offender/defender}.
 
-ref({attr, hp, #{state:=#{hp:=Hp}}}) -> Hp;
-ref({attr, rem_moves, #{state:=#{rem_moves:=RemMoves}}}) -> RemMoves;
-
-ref({attr, Attr, P}) -> 
-    #{attr:=#{Attr:=Value}} = P,
-    Value;
-
-ref({Low, High}) ->
-    round(Low + rand:uniform() * (High - Low));
-ref(SingleValue) -> SingleValue.
-
 % only used for referring destination
 ref_whom({T, A, P}, O, D) -> {T, A, who(P, O, D)}.
 
-ref_whom_get({T, A, P}, O, D) -> ref(ref_whom({T, A, P}, O, D));
-ref_whom_get(Other, _O, _D) -> ref(Other).
+ref_whom_get({T, A, P}, O, D) -> ref:ref(ref_whom({T, A, P}, O, D));
+ref_whom_get(Other, _O, _D) -> ref:ref(Other).
 
 % =========================== TRANSFER FUNCTIONS ===============================
 % Apply transfer operations over specific attributes of player context. The type
@@ -40,46 +29,6 @@ ref_whom_get(Other, _O, _D) -> ref(Other).
 %
 % expecting {Opcode, Value, React} where opcode of set/add/add_mul/add_inc_mul,
 % and Value of number, interval or {type, attribute, off/def} triple.
-
-trans({set, Imm, _}, {attr, Attr, P}) ->
-
-    Type = case Attr of
-        hp -> state;
-        rem_moves -> state;
-        _ -> attr
-    end,
-
-    #{Type:=#{Attr:=Orig}=TypeInstance} = P,
-
-    erlang:display(Attr),
-
-    ReferredImm = ref(Imm),
-
-    case is_number(ReferredImm) of
-        true -> P#{Type:=TypeInstance#{Attr:=round(ReferredImm), diff:=round(Orig - ReferredImm)}};
-        _    -> P#{Type:=TypeInstance#{Attr:=ReferredImm}}
-    end;
-
-trans({add, Inc, absorbable}, {_, _, P}=ToWhom) ->
-    ArmorRatio = 1 - ref({attr, armor, P}) / 10000,
-    trans({set, ref(ToWhom) + ref(Inc) * ArmorRatio, none}, ToWhom);
-
-trans({add, Inc, both}, {_, _, P}=ToWhom) ->
-    ArmorRatio = 1 - ref({attr, armor, P}) / 10000,
-    trans({set, ref(ToWhom) + ref(Inc) * ArmorRatio, none}, ToWhom);
-
-% handles when there is no additional status, or resistable but not actually
-% resisted.
-
-trans({add, Inc, _}, ToWhom) ->
-    trans({set, ref(ToWhom) + ref(Inc), none}, ToWhom);
-
-trans({add_mul, Mul, Absorbing}, ToWhom) ->
-    trans({add, ref(ToWhom) * ref(Mul), Absorbing}, ToWhom);
-
-trans({add_inc_mul, {Inc, Mul}, Absorbing}, ToWhom) ->
-    trans({add, ref(Inc) * ref(Mul), Absorbing}, ToWhom).
-
 
 % ========================== APPLY TRANS FUNCTION ===============================
 % apply_trans function will introduce the actual player context, and calculates
@@ -107,8 +56,8 @@ apply_trans({{Opcode, Oper, AddCond}, {_T, _A, P}=ToWhom}, O, D) ->
 
     case {IsResisted, P} of
         {true, _} -> {resisted, ToWhom, O, D};
-        {_, off} -> {effected, ToWhom, trans({Opcode, RefOperand, AddCond}, RefWhom), D};
-        {_, def} -> {effected, ToWhom, O, trans({Opcode, RefOperand, AddCond}, RefWhom)}
+        {_, off} -> {effected, ToWhom, trans:trans({Opcode, RefOperand, AddCond}, RefWhom), D};
+        {_, def} -> {effected, ToWhom, O, trans:trans({Opcode, RefOperand, AddCond}, RefWhom)}
     end.
 
 
@@ -137,7 +86,6 @@ log(#{seq:=Seq, stage:=Stage}, EffName, Mover, _, {_, {_, hp, P}}, #{state:=#{hp
         { offender_hp, HpO },
         { defender_hp, HpD }
     ]};
-
 
 log(_, _, _, _, _, _, _) -> {[]}.
 

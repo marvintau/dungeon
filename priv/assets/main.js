@@ -194,13 +194,20 @@ $.make_graph = function(full_log){
     Plotly.newPlot('chart-section', [a_trace, b_trace], layout);
 }
 
+$("#save-1").on('click', function(){
+    var OutgoingData = $.getData().player1;
+
+    $.postJSON("/save_player", OutgoingData, function(data){
+        console.log("save 1 done");
+    })
+});
+
+
 $("#submit-20").on('click', function(){
 
     var OutgoingData = $.getData()
 
     result = {};
-
-
 
     for(var i = 0; i < 1000; i++){
         $.postJSON("/get_result", OutgoingData, function(data){

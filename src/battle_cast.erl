@@ -15,6 +15,8 @@ rand() -> element(3, erlang:timestamp())/1000000.
 % of starting) should be 0, and the Last (the rounds that the effect of cast
 % last for) should be 1.
 
+condition({{Start, {Last1, Last2}, Phase}, Others}, CurrSeq) ->
+    {{CurrSeq + Start, rand() * (Last2 - Last1) + Last1, Phase}, Others};
 
 condition({{Start, null, Phase}, Others}, CurrSeq) ->
     {{CurrSeq + Start, 9999, Phase}, Others};
