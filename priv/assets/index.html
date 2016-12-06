@@ -15,6 +15,7 @@
         <!-- Bootstrap core CSS -->
         <link href="bower_components/bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">
         <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="styles/tomorrow-night-eighties.css" rel="stylesheet">
         <link href="magicsuggest-min.css" rel="stylesheet">
 
         <style type="text/css">
@@ -39,7 +40,7 @@
         </nav>
 
         <div class="col-md-12">
-            <div class="col-md-4">
+            <div class="col-md-4" style="position: fixed;">
                 <div class="row">
                     <div class="form-group-sm col-sm-2">
                         <label>玩家1 ID</label>
@@ -266,10 +267,12 @@
 
             </div>
 
-            <div id="chart-section" height="600" class="col-md-6" style="height:400px;">
-            </div>
+            <div class="col-md-6" style="left:900px;">
+                <div id="chart-section" height="600" style="height:400px;">
+                </div>
 
-            <div id="table-section" class="col-md-6">
+                <div id="table-section" >
+                </div>
             </div>
 
         </div><!-- /.container -->
@@ -282,6 +285,8 @@
         <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
         <script src="magicsuggest.js"></script>
         <script src="plotly-latest.min.js"></script>
+        <script src="highlight.pack.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
         <script src="main.js"></script>
         </body>
     </html>

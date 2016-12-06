@@ -94,7 +94,7 @@ log(#{seq:=Seq, stage:=Stage, mover:=Mover},
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, IdD},
         { hand, Which}, { action, WeaponType},
-        { outcome, Outcome }, { damage, Damage },
+        { outcome_note, Outcome }, {outcome, []}, { damage, Damage },
         { offender_hp, HpO}, { defender_hp, HpD}
     ]}.
 

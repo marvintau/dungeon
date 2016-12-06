@@ -124,24 +124,16 @@ $.getData = function () {
     }    
 }
 
-$.makeTable = function (mydata) {
-    var table = $('<table id="table" class="table table-striped">');
-    var tblHeader = "<thead><tr>";
-    for (var k in mydata[0]) tblHeader += "<th>" + k + "</th>";
-    tblHeader += "</tr></thead>";
-    $(tblHeader).appendTo(table);
+$.makeJSON = function (mydata) {
+    var show = $('<pre></pre>');
+    var opener = "<code class=\"json\">";
 
-    var tblBody = $('<tbody></tbody>').appendTo(table);
+    opener += JSON.stringify(mydata, null, '\t')
 
-    $.each(mydata, function (index, value) {
-        var TableRow = "<tr>";
-        $.each(value, function (key, val) {
-            TableRow += "<td>" + val + "</td>";
-        });
-        TableRow += "</tr>";
-        $(tblBody).append(TableRow);
-    });
-    return ($(table));
+    opener += "</code>";
+    $(opener).appendTo(show);
+
+    return ($(show));
 };
 
 $.postJSON = function(url, data, callback) {
@@ -202,6 +194,10 @@ $("#save-1").on('click', function(){
     })
 });
 
+$("#save-1").on('click', function(){
+
+})
+
 
 $("#submit-20").on('click', function(){
 
@@ -236,9 +232,6 @@ $("#submit").on('click', function(){
 
         $('#table-section').empty();
 
-        var table = $.makeTable(data.proc, OutgoingData.player1.id, OutgoingData.player2.id);
-        $(table).appendTo("#table-section");
-
         $.make_graph(data.full_log);  
 
         var res ="<div class=\"cap\"><br>Win:" + data.res + "</b>";
@@ -248,8 +241,10 @@ $("#submit").on('click', function(){
         data.player1 = OutgoingData.player1;
         data.player2 = OutgoingData.player2;
         delete data.full_log;
-        console.log(JSON.stringify(data));
-
+        var table = $.makeJSON(data);
+        $(table).appendTo("#table-section");
+        
+        hljs.highlightBlock(table.get(0));
 
     }, "json").fail(function() {
         console.log( "error" );

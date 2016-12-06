@@ -5,87 +5,44 @@
 
 -export([effect/4]).
 
-
-log(#{seq:=Seq, stage:=Stage}, EffName, Mover, resisted, {_, {_, _, P}}, #{state:=#{hp:=HpO}}=O, #{state:=#{hp:=HpD}}=D) ->
-
-    {[
-        { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, who},
-        { hand, none}, { action, EffName},
-        { outcome, resisted }, { damage, 0 },
-        { offender_hp, HpO },
-        { defender_hp, HpD }
-    ]};
-
-log(#{seq:=Seq, stage:=Stage}, EffName, Mover, _, {_, {_, hp, P}}, #{state:=#{hp:=HpO}}=O, #{state:=#{hp:=HpD}}=D) ->
+log(EffName, Mover, #{seq:=Seq, stage:=Stage}, #{state:=#{hp:=HpO}}, #{state:=#{hp:=HpD}}, EffectNote, Logs) ->
 
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, who},
-        { hand, none}, { action, EffName},
-        { outcome, effected }, { damage, HpD },
+        { hand, none}, { action, EffName}, {outcome_note, EffectNote},
+        { outcome, Logs }, { damage, 0 },
         { offender_hp, HpO },
         { defender_hp, HpD }
-    ]};
+    ]}.
 
-log(_, _, _, _, _, _, _) -> {[]}.
 
 % ======================== APPLY ALL TRANSFERS IN A LIST ========================
 % For each trans operation, apply_trans_with_log combines the player context with
 % log. Since the transfers are written in a list, the apply_trans_all.g_nested will
 % apply all the transfers sequentially over the player context, and returns log.
-
-apply_trans_logged(EffName, Mover, Trans, S, O, D) ->
    
-    {EffectStatus, _Destination, TransedO, TransedD} = trans:trans(Trans, O, D),
-
-    {TransedO, TransedD, log(S, EffName, Mover, EffectStatus, Trans, TransedO, TransedD)}.
-
-apply_trans_all(EffName, Mover, TransList, S, O, D) ->
-    apply_trans_all(EffName, Mover, TransList, S, O, D, []).
-apply_trans_all(EffName, Mover, [Trans | RemTrans], S, O, D, Logs) ->
-
-    {AppliedO, AppliedD, L} = apply_trans_logged(EffName, Mover, Trans, S, O, D),
-    apply_trans_all(EffName, Mover, RemTrans, S, AppliedO, AppliedD, [L | Logs]);
-apply_trans_all(_EffName, _Mover, [], _S, O, D, Logs) ->
-    {O, D, Logs}.
-
-% ======================== CHECK SINGLE CONDITION ===============================
-% besides the round control, the condition checking stage also goes through other
-% attributes checking, such as the outcome of last attack.
-cond_single({Val, '==', TAP}, O, D) -> 
-    Val == ref:val(TAP, O, D);
-cond_single({Val, '>', TAP}, O, D) ->
-    Val > ref:val(TAP, O, D);
-cond_single({Val, '<', TAP}, O, D) ->
-    Val < ref:val(TAP, O, D).
-
-cond_list(CondList, O, D) -> cond_list(CondList, O, D, true).
-cond_list([Cond | RemConds], O, D, TrueValue) ->
-    cond_list(RemConds, O, D, TrueValue and cond_single(Cond, O, D));
-cond_list([], _, _, TrueValue) -> TrueValue.
 
 
-% ====================== SEQUENTIAL CONDITION CHECK =============================
-% checks whether the battle goes to specific round and stage.
-seq_cond({StartingSeq, TerminalSeq, Phase}, #{seq:=CurrSeq, stage:=CurrStage}) ->
+apply_trans_all(EffName, Last, Mover, TransList, EffectNote, S, O, D) ->
+    apply_trans_all(EffName, Last, Mover, TransList, EffectNote, S, O, D, []).
 
+apply_trans_all(EffName, Last, Mover, [Trans | RemTrans], EffectNote, S, #{id:=OID}=O, #{id:=DID}=D, Logs) ->
 
-    % If StartingSeq - CurrSeq is zero, that means we are in the current round
-    % that the effect is casted, which means the effect should be applied right
-    % after the casting. Otherwise, the effect is in the following rounds after
-    % casted, which should be applied in settling stage.
-    CalculatedPhase = case {Phase, StartingSeq - CurrSeq} of
-        {casting, 0} -> casting;
-        {casting, _} -> settling;
-        {_, _} -> Phase
-    end,
+    {{Status, Dest, Diff}, TransedO, TransedD} = trans:trans(Trans, O, D),
 
-    (CurrSeq >= StartingSeq) and (CurrSeq < TerminalSeq) and (CalculatedPhase == CurrStage).
+    {_, A, P} = Dest,
+
+    Log = {[{status, Status}, {last_round, Last}, {dest, {[{attr, A}, {person, ref:who_this(P, OID, DID)}]}}, {diff, Diff}]},
+
+    apply_trans_all(EffName, Last, Mover, RemTrans, EffectNote, S, TransedO, TransedD, [ Log | Logs]);
+
+apply_trans_all(EffName, _Last, Mover, [], EffectNote, S, O, D, Logs) ->
+    {O, D, [log(EffName, Mover, S, O, D, EffectNote, Logs)]}.
+
 
 % ============================ CONDITION CHECK  =================================
 % checking both of sequential and additional conditions.
 
-cond_check({SeqCond, CondList}, S, O, D) ->
-    seq_cond(SeqCond, S) and cond_list(CondList, O, D).
 
 % =========================== APPLYING EFFECTS ==================================
 % wrapper function to apply the effects over the player context, and mark whether
@@ -94,12 +51,12 @@ cond_check({SeqCond, CondList}, S, O, D) ->
 
 apply_effect(Effect, State, {O, D}) ->
 
-    {Name, Mover, Conds, Specs} = Effect,
+    {Name, Mover, {{_Start, Last, _Phase}, _} = Conds, Specs, EffectNote} = Effect,
 
-    case cond_check(Conds, State, O, D) of
+    case conds:check(Conds, State, O, D) of
         
         true ->
-            apply_trans_all(Name, Mover, Specs, State, O, D);
+            apply_trans_all(Name, Last, Mover, Specs, EffectNote, State, O, D);
         
         _    ->
             {O, D, []}

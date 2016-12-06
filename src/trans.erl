@@ -30,7 +30,6 @@ trans({add_mul, Mul, Absorbing}, ToWhom) ->
 trans({add_inc_mul, {Inc, Mul}, Absorbing}, ToWhom) ->
     trans({add, Inc * Mul, Absorbing}, ToWhom).
 
-
 trans({{Opcode, Oper, AddCond}, {T, A, P}}, O, D) ->
 
     RefOperand = case Oper of
@@ -47,8 +46,12 @@ trans({{Opcode, Oper, AddCond}, {T, A, P}}, O, D) ->
         _ -> false
     end,
 
+    TransedContext = trans:trans({Opcode, RefOperand, AddCond}, RefWhom),
+
+    TransedDiff = ref:get({T, diff, TransedContext}),
+
     case {IsResisted, P} of
-        {true, _} -> {resisted, {T, A, P}, O, D};
-        {_, off} -> {effected, {T, A, P}, trans:trans({Opcode, RefOperand, AddCond}, RefWhom), D};
-        {_, def} -> {effected, {T, A, P}, O, trans:trans({Opcode, RefOperand, AddCond}, RefWhom)}
+        {true, _} -> {{resisted, {T, A, P}, TransedDiff}, O, D};
+        {_, off} ->  {{effected, {T, A, P}, TransedDiff}, TransedContext, D};
+        {_, def} ->  {{effected, {T, A, P}, TransedDiff}, O, TransedContext}
     end.

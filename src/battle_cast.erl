@@ -9,28 +9,13 @@
 
 rand() -> element(3, erlang:timestamp())/1000000.
 
-% to assign the sequence number of terminal condition, and the cast initiator.
-
-% If the cast effects in the current round, then the Start (sequential number
-% of starting) should be 0, and the Last (the rounds that the effect of cast
-% last for) should be 1.
-
-condition({{Start, {Last1, Last2}, Phase}, Others}, CurrSeq) ->
-    {{CurrSeq + Start, rand() * (Last2 - Last1) + Last1, Phase}, Others};
-
-condition({{Start, null, Phase}, Others}, CurrSeq) ->
-    {{CurrSeq + Start, 9999, Phase}, Others};
-
-condition({{Start, Last, Phase}, Others}, CurrSeq) ->
-    {{CurrSeq + Start, CurrSeq + Start + Last, Phase}, Others}.
-
 % wrap all the operations. A mapping from original description of an effect
 % along with the current state, to a final form of effect description. The
 % latter function is the actual entrance that takes cast name as argument, and
 % find the specification in database, and re-interpret it with battle context.
 
-parse_single_effect(Name, {Cond, Trans}, #{seq:=CurrSeq, mover:=Mover}) ->
-    {Name, Mover, condition(Cond, CurrSeq), Trans}.
+parse_single_effect(Name, {Cond, Trans, EffectNote}, #{seq:=CurrSeq, mover:=Mover}) ->
+    {Name, Mover, conds:seq(Cond, CurrSeq), Trans, EffectNote}.
 
 parse_single_group(Name, {Prob, ToWhom, Effects}, S) ->
     case rand() < Prob of
@@ -41,7 +26,7 @@ parse_single_group(Name, {Prob, ToWhom, Effects}, S) ->
 parse_groups(Name, Groups, S) ->
    [parse_single_group(Name, Group, S) || Group <- Groups]. 
 
-log(CastName, ToWhom, Outcome, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
+log(CastName, ToWhom, failed, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
 
     ToWhomID = case ToWhom of
         off -> maps:get(id, O);
@@ -50,12 +35,13 @@ log(CastName, ToWhom, Outcome, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
 
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, ToWhomID},
-        { hand, none}, { action, CastName},
-        { outcome, Outcome }, { damage, 0 },
+        { hand, none}, { action, CastName}, {outcome_note, failed},
+        { outcome, [] }, { damage, 0 },
         { offender_hp, maps:get(hp, maps:get(state, O)) },
         { defender_hp, maps:get(hp, maps:get(state, D)) }
-    ]}.
+    ]};
 
+log(_, _, _, _, _, _) -> {[]}.
 parse_groups_logged({Name, _Type, Groups}, S, O, D) ->
     Parsed = parse_groups(Name, Groups, S),
     {Logs, Effects} = lists:unzip([{log(Name, ToWhom, Outcome, S, O, D), CurrEffects} || {Outcome, ToWhom, CurrEffects} <- Parsed]),
