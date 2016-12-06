@@ -1,7 +1,7 @@
--module(battle_attack).
+-module(attack).
 -author('Yue Marvin Tao').
 
--export([attack/4, attack_effected/4, bin/2]).
+-export([apply/4, bin/2]).
 
 
 
@@ -98,7 +98,7 @@ log(#{seq:=Seq, stage:=Stage, mover:=Mover},
         { offender_hp, HpO}, { defender_hp, HpD}
     ]}.
 
-attack(S,
+trans(S,
        #{curr_hand:={HandType, AttackType, DamageRange}, prim_hand:=PrimHand, secd_hand:=SecdHand,
          attr:=#{damage_multiplier:=DamageMul, critical_multiplier:=CritMul, damage_addon:=DamageAddon},
          state:=#{rem_moves:=RemMoves}=StateA}=A,
@@ -129,19 +129,19 @@ attack(S,
     {NextA#{state:=StateA#{rem_moves:=RemMoves-1}}, NextD, NextLog}.
 
 
-attack_effected(State, #{attr:=#{attack_disabled:=0}}=O, D, Log) ->
+apply(State, #{attr:=#{attack_disabled:=0}}=O, D, Log) ->
 
-    {#{state:=#{rem_moves:=RemMovesO}}=MovedO, MovedD, MovedLog} = battle_attack:attack(State, O, D, Log),
+    {#{state:=#{rem_moves:=RemMovesO}}=MovedO, MovedD, MovedLog} = trans(State, O, D, Log),
 
     DoneMovedO = case RemMovesO of
         0 -> MovedO#{done:=already};
         _ -> MovedO
     end,
 
-    {DefReactedD, DefReactedO, DefReactedLog} = battle_effect:effect(State, MovedD, DoneMovedO, MovedLog),
-    {ReactedO, ReactedD, ReactedLog} = battle_effect:effect(State, DefReactedO, DefReactedD, DefReactedLog),
+    {DefReactedD, DefReactedO, DefReactedLog} = effect:apply(State, MovedD, DoneMovedO, MovedLog),
+    {ReactedO, ReactedD, ReactedLog} = effect:apply(State, DefReactedO, DefReactedD, DefReactedLog),
 
     {ReactedO, ReactedD, ReactedLog};
 
-attack_effected(_State, #{state:=StateO}=O, D, Log) ->
+apply(_State, #{state:=StateO}=O, D, Log) ->
     {O#{done:=already, state:=StateO#{rem_moves:=0}}, D, Log}.

@@ -114,8 +114,8 @@ loop(#{mover:=Mover}=State, #{done:=not_yet}=P1, #{id:=Mover, done:=already}=P2,
 loop(#{stage:=attacking, mover:=Mover, seq:=Seq}=S, #{id:=IDA, attr:=AttrA}=A, #{id:=IDB, attr:=AttrB}=B, L, FL) ->
 
     {#{state:=#{hp:=HpA}}=AttackA, #{state:=#{hp:=HpB}}=AttackB, AttackLog} = case Mover of
-        IDA -> battle_attack:attack_effected(S, A, B, L);
-        IDB -> {NewB, NewA, NewLog} = battle_attack:attack_effected(S, B, A, L), {NewA, NewB, NewLog}
+        IDA -> attack:apply(S, A, B, L);
+        IDB -> {NewB, NewA, NewLog} = attack:apply(S, B, A, L), {NewA, NewB, NewLog}
     end,
 
     loop(S, AttackA#{attr:=AttrA#{outcome:=none}}, AttackB#{attr:=AttrB#{outcome:=none}}, AttackLog, [#{seq=>Seq, a=>HpA, b=>HpB} | FL]);
@@ -126,8 +126,8 @@ loop(#{stage:=attacking, mover:=Mover, seq:=Seq}=S, #{id:=IDA, attr:=AttrA}=A, #
 loop(#{stage:=casting, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L, FL) ->
 
     {#{state:=#{hp:=HpA}}=CastA, #{state:=#{hp:=HpB}}=CastB, CastLog} = case Mover of
-        IDA -> battle_cast:cast_effected(S, A, B, L);
-        IDB -> {NewB, NewA, NewLog} = battle_cast:cast_effected(S, B, A, L), {NewA, NewB, NewLog}
+        IDA -> cast:apply(S, A, B, L);
+        IDB -> {NewB, NewA, NewLog} = cast:apply(S, B, A, L), {NewA, NewB, NewLog}
     end,
 
     loop(S, CastA, CastB, CastLog, [#{seq=>Seq, a=>HpA, b=>HpB} | FL]);
@@ -141,8 +141,8 @@ loop(#{stage:=casting, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L,
 loop(#{stage:=settling, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L, FL) ->
 
     {#{state:=#{hp:=HpA}}=SettleA, #{state:=#{hp:=HpB}}=SettleB, SettleLog} = case Mover of
-        IDA -> battle_effect:effect(S, A#{done:=already}, B, L);
-        IDB -> {NewB, NewA, NewLog} = battle_effect:effect(S, B#{done:=already}, A, L), {NewA, NewB, NewLog}
+        IDA -> effect:apply(S, A#{done:=already}, B, L);
+        IDB -> {NewB, NewA, NewLog} = effect:apply(S, B#{done:=already}, A, L), {NewA, NewB, NewLog}
     end,
 
     loop(S, SettleA, SettleB, SettleLog, [#{seq=>Seq, a=>HpA, b=>HpB} | FL]).
@@ -153,7 +153,7 @@ init_new_battle(Data) ->
 
     {#{id:=Id}=P1, P2} = battle_parse:player_context_from_parsed_JSON(Data),
 
-    {CastedP1, CastedP2, CastedLog} = battle_cast:cast_talented(P1, P2),
+    {CastedP1, CastedP2, CastedLog} = cast:apply(P1, P2),
 
     loop(#{seq=>0, stage=>preparing, mover=>Id}, CastedP1, CastedP2, CastedLog, []). 
 

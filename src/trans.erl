@@ -1,6 +1,6 @@
 -module(trans).
 
--export([trans/2, trans/3]).
+-export([trans/2, trans/3, apply/4]).
 
 % ========================= TRANSFER INSTRUCTIONS ==============================
 % Apply transfer operations over specific attributes of player context. The type
@@ -30,6 +30,8 @@ trans({add_mul, Mul, Absorbing}, ToWhom) ->
 trans({add_inc_mul, {Inc, Mul}, Absorbing}, ToWhom) ->
     trans({add, Inc * Mul, Absorbing}, ToWhom).
 
+
+
 trans({{Opcode, Oper, AddCond}, {T, A, P}}, O, D) ->
 
     RefOperand = case Oper of
@@ -55,3 +57,31 @@ trans({{Opcode, Oper, AddCond}, {T, A, P}}, O, D) ->
         {_, off} ->  {{effected, {T, A, P}, TransedDiff}, TransedContext, D};
         {_, def} ->  {{effected, {T, A, P}, TransedDiff}, O, TransedContext}
     end.
+
+
+
+% ======================== APPLY ALL TRANSFERS IN A LIST ========================
+% For each trans operation, apply_trans_with_log combines the player context with
+% log. Since the transfers are written in a list, the apply_transes.g_nested will
+% apply all the transfers sequentially over the player context, and returns log.
+
+% Accepts cond description
+
+apply({{_, Last, _}, _}, TransList, O, D) ->
+    apply(Last, TransList, O, D, []).
+
+apply(Last, [Trans | RemTrans], #{id:=OID}=O, #{id:=DID}=D, Logs) ->
+
+    {{Status, {_, A, P}, Diff}, TransedO, TransedD} = trans(Trans, O, D),
+
+    Log = {[
+        {status, Status},
+        {last_round, Last},
+        {dest, {[{attr, A}, {person, ref:who_this(P, OID, DID)}]}},
+        {diff, Diff}
+    ]},
+
+    apply(Last, RemTrans, TransedO, TransedD, [ Log | Logs]);
+
+apply(_Last, [], O, D, Logs) ->
+    {O, D, Logs}.

@@ -1,10 +1,10 @@
--module(battle_cast).
+-module(cast).
 
 -author('Yue Marvin Tao').
 
 -export([cast/4]).
 
--export([cast_talented/2, cast_effected/4]).
+-export([apply/2, apply/4]).
 
 
 rand() -> element(3, erlang:timestamp())/1000000.
@@ -42,11 +42,14 @@ log(CastName, ToWhom, failed, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
     ]};
 
 log(_, _, _, _, _, _) -> {[]}.
+
+
+
+
 parse_groups_logged({Name, _Type, Groups}, S, O, D) ->
     Parsed = parse_groups(Name, Groups, S),
     {Logs, Effects} = lists:unzip([{log(Name, ToWhom, Outcome, S, O, D), CurrEffects} || {Outcome, ToWhom, CurrEffects} <- Parsed]),
-
-    {Logs, [Effect || Effect <- lists:flatten(Effects), Effect =/=bad_luck]}.
+    {Logs, [Effect || Effect <- lists:flatten(Effects), Effect =/= bad_luck]}.
 
 parse_cast(Name, S, O, D) ->
     parse_groups_logged(hd(ets:lookup(casts, Name)), S, O, D).
@@ -65,7 +68,10 @@ cast(S, #{casts:=[CastName | RemainingCasts], effects:=ExistingEffects}=O, D, L)
 
     {O#{casts:=RemainingCasts, effects:=NewEffects}, D, NewLog}.
 
-cast_talented(#{talented:=TalentedP1}=P1, #{talented:=TalentedP2}=P2) ->
+
+
+
+apply(#{talented:=TalentedP1}=P1, #{talented:=TalentedP2}=P2) ->
 
     S1 = #{seq=>0, stage=>preparing, mover=>maps:get(id, P1)},
     S2 = #{seq=>0, stage=>preparing, mover=>maps:get(id, P2)},
@@ -76,11 +82,11 @@ cast_talented(#{talented:=TalentedP1}=P1, #{talented:=TalentedP2}=P2) ->
     {P1#{effects:=P1Effect}, P2#{effects:=P2Effect}, lists:append(P1CastedLogs, P2CastedLogs)}.
 
 
-cast_effected(State, #{attr:=#{cast_disabled:=0}}=O, D, Log) ->
-    {MovedO, MovedD, MovedLog} = battle_cast:cast(State, O, D, Log),
-    battle_effect:effect(State, MovedO#{done:=already}, MovedD, MovedLog);
+apply(State, #{attr:=#{cast_disabled:=0}}=O, D, Log) ->
+    {MovedO, MovedD, MovedLog} = cast(State, O, D, Log),
+    effect:apply(State, MovedO#{done:=already}, MovedD, MovedLog);
 
-cast_effected(_State, #{casts:=Casts}=O, D, Log) ->
+apply(_State, #{casts:=Casts}=O, D, Log) ->
     ConsumedCasts = case Casts of
         [] -> [];
         [_|RemCasts] -> RemCasts
