@@ -1,0 +1,1923 @@
+[
+  {
+    "name": "spellbreak",
+    "class": "rogue",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "off",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 2,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add",
+                  "operand": {
+                    "inc": {
+                      "value": 70
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "resist",
+                  "role": "off"
+                }
+              }
+            ],
+            "effect_note": "buff"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "talisman_of_death",
+    "class": "general",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "def",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 1,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add_mul",
+                  "operand": {
+                    "inc": {
+                      "value": -0.15
+                    }
+                  },
+                  "note": "resistable"
+                },
+                "to_whom": {
+                  "type": "state",
+                  "attr": "hp",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "damage"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "talisman_of_spellshrouding",
+    "class": "general",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "off",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 2,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add",
+                  "operand": {
+                    "inc": {
+                      "value": 30
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "resist",
+                  "role": "off"
+                }
+              }
+            ],
+            "effect_note": "buff"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "blade_dance",
+    "class": "talent",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "off",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": null,
+                "stage": "settling"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add_mul",
+                  "operand": {
+                    "inc": {
+                      "value": 0.1
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "critical",
+                  "role": "off"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "add_mul",
+                  "operand": {
+                    "inc": {
+                      "value": 0.5
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "critical_multiplier",
+                  "role": "off"
+                }
+              }
+            ],
+            "effect_note": "buff"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "first_aid",
+    "class": "warrior",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "off",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 1,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add_mul",
+                  "operand": {
+                    "inc": {
+                      "value": 0.08
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "state",
+                  "attr": "hp",
+                  "role": "off"
+                }
+              }
+            ],
+            "effect_note": "heal"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "roots",
+    "class": "hunter",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "def",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 1,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 1
+                    }
+                  },
+                  "note": "resistable"
+                },
+                "to_whom": {
+                  "type": "state",
+                  "attr": "rem_moves",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "debuff"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pierce_armor",
+    "class": "rogue",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "def",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 2,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add_mul",
+                  "operand": {
+                    "inc": {
+                      "value": -0.5
+                    }
+                  },
+                  "note": "resistable"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "armor",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "debuff"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "pyromania",
+    "class": "mage",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "def",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 3,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add",
+                  "operand": {
+                    "inc": {
+                      "value": -50
+                    }
+                  },
+                  "note": "resistable"
+                },
+                "to_whom": {
+                  "type": "state",
+                  "attr": "hp",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "damage"
+          },
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 1,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add_mul",
+                  "operand": {
+                    "inc": {
+                      "value": -0.5
+                    }
+                  },
+                  "note": "resistable"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "critical",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "debuff"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "healing_potion",
+    "class": "rogue",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "off",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 1,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add",
+                  "operand": {
+                    "inc": {
+                      "min": 175,
+                      "max": 255
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "state",
+                  "attr": "hp",
+                  "role": "off"
+                }
+              }
+            ],
+            "effect_note": "heal"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "shield_wall",
+    "class": "warrior",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "off",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 1,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "dodge",
+                  "role": "off"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 119
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "block",
+                  "role": "off"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "hit_bonus",
+                  "role": "def"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "critical",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "icon_only"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "double_swing",
+    "class": "warrior",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "off",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 1,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add",
+                  "operand": {
+                    "inc": {
+                      "value": 2
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "state",
+                  "attr": "rem_moves",
+                  "role": "off"
+                }
+              }
+            ],
+            "effect_note": "buff"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tree_hide",
+    "class": "hunter",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "off",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 3,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add_mul",
+                  "operand": {
+                    "inc": {
+                      "value": 0.7
+                    }
+                  },
+                  "note": "resistable"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "armor",
+                  "role": "off"
+                }
+              }
+            ],
+            "effect_note": "buff"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "mind_blast",
+    "class": "mage",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "def",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 1,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add",
+                  "operand": {
+                    "inc": {
+                      "value": -125
+                    }
+                  },
+                  "note": "resistable"
+                },
+                "to_whom": {
+                  "type": "state",
+                  "attr": "hp",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "damage"
+          },
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 1,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 1
+                    }
+                  },
+                  "note": "resistable"
+                },
+                "to_whom": {
+                  "type": "state",
+                  "attr": "rem_moves",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "debuff"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "sure_hit",
+    "class": "warrior",
+    "effect_prob_group_list": [
+      {
+        "prob": 2,
+        "towhom": "off",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 2,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "resist",
+                  "role": "def"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "block",
+                  "role": "def"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "dodge",
+                  "role": "def"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "critical",
+                  "role": "off"
+                }
+              }
+            ],
+            "effect_note": "icon_only"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "lower_resist",
+    "class": "mage",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "off",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 1,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 1
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "attack_disabled",
+                  "role": "off"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 1
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "cast_disabled",
+                  "role": "off"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "dodge",
+                  "role": "off"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "block",
+                  "role": "off"
+                }
+              }
+            ],
+            "effect_note": "dizzy"
+          }
+        ]
+      },
+      {
+        "prob": 1,
+        "towhom": "def",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 3,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add_mul",
+                  "operand": {
+                    "inc": {
+                      "value": 0.3
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "resist",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "debuff"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tornado",
+    "class": "hunter",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "def",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 5,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add_mul",
+                  "operand": {
+                    "inc": {
+                      "value": -0.05
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "hit_bonus",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "debuff"
+          },
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 5,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add",
+                  "operand": {
+                    "inc": {
+                      "value": -50
+                    }
+                  },
+                  "note": "absorbable"
+                },
+                "to_whom": {
+                  "type": "state",
+                  "attr": "hp",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "damage"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "brave_shield_counterback",
+    "class": "talent",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "off",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": null,
+                "stage": "attacking"
+              },
+              "comp_cond_list": [
+                {
+                  "value": "block",
+                  "op": "==",
+                  "ref": {
+                    "type": "attr",
+                    "attr": "outcome",
+                    "role": "off"
+                  }
+                }
+              ]
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add",
+                  "operand": {
+                    "inc": {
+                      "value": -125
+                    }
+                  },
+                  "note": "absorbable"
+                },
+                "to_whom": {
+                  "type": "state",
+                  "attr": "hp",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "damage"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "chain_lock",
+    "class": "warrior",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "def",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 1,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 1
+                    }
+                  },
+                  "note": "resistable"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "attack_disabled",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "disarm"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "outbreak",
+    "class": "hunter",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "def",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 3,
+                "stage": "attacking"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add",
+                  "operand": {
+                    "inc": {
+                      "value": -70
+                    }
+                  },
+                  "note": "resistable"
+                },
+                "to_whom": {
+                  "type": "state",
+                  "attr": "hp",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "damage"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "flurry",
+    "class": "rogue",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "off",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 2,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 3
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "state",
+                  "attr": "rem_moves",
+                  "role": "off"
+                }
+              }
+            ],
+            "effect_note": "buff"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "arcane_surge",
+    "class": "mage",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "off",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 1,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add",
+                  "operand": {
+                    "inc": {
+                      "value": 2
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "state",
+                  "attr": "rem_moves",
+                  "role": "off"
+                }
+              }
+            ],
+            "effect_note": "buff_rem_moves"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "perfect_strike",
+    "class": "rogue",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "off",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 1,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "dodge",
+                  "role": "def"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "block",
+                  "role": "def"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "hit_bonus",
+                  "role": "off"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 119
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "critical",
+                  "role": "off"
+                }
+              }
+            ],
+            "effect_note": "icon_only"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "assault",
+    "class": "talent",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "off",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": null,
+                "stage": "attacking"
+              },
+              "comp_cond_list": [
+                {
+                  "value": "dodge",
+                  "op": "==",
+                  "ref": {
+                    "type": "attr",
+                    "attr": "outcome",
+                    "role": "def"
+                  }
+                }
+              ]
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add",
+                  "operand": {
+                    "inc": {
+                      "value": 1
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "state",
+                  "attr": "rem_moves",
+                  "role": "off"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "dodge",
+                  "role": "def"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "block",
+                  "role": "def"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "resist",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "icon_only"
+          },
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": null,
+                "stage": "attacking"
+              },
+              "comp_cond_list": [
+                {
+                  "value": "block",
+                  "op": "==",
+                  "ref": {
+                    "type": "attr",
+                    "attr": "outcome",
+                    "role": "def"
+                  }
+                }
+              ]
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add",
+                  "operand": {
+                    "inc": {
+                      "value": 1
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "state",
+                  "attr": "rem_moves",
+                  "role": "off"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "dodge",
+                  "role": "def"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "block",
+                  "role": "def"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "resist",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "icon_only"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "rune_of_the_void",
+    "class": "general",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "def",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 1,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 1
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "cast_disabled",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "invalidate"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "holy_hand_grenade",
+    "class": "general",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "def",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 1,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add",
+                  "operand": {
+                    "inc": {
+                      "min": -500,
+                      "max": -1
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "state",
+                  "attr": "hp",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "damage"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "freeze",
+    "class": "talent",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "def",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 2,
+                "stage": "settling"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 1
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "cast_disabled",
+                  "role": "def"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 1
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "attack_disabled",
+                  "role": "def"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "dodge",
+                  "role": "def"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "block",
+                  "role": "def"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "resist",
+                  "role": "def"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 119
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "critical",
+                  "role": "off"
+                }
+              }
+            ],
+            "effect_note": "freeze"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "vampiric_bolt",
+    "class": "mage",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "def",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 1,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add_inc_mul",
+                  "operand": {
+                    "inc": {
+                      "type": "state",
+                      "attr": "hp",
+                      "role": "def"
+                    },
+                    "mul": {
+                      "value": 0.1
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "state",
+                  "attr": "hp",
+                  "role": "off"
+                }
+              }
+            ],
+            "effect_note": "heal"
+          },
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 1,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add_mul",
+                  "operand": {
+                    "inc": {
+                      "value": -0.1
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "state",
+                  "attr": "hp",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "damage"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "mend",
+    "class": "hunter",
+    "effect_prob_group_list": [
+      {
+        "prob": 1,
+        "towhom": "off",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 3,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "add_mul",
+                  "operand": {
+                    "inc": {
+                      "value": 0.07
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "state",
+                  "attr": "hp",
+                  "role": "off"
+                }
+              }
+            ],
+            "effect_note": "heal"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "poison_gas",
+    "class": "general",
+    "effect_prob_group_list": [
+      {
+        "prob": 0.5,
+        "towhom": "def",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 2,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 1
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "attack_disabled",
+                  "role": "def"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 1
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "cast_disabled",
+                  "role": "def"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "dodge",
+                  "role": "def"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "block",
+                  "role": "def"
+                }
+              }
+            ],
+            "effect_note": "dizzy"
+          }
+        ]
+      },
+      {
+        "prob": 0.5,
+        "towhom": "off",
+        "effects": [
+          {
+            "conds": {
+              "seq_cond": {
+                "start": 0,
+                "last": 2,
+                "stage": "casting"
+              },
+              "comp_cond_list": []
+            },
+            "trans_list": [
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 1
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "attack_disabled",
+                  "role": "off"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 1
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "cast_disabled",
+                  "role": "off"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "dodge",
+                  "role": "off"
+                }
+              },
+              {
+                "operator": {
+                  "opcode": "set",
+                  "operand": {
+                    "inc": {
+                      "value": 0
+                    }
+                  },
+                  "note": "none"
+                },
+                "to_whom": {
+                  "type": "attr",
+                  "attr": "block",
+                  "role": "off"
+                }
+              }
+            ],
+            "effect_note": "dizzy"
+          }
+        ]
+      }
+    ]
+  }
+]

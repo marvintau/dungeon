@@ -84,6 +84,7 @@
       
       editor.on('ready', function(){
         $.get("/get_casts", function(data){
+            console.log(JSON.stringify(data));
             starting_value = data;
         }).fail(function(error){
             self.casts = [{name: error}]
@@ -98,7 +99,7 @@
         var casts_json = editor.getValue();
 
         $.postJSON("/post_casts", casts_json, function(data){
-                        console.log("done");
+                        console.log(data);
                     }).fail(function(error){
                         console.log("error "+error);
                     });
@@ -107,6 +108,7 @@
       // Hook up the refresh to Default button
       document.getElementById('refresh').addEventListener('click',function() {
         $.get("/get_casts", function(data){
+            console.log(data);
             starting_value = data;
         }).fail(function(error){
             self.casts = [{name: error}]

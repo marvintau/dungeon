@@ -4,8 +4,8 @@
 
 -export([all_casts/0, casts/1, all_names/0, names_with/1]).
 
-ref({attr, Attribute, Role}) ->
-    {[{attr, Attribute}, {role, Role}]};
+ref({AttrType, Attribute, Role}) ->
+    {[{type, AttrType}, {attr, Attribute}, {role, Role}]};
 ref({Min, Max}) ->
     {[{min, Min}, {max, Max}]};
 ref(Value) ->
@@ -35,8 +35,8 @@ comp_cond_list(CompCondList) ->
 conds({Seq, CompCondList}) ->
     {[{seq_cond, seq_cond(Seq)}, {comp_cond_list, comp_cond_list(CompCondList)}]}.
 
-effect({Conds, TransList}) ->
-    {[{conds, conds(Conds)}, {trans_list, trans_list(TransList)}]}.
+effect({Conds, TransList, EffectNote}) ->
+    {[{conds, conds(Conds)}, {trans_list, trans_list(TransList)}, {effect_note, EffectNote}]}.
 
 effect_list(EffectList) ->
     [effect(Effect) || Effect <- EffectList].

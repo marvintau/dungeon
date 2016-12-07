@@ -26,7 +26,7 @@ parse_single_group(Name, {Prob, ToWhom, Effects}, S) ->
 parse_groups(Name, Groups, S) ->
    [parse_single_group(Name, Group, S) || Group <- Groups]. 
 
-log(CastName, ToWhom, failed, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
+log(CastName, ToWhom, Note, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
 
     ToWhomID = case ToWhom of
         off -> maps:get(id, O);
@@ -35,14 +35,11 @@ log(CastName, ToWhom, failed, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
 
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, ToWhomID},
-        { hand, none}, { action, CastName}, {outcome_note, failed},
+        { hand, none}, { action, CastName}, {outcome_note, Note},
         { outcome, [] }, { damage, 0 },
         { offender_hp, maps:get(hp, maps:get(state, O)) },
         { defender_hp, maps:get(hp, maps:get(state, D)) }
-    ]};
-
-log(_, _, _, _, _, _) -> {[]}.
-
+    ]}.
 
 
 
