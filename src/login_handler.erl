@@ -45,7 +45,6 @@ handle_text(Req, State) ->
             {<<"Nah">>, Req}
     end,
     
-
     {received, Respond} = player_database:login(ReqBody),
     Res = cowboy_req:set_resp_body(Respond, NextReq),
     {true, Res, State}.

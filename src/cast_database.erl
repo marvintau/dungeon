@@ -172,8 +172,7 @@ create_casts() ->
     Hunter = [
         {tornado, hunter, [
             {1, def, [
-                { {{0, 5, casting}, []}, [{{add_mul, {-0.05}, none}, {attr, hit_bonus, def}}], debuff},
-                { {{0, 5, casting}, []}, [{{add, {-50}, absorbable}, {state, hp, def}}], damage}
+                { {{0, 5, casting}, []}, [{{add_mul, {-0.05}, none}, {attr, hit_bonus, def}}, {{add, {-50}, absorbable}, {state, hp, def}}], debuff}
             ]}
         ]},
 

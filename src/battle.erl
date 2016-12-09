@@ -1,8 +1,8 @@
--module(battle_main).
+-module(battle).
 
 -author('Yue Marvin Tao').
 
--export([init_new_battle/1, battle_test_100/2 ]).
+-export([new/1, battle_test_100/2 ]).
 
 -export([test/0]).
 
@@ -83,17 +83,11 @@ loop(#{seq:=Seq, stage:=Stage}=State,
 % simply change to defender without changing anything else. If defender,
 % we need to switch to the next phase.
 
-loop(#{stage:=Stage, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=P2, L, FL) ->
+loop(#{stage:=settling, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=P2, L, FL) ->
+    loop(State#{stage:=casting, mover:=swap(Mover, P1, P2)}, P1#{done:=not_yet}, P2#{done:=not_yet}, L, FL);
 
-    %erlang:display({swapping, Stage, Mover, 1}),
-    %erlang:display({maps:get(id, P2), maps:get(rem_moves, maps:get(state, P2))}),
-
-    NewStage = case Stage of
-        settling -> casting;
-        casting -> attacking
-    end,
-    
-    loop(State#{stage:=NewStage, mover:=swap(Mover, P1, P2)}, P1#{done:=not_yet}, P2#{done:=not_yet}, L, FL);
+loop(#{stage:=casting, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=P2, L, FL) ->    
+    loop(State#{stage:=attacking, mover:=swap(Mover, P1, P2)}, P1#{done:=not_yet}, P2#{done:=not_yet}, L, FL);
 
 loop(#{mover:=Mover}=State, #{id:=Mover, done:=already}=P1, #{done:=not_yet}=P2, L, FL) ->
     %erlang:display({swapping, Mover, 2}),
@@ -149,7 +143,7 @@ loop(#{stage:=settling, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L
 
 
 
-init_new_battle(Data) ->
+new(Data) ->
 
     {#{id:=Id}=P1, P2} = battle_parse:player_context_from_parsed_JSON(Data),
 
@@ -161,7 +155,7 @@ init_new_battle(Data) ->
 battle_test_100(_Data, 0) ->ok;
 
 battle_test_100(Data, Time) ->
-    init_new_battle(Data),
+    new(Data),
     battle_test_100(Data, Time-1).
 
 

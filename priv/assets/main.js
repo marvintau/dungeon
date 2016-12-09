@@ -206,7 +206,7 @@ $("#submit-20").on('click', function(){
     result = {};
 
     for(var i = 0; i < 1000; i++){
-        $.postJSON("/get_result", OutgoingData, function(data){
+        $.postJSON("/battle", OutgoingData, function(data){
 
             // var IncomingData = data.full_log;
 
@@ -228,7 +228,7 @@ $("#submit").on('click', function(){
 
     OutgoingData = $.getData()
 
-    $.postJSON("/get_result", OutgoingData, function(data){
+    $.postJSON("/battle", OutgoingData, function(data){
 
         $('#table-section').empty();
 

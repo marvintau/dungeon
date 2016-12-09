@@ -50,7 +50,7 @@ handle_post(Req, State) ->
         {[{<<"foo">>, <<"bar">>}]} ->
             {true, Req, State};
         Data ->
-            {done, ResBody} = battle_main:init_new_battle(Data),
+            {done, ResBody} = battle:new(Data),
             Res = cowboy_req:set_resp_body(ResBody, NextReq),
             {true, Res, State}
     end.

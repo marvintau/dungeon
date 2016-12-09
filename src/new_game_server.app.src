@@ -1,18 +1,21 @@
 {application, new_game_server,
-    [{description, "An OTP application"},
+    [{description, "dungeon emulator"},
     {vsn, "0.1.0"},
     {registered, []},
     {mod, { new_game_server_app, []}},
     {applications,
-        [kernel,
+        [
+        kernel,
         stdlib,
-        cowboy
-            ]},
-    {env,[]},
+        cowboy,
+        epgsql,
+        poolboy
+        ]},
+    {env,[
+        {pools, []}
+    ]},
     {modules, [
-        battle,
-        roulette,
-        schema
+        battle
     ]},
 
     {maintainers, []},

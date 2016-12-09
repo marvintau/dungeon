@@ -14,17 +14,31 @@
 %% API
 %%====================================================================
 
+-type epgsql_type() :: atom() | {array, atom()} | {unknown_oid, integer()}.
+
+-record(column, {
+    name :: binary(),
+    type :: epgsql_type(),
+    size :: -1 | pos_integer(),
+    modifier :: -1 | pos_integer(),
+    format :: integer()
+}).
+
+% -record(statement, {
+%     name :: string(),
+%     columns :: [#column{}],
+%     types :: [epgsql_type()]
+% }).
+
 start(_StartType, _StartArgs) ->
 
 
     cast_database:init_table(),
 
-
-
     Dispatch = cowboy_router:compile([
             {'_', [
                    {"/dungeon/[...]", cowboy_static, {priv_dir, new_game_server, "assets"}},
-                   {"/get_result", battle_handler, []},
+                   {"/battle", battle_handler, []},
                    {"/get_casts", cast_edit_handler, []},
                    {"/reset_casts", cast_reset_handler, []},
                    {"/get_list", cast_list_handler, []},

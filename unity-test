@@ -1,4 +1,4 @@
 #!/bin/sh
 
-curl -H "Content-Type: application/x-www-form-urlencoded" -X POST -d 'id=3aee7288-65c0-4400-8c81-c846f6d45034&name=456' http://10.0.0.8:1337/player_info
+curl -H "Content-Type: application/x-www-form-urlencoded" -X POST -d 'id=3aee7288-65c0-4400-8c81-c846f6d45034&name=456' http://10.0.0.8:1334/login
 

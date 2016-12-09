@@ -4,6 +4,8 @@
 
 -export([init_database/0, parse_form/1, login/1, random_name/0]).
 
+
+
 init_database() ->
     ets:new(players, [set, public, named_table]).
 

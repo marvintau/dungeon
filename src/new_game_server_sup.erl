@@ -13,23 +13,32 @@
 %% Supervisor callbacks
 -export([init/1]).
 
--define(SERVER, ?MODULE).
+%% Helper macro for declaring children of supervisor
+-define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
+
 
 %%====================================================================
 %% API functions
 %%====================================================================
 
 start_link() ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 %%====================================================================
 %% Supervisor callbacks
 %%====================================================================
 
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
-init([]) ->
-    {ok, { {one_for_all, 0, 1}, []} }.
 
-%%====================================================================
-%% Internal functions
-%%====================================================================
+init([]) ->
+    {ok, Pools} = application:get_env(new_game_server, pools),
+    PoolSpec = lists:map(fun ({PoolName, SizeArgs, WorkerArgs}) ->
+                             PoolArgs = [{name, {local, PoolName}},
+                                         {worker_module, database_worker}] ++ SizeArgs,
+                             poolboy:child_spec(PoolName, PoolArgs, WorkerArgs)
+                         end, Pools),
+    {ok, { {one_for_one, 10, 10}, PoolSpec} }.
+
+add_pool(Name, PoolArgs, WorkerArgs) ->
+    ChildSpec = poolboy:child_spec(Name, PoolArgs, WorkerArgs),
+    supervisor:start_child(?MODULE, ChildSpec).
