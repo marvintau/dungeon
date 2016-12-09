@@ -121,7 +121,7 @@ $.getData = function () {
 
             cast_list : pad_with_null(ms2.getValue())
         }
-    }    
+    }
 }
 
 $.makeJSON = function (mydata) {
@@ -138,9 +138,9 @@ $.makeJSON = function (mydata) {
 
 $.postJSON = function(url, data, callback) {
     return jQuery.ajax({
-        headers: { 
+        headers: {
             'Accept': 'application/json',
-            'Content-Type': 'application/json' 
+            'Content-Type': 'application/json'
         },
         'type': 'POST',
         'url': url,
@@ -213,12 +213,12 @@ $("#submit-20").on('click', function(){
             $('#table-section').empty();
 
             result[data.res] = (result[data.res]||0) + 1;
-            
+
             $("<span>"+JSON.stringify(result)+"</span>").appendTo("#table-section");
 
         }, "json").fail(function() {
             console.log( "error" );
-        }); 
+        });
 
     }
 });
@@ -232,7 +232,7 @@ $("#submit").on('click', function(){
 
         $('#table-section').empty();
 
-        $.make_graph(data.full_log);  
+        $.make_graph(data.full_log);
 
         var res ="<div class=\"cap\"><br>Win:" + data.res + "</b>";
         $(res).appendTo("#table");
@@ -243,12 +243,12 @@ $("#submit").on('click', function(){
         delete data.full_log;
         var table = $.makeJSON(data);
         $(table).appendTo("#table-section");
-        
+
         hljs.highlightBlock(table.get(0));
 
     }, "json").fail(function() {
         console.log( "error" );
-    }); 
+    });
 });
 
 $("#reset").on('click', function(){
@@ -256,7 +256,7 @@ $("#reset").on('click', function(){
 });
 
 $("#class1").ready(function(){
-    $.postJSON("/get_list", {id: $('#id1').val(), class:$('#class1').val()}, function(data){
+    $.postJSON("/get_cast_names", {id: $('#id1').val(), class:$('#class1').val()}, function(data){
         console.log(data);
         ms1 = $('#cast-list-1').magicSuggest({data:data, maxSelection:50, maxSuggestion:5, allowFreeEntries:false});
     }, "json").fail(function(){
@@ -266,8 +266,8 @@ $("#class1").ready(function(){
 
 $("#class1").change(function(){
 
-    $.postJSON("/get_list", {id: $('#id1').val(), class:$('#class1').val()}, function(data){
-        ms1.clear(); 
+    $.postJSON("/get_cast_names", {id: $('#id1').val(), class:$('#class1').val()}, function(data){
+        ms1.clear();
         ms1.setData(data);
         console.log(JSON.stringify(ms1.getData()));
     }, "json").fail(function(){
@@ -276,7 +276,7 @@ $("#class1").change(function(){
 });
 
 $("#class2").ready(function(){
-    $.postJSON("/get_list", {id: $('#id2').val(), class:$('#class2').val()}, function(data){
+    $.postJSON("/get_cast_names", {id: $('#id2').val(), class:$('#class2').val()}, function(data){
         ms2 = $('#cast-list-2').magicSuggest({data:data, maxSuggestion:5, allowFreeEntries:false});
     }, "json").fail(function(){
         console.log("error");
@@ -284,7 +284,7 @@ $("#class2").ready(function(){
 });
 
 $("#class2").change(function(){
-    $.postJSON("/get_list", {id: $('#id2').val(), class:$('#class2').val()}, function(data){
+    $.postJSON("/get_cast_names", {id: $('#id2').val(), class:$('#class2').val()}, function(data){
         ms2.clear();
         ms2.setData(data);
 
@@ -292,5 +292,3 @@ $("#class2").change(function(){
         console.log("error");
     });
 });
-
-

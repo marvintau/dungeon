@@ -1,4 +1,4 @@
--module(getcasts_handler).
+-module(add_profile_handler).
 
 -export([init/2]).
 -export([content_types_provided/2, content_types_accepted/2]).
@@ -49,6 +49,8 @@ handle_post(Req, State) ->
 
     Data = jiffy:decode(ReqBody),
     error_logger:info_report(Data),
-    {done, ResBody} = casts_to_json:casts(Data),
+    {done, ResBody} = Data,
     Res = cowboy_req:set_resp_body(ResBody, NextReq),
     {true, Res, State}.
+
+

@@ -2,7 +2,7 @@
 
 -author('Yue Marvin Tao').
 
--export([all_casts/0, casts/1, all_names/0, names_with/1]).
+-export([]).
 
 ref({AttrType, Attribute, Role}) ->
     {[{type, AttrType}, {attr, Attribute}, {role, Role}]};
@@ -51,21 +51,4 @@ cast({Name, Class, EffectProbGroupsList}) ->
     Cast = {[{name, Name}, {class, Class}, {effect_prob_group_list, effect_prob_group_list(EffectProbGroupsList)}]},
     Cast.
 
-all_casts() ->
-    AllCasts = lists:flatten(ets:match(casts, '$1')),
-    {done, jiffy:encode([cast(Cast) || Cast <- AllCasts])}.
 
-all_names() ->
-    AllCasts = lists:flatten(ets:match(casts, '$1')), 
-    {done, casts(AllCasts)}.
-
-names_with(Class) ->
-    General = lists:flatten(ets:match(casts, {'$1', general, '_'})),
-    ClassCast = lists:flatten(ets:match(casts, {'$1', Class, '_'})),
-    lists:append([ClassCast, General]).
-
-casts(Data) ->
-    {[{<<"id">>, _ID}, {<<"class">>, Class}]} = Data,
-    ReturnedData = [ none | names_with(binary_to_atom(Class, utf8))],    
-    error_logger:info_report(ReturnedData),
-    {done, jiffy:encode(ReturnedData)}.
