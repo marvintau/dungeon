@@ -1,4 +1,4 @@
--module(cast_list_handler).
+-module(getcasts_handler).
 
 -export([init/2]).
 -export([content_types_provided/2, content_types_accepted/2]).
