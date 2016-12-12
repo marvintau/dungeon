@@ -1,4 +1,4 @@
--module(add_profile_handler).
+-module(get_player_list_handler).
 
 -export([init/2]).
 -export([content_types_provided/2, content_types_accepted/2]).
@@ -47,7 +47,6 @@ handle_post(Req, State) ->
     
 
     Data = jiffy:decode(ReqBody),
-    %ParsedProfile = battle_parse:parse_single_player(Data),
 
     error_logger:info_report(Data),
 
@@ -56,23 +55,14 @@ handle_post(Req, State) ->
         {timeout, 100}
     ]),
 
-
-    PayLoad = list_to_binary([
-        "insert into player_profile (profile) values ('",
-        Data,
-        "')"
-    ]), 
-
-    error_logger:info_report(PayLoad),
+    PayLoad = list_to_binary("select id, profile ->> 'id' from player_profile"), 
     
-    InsertRes = epgsql:squery(Conn, binary_to_list(PayLoad)),
+    {ok, _Cols, Contents} = epgsql:squery(Conn, binary_to_list(PayLoad)),
 
+        
     ok = epgsql:close(Conn),
 
-
-    error_logger:info_report([InsertRes]),
-
-    Res = cowboy_req:set_resp_body(<<"ok">>, NextReq),
+    Res = cowboy_req:set_resp_body(jiffy:encode({Contents}), NextReq),
     {true, Res, State}.
 
 

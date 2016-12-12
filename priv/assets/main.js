@@ -24,30 +24,110 @@ var pad_with_null = function(array) {
     return array.concat(pad);
 }
 
-$.setData = function () {
-    $('#id1').val("Scarlett");
-    $('#hp1').val("2700");
-    $('#prim_type1').val("physical");
-    $('#prim_max_1').val("205");
-    $('#prim_min_1').val("190");
+$.setEditData = function(playerData) {
+    $('#id').val(playerData.id);
+    $('#hp').val(playerData.hp);
+    $('#class').val(playerData.class);
+    $('#prim_type').val(playerData.prim_type);
+    $('#prim_max').val(playerData.prim_max);
+    $('#prim_min').val(playerData.prim_min);
 
-    $('#secd_type1').val("physical");
-    $('#secd_max_1').val("190");
-    $('#secd_min_1').val("175");
+    $('#secd_type').val(playerData.secd_type);
+    $('#secd_max').val(playerData.secd_max);
+    $('#secd_min').val(playerData.secd_min);
 
-    $('#armor1').val("4500");
-    $('#hit1').val("35");
-    $('#critical1').val("30");
-    $('#dodge1').val("30");
-    $('#resist1').val("35");
-    $('#block1').val("0");
-    $('#agi1').val("75");
-    $('#talented_skill1').val("blade_dance");
+    $('#armor').val(playerData.armor);
+    $('#hit').val(playerData.hit);
+    $('#critical').val(playerData.critical);
+    $('#dodge').val(playerData.dodge);
+    $('#resist').val(playerData.resist);
+    $('#block').val(playerData.block);
+    $('#agi').val(playerData.agi);
+    $('#talented_skill').val(playerData.talented_skill);
 
-    ms1.clear();
-    ms1.setValue(perm_slice(ms1.getData()));
+    ms.clear();
+    ms.setValue(playerData.cast_list);
 }
 
+$.randomEditData = function () {
+    $('#id').val("Scarlett");
+    $('#hp').val("2700");
+    $('#class').val("rogue");
+    $('#prim_type').val("physical");
+    $('#prim_max').val("205");
+    $('#prim_min').val("190");
+
+    $('#secd_type').val("physical");
+    $('#secd_max').val("190");
+    $('#secd_min').val("175");
+
+    $('#armor').val("4500");
+    $('#hit').val("35");
+    $('#critical').val("30");
+    $('#dodge').val("30");
+    $('#resist').val("35");
+    $('#block').val("0");
+    $('#agi').val("75");
+    $('#talented_skill').val("blade_dance");
+
+    ms.clear();
+    ms.setValue(perm_slice(ms.getData()));
+}
+
+$.getEditData = function () {
+    return {
+        id: $('#id').val(),
+        hp: $('#hp').val(),
+        class: $('#class').val(),
+        prim_type: $('#prim_type').val(),
+        prim_max: $('#prim_max').val(),
+        prim_min: $('#prim_min').val(),
+
+        secd_type: $('#secd_type').val(),
+        secd_max: $('#secd_max').val(),
+        secd_min: $('#secd_min').val(),
+
+        armor: $('#armor').val(),
+        hit: $('#hit').val(),
+        critical: $('#critical').val(),
+        dodge: $('#dodge').val(),
+        resist: $('#resist').val(),
+        block: $('#block').val(),
+        agi: $('#agi').val(),
+        talented_skill: $('#talented_skill').val(),
+
+        cast_list : ms.getValue()
+    }
+}
+
+
+$.setData = function(playerData, i){
+
+    $('#id'+i).text(playerData.id);
+    $('#hp'+i).text(playerData.hp);
+    $('#class'+i).text(playerData.class);
+    $('#prim_type'+i).text(playerData.prim_type);
+    $('#prim_max'+i).text(playerData.prim_max);
+    $('#prim_min'+i).text(playerData.prim_min);
+
+    $('#secd_type'+i).text(playerData.secd_type);
+    $('#secd_max'+i).text(playerData.secd_max);
+    $('#secd_min'+i).text(playerData.secd_min);
+
+    $('#armor'+i).text(playerData.armor);
+    $('#hit'+i).text(playerData.hit);
+    $('#critical'+i).text(playerData.critical);
+    $('#dodge'+i).text(playerData.dodge);
+    $('#resist'+i).text(playerData.resist);
+    $('#block'+i).text(playerData.block);
+    $('#agi'+i).text(playerData.agi);
+    $('#talented_skill'+i).text(playerData.talented_skill);
+
+    console.log(playerData.cast_list.toString());
+    $('#cast-list'+i).text(playerData.cast_list.toString());
+    // ms.clear();
+    // ms.setValue(playerData.cast_list);
+}
 
 $.makeJSON = function (mydata) {
     var show = $('<pre></pre>');
@@ -138,7 +218,9 @@ $("#submit-20").on('click', function(){
 
 $("#submit").on('click', function(){
 
-    OutgoingData = $.getData()
+    OutgoingData = {player1: $("#player-list-1").val(), player2: $("#player-list-2").val()},
+
+    console.log(OutgoingData);
 
     $.postJSON("/battle", OutgoingData, function(data){
 
@@ -164,41 +246,83 @@ $("#submit").on('click', function(){
 });
 
 $("#reset").on('click', function(){
-    $.setData();
+    $.randomEditData();
 });
 
-$("#class1").ready(function(){
-    $.postJSON("/get_cast_names", {id: $('#id1').val(), class:$('#class1').val()}, function(data){
+var get_player_list = function(Dest){
+    $.postJSON("/get_player_list", {}, function(data){
         console.log(data);
-        ms1 = $('#cast-list-1').magicSuggest({data:data, maxSelection:50, maxSuggestion:5, allowFreeEntries:false});
+
+        listedData = Object.keys(data).map(function (key) { return data[key]; });
+
+        $('#player-list select').empty();
+
+        for(var i=0; i< listedData.length;i++){
+            $('<option/>', {
+                value: i+1,
+                html: listedData[i]
+            }).appendTo(Dest);
+        }
+
     }, "json").fail(function(){
         console.log("error");
     });
+};
+
+$("#player-list").ready(function(){
+    get_player_list("#player-list");
 });
 
-$("#class1").change(function(){
-
-    $.postJSON("/get_cast_names", {id: $('#id1').val(), class:$('#class1').val()}, function(data){
-        ms1.clear();
-        ms1.setData(data);
-        console.log(JSON.stringify(ms1.getData()));
-    }, "json").fail(function(){
-        console.log("error");
-    });
-});
-
-$("#save-1").on('click', function(){
-    var OutgoingData = $.getData().player1;
-
-    $.postJSON("/add_profile", OutgoingData, function(data){
-        console.log(data);
+$("#player-list").change(function(){
+    $.postJSON('/get_profile', {id: $("#player-list").val()}, function(data){
+        $.setEditData(data);
     })
 });
 
-$("#save-2").on('click', function(){
-    var OutgoingData = $.getData().player2;
+$("#player-list-1").ready(function(){
+    get_player_list("#player-list-1");
+})
 
-    $.postJSON("/add_profile", OutgoingData, function(data){
+$("#player-list-1").change(function(){
+    $.postJSON('/get_profile', {id: $("#player-list-1").val()}, function(data){
+        $.setData(data, "1");
+    })
+});
+
+$("#player-list-2").ready(function(){
+    get_player_list("#player-list-2");
+})
+
+$("#player-list-2").change(function(){
+    $.postJSON('/get_profile', {id: $("#player-list-2").val()}, function(data){
+        $.setData(data, "2");
+    })
+});
+
+$("#class").ready(function(){
+    $.postJSON("/get_cast_names", {id: $('#id').val(), class:$('#class').val()}, function(data){
+        console.log(data);
+        ms = $('#cast-list').magicSuggest({data:data, maxSelection:50, maxSuggestion:5, allowFreeEntries:false});
+    }, "json").fail(function(){
+        console.log("error");
+    });
+});
+
+$("#class").change(function(){
+
+    $.postJSON("/get_cast_names", {id: $('#id1').val(), class:$('#class1').val()}, function(data){
+        ms.clear();
+        ms.setData(data);
+        console.log(JSON.stringify(ms.getData()));
+    }, "json").fail(function(){
+        console.log("error");
+    });
+});
+
+$("#save").on('click', function(){
+    var OutgoingData = $.getEditData();
+
+    $.postJSON("/add_profile", JSON.stringify(OutgoingData), function(data){
         console.log(data);
     })
 });

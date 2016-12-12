@@ -143,9 +143,7 @@ loop(#{stage:=settling, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L
 
 
 
-new(Data) ->
-
-    {#{id:=Id}=P1, P2} = battle_parse:player_context_from_parsed_JSON(Data),
+new({#{id:=Id}=P1, P2}) ->
 
     {CastedP1, CastedP2, CastedLog} = cast:apply(P1, P2),
 
