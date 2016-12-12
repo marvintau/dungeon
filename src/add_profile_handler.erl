@@ -13,7 +13,8 @@ allowed_methods(Req, Opts) ->
     {[<<"POST">>], Req, Opts}.
 
 content_types_accepted(Req, State) ->
-    erlang:display(accepted),
+
+    erlang:display(yay),
 
     {[
         {<<"application/text">>, handle_post},
@@ -47,8 +48,9 @@ handle_post(Req, State) ->
     end,
     
 
+    error_logger:info_report(ReqBody),
     Data = jiffy:decode(ReqBody),
-    error_logger:info_report(Data),
+    error_logger:info_report({received, add_profile, Data}),
     {done, ResBody} = Data,
     Res = cowboy_req:set_resp_body(ResBody, NextReq),
     {true, Res, State}.

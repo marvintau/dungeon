@@ -117,7 +117,7 @@ $.getData = function () {
             block : parseInt($('#block2').val()),
             agility : parseInt($('#agi2').val()),
 
-            talented_skill2 : $('#talented_skill2').val(),
+            talented : $('#talented_skill2').val(),
 
             cast_list : pad_with_null(ms2.getValue())
         }
@@ -275,6 +275,14 @@ $("#class1").change(function(){
     });
 });
 
+$("#save-1").on('click', function(){
+    var OutgoingData = $.getdata().player1;
+
+    $.postJSON("/add_profile", OutgoingData, function(data){
+        console.log(data);
+    })
+});
+
 $("#class2").ready(function(){
     $.postJSON("/get_cast_names", {id: $('#id2').val(), class:$('#class2').val()}, function(data){
         ms2 = $('#cast-list-2').magicSuggest({data:data, maxSuggestion:5, allowFreeEntries:false});
@@ -291,4 +299,12 @@ $("#class2").change(function(){
     }, "json").fail(function(){
         console.log("error");
     });
+});
+
+$("#save-2").on('click', function(){
+    var OutgoingData = $.getdata().player2;
+
+    $.postJSON("/add_profile", OutgoingData, function(data){
+        console.log(data);
+    })
 });

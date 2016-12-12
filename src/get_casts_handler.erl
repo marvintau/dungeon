@@ -13,7 +13,6 @@ allowed_methods(Req, Opts) ->
     {[<<"POST">>], Req, Opts}.
 
 content_types_accepted(Req, State) ->
-    erlang:display(accepted),
 
     {[
         {<<"application/text">>, handle_post},
