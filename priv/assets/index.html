@@ -41,9 +41,98 @@
 
         <div class="col-md-12">
             <div class="col-md-4" style="position: fixed;">
+
+                <div class="h-divider"></div>
+                <h1>Player 1</h1>
                 <div class="row">
                     <div class="form-group-sm col-sm-2">
-                        <label>玩家1 ID</label>
+                        <label>ID</label>
+                        <div class="" id="id2" ></div>
+                    </div>
+
+                    <div class="form-group-sm col-sm-2">
+                        <label>职业</label>
+                        <div class="" id="class2"></div>
+                     </div>
+                     <div class="form-group-sm col-sm-2">
+                        <label>血量</label>
+                        <div class="" id="hp2" ></div>
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label>护甲</label>
+                        <div class="" id="armor2" ></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group-sm col-sm-2">
+                        <label>主手</label>
+                        <div class="" id="prim_type2"></div>
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label>主手max</label>
+                        <div class="" id="prim_max_2" ></div>
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label>主手min</label>
+                        <div class="" id="prim_min_2" ></div>
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label>副手</label>
+                        <div class=" input" id="secd_type2"></div>
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label>副手max</label>
+                        <div class="" id="secd_max_2" ></div>
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label>副手min</label>
+                        <div class="" id="secd_min_2" ></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group-sm col-sm-2">
+                        <label>Hit</label>
+                        <div class="" id="hit2" ></div>
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label>Critical</label>
+                        <div class="" id="critical2" ></div>
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label>Dodge</label>
+                        <div class="" id="dodge2" ></div>
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label>Resistance</label>
+                        <div class="" id="resist2" ></div>
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label>Block</label>
+                        <div class="" id="block2" ></div>
+                    </div>
+                    <div class="form-group-sm col-sm-2">
+                        <label>Agility</label>
+                        <div class="" id="agi2" ></div>
+                    </div>
+                 </div>
+                <div class="row">
+                    <div class="form-group-sm col-sm-2">
+                        <label>天赋技能</label>
+                        <div class=" input" id="talented_skill2"></div>
+                    </div>
+                    <div class="form-group-sm col-md-10">
+                        <label>技能列表</label>
+                        <div class="" id="cast-list-2"></div>
+                    </div>
+                </div>
+
+                <div class="h-divider"></div>
+                <h1>编辑玩家</h1>
+
+
+                <div class="row">
+                    <div class="form-group-sm col-sm-2">
+                        <label>ID</label>
                         <input class="form-control" id="id1" >
                     </div>
                     <div class="form-group-sm col-sm-2">
@@ -142,128 +231,17 @@
                 <div class="row">
                     <div class="btn-group-sm col-md-12">
                         <div class="h-divider"></div>
-                        <button id="save-1" class=" btn btn-primary">保存玩家1信息</button>
-                        <button id="load-1" class=" btn btn-success">载入玩家1信息</button>
+                        <button id="save-1" class=" btn btn-primary">保存玩家信息</button>
+                        <button id="load-1" class=" btn btn-success">载入玩家信息</button>
+                        <button id="reset" class="btn btn-default">随机重设</button>
                     </div>
                 </div>
-
 
 
                 <div class="h-divider"></div>
-                <div class="row">
-                    <div class="form-group-sm col-sm-2">
-                        <label>玩家2 ID</label>
-                        <input class="form-control" id="id2" >
-                    </div>
-                    <div class="form-group-sm col-sm-2">
-                        <label>职业</label>
-                        <select class="form-control input" id="class2">
-                            <option>warrior</option>
-                            <option>hunter</option>
-                            <option>rogue</option>
-                            <option>mage</option>
-                         </select>
-                     </div>
-                     <div class="form-group-sm col-sm-2">
-                        <label>血量</label>
-                        <input class="form-control" id="hp2" >
-                    </div>
-                    <div class="form-group-sm col-sm-2">
-                        <label>护甲</label>
-                        <input class="form-control" id="armor2" >
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="form-group-sm col-sm-2">
-                        <label>主手</label>
-                        <select class="form-control input" id="prim_type2">
-                            <option>physical</option>
-                            <option>magic</option>
-                        </select>
-                    </div>
-                    <div class="form-group-sm col-sm-2">
-                        <label>主手max</label>
-                        <input class="form-control" id="prim_max_2" >
-                    </div>
-                    <div class="form-group-sm col-sm-2">
-                        <label>主手min</label>
-                        <input class="form-control" id="prim_min_2" >
-                    </div>
-                    <div class="form-group-sm col-sm-2">
-                        <label>副手</label>
-                        <select class="form-control input" id="secd_type2">
-                            <option>physical</option>
-                            <option>magic</option>
-                            <option>shield</option>
-                            <option>bare</option>
-                        </select>
-                    </div>
-                    <div class="form-group-sm col-sm-2">
-                        <label>副手max</label>
-                        <input class="form-control" id="secd_max_2" >
-                    </div>
-                    <div class="form-group-sm col-sm-2">
-                        <label>副手min</label>
-                        <input class="form-control" id="secd_min_2" >
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="form-group-sm col-sm-2">
-                        <label>Hit</label>
-                        <input class="form-control" id="hit2" >
-                    </div>
-                    <div class="form-group-sm col-sm-2">
-                        <label>Critical</label>
-                        <input class="form-control" id="critical2" >
-                    </div>
-                    <div class="form-group-sm col-sm-2">
-                        <label>Dodge</label>
-                        <input class="form-control" id="dodge2" >
-                    </div>
-                    <div class="form-group-sm col-sm-2">
-                        <label>Resistance</label>
-                        <input class="form-control" id="resist2" >
-                    </div>
-                    <div class="form-group-sm col-sm-2">
-                        <label>Block</label>
-                        <input class="form-control" id="block2" >
-                    </div>
-                    <div class="form-group-sm col-sm-2">
-                        <label>Agility</label>
-                        <input class="form-control" id="agi2" >
-                    </div>
-                 </div>
-                <div class="row">
-                    <div class="form-group-sm col-sm-2">
-                        <label>天赋技能</label>
-                        <select class="form-control input" id="talented_skill2">
-                            <option>brave_shield_counterback</option>
-                            <option>blade_dance</option>
-                            <option>freeze</option>
-                            <option>assault</option>
-                        </select>
-                    </div>
-                    <div class="form-group-sm col-md-10">
-                        <label>技能列表</label>
-                        <div class="form-control" id="cast-list-2"></div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="btn-group-sm col-md-12">
-                        <div class="h-divider"></div>
-                        <button id="save-2" class=" btn btn-primary">保存玩家2信息</button>
-                        <button id="load-2" class=" btn btn-success">载入玩家2信息</button>
-                    </div>
-                </div>
-
-                <div class="h-divider"></div>
-
-
-                <div class="btn-group col-md-6">
                 <button id="submit" class=" btn btn-primary">来一发</button>
                 <button id="submit-20" class=" btn btn-warning">来一千发</button>
-                <button id="reset" class="btn btn-default">随机重设</button>
-                </div>
+
 
             </div>
 
@@ -290,4 +268,3 @@
         <script src="main.js"></script>
         </body>
     </html>
-

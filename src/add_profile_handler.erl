@@ -14,8 +14,6 @@ allowed_methods(Req, Opts) ->
 
 content_types_accepted(Req, State) ->
 
-    erlang:display(yay),
-
     {[
         {<<"application/text">>, handle_post},
         {<<"application/json">>, handle_post}
@@ -48,11 +46,24 @@ handle_post(Req, State) ->
     end,
     
 
-    error_logger:info_report(ReqBody),
     Data = jiffy:decode(ReqBody),
-    error_logger:info_report({received, add_profile, Data}),
-    {done, ResBody} = Data,
-    Res = cowboy_req:set_resp_body(ResBody, NextReq),
+    ParsedProfile = battle_parse:parse_single_player(Data),
+
+    error_logger:info_report(ReqBody),
+
+    {ok, Conn} = epgsql:connect("localhost", "yuetao", "asdasdasd", [
+        {database, "dungeon"},
+        {timeout, 100}
+    ]),
+
+    InsertRes = epgsql:squery(Conn, "insert into player_profile (data) values ('" ++ binary_to_list(ReqBody) ++ "')"),
+
+    ok = epgsql:close(Conn),
+
+
+    error_logger:info_report([InsertRes]),
+
+    Res = cowboy_req:set_resp_body(<<"ok">>, NextReq),
     {true, Res, State}.
 
 

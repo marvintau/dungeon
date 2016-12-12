@@ -2,7 +2,7 @@
 
 -author('Yue Marvin Tao').
 
--export([player_context_from_parsed_JSON/1]).
+-export([player_context_from_parsed_JSON/1, parse_single_player/1]).
 
 parse_single_player(SinglePlayerData) ->
 
