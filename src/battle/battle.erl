@@ -2,9 +2,7 @@
 
 -author('Yue Marvin Tao').
 
--export([new/1, battle_test_100/2 ]).
-
--export([test/0]).
+-export([new/1]).
 
 rand() ->
     element(3, erlang:timestamp())/1000000.
@@ -14,9 +12,9 @@ rand() ->
 % Any cast that might change the normal way of determine the order of
 % attack will be put here.
 
-toss(#{casts:=[rune_of_the_void|_], id:=A}, _) -> 
+toss(#{casts:=[rune_of_the_void|_], id:=A}, _) ->
     A;
-toss(_, #{casts:=[rune_of_the_void|_], id:=B}) -> 
+toss(_, #{casts:=[rune_of_the_void|_], id:=B}) ->
     B;
 
 toss(#{id:=A, attr:=#{agility:=AgiA}},
@@ -30,7 +28,6 @@ toss(#{id:=A, attr:=#{agility:=AgiA}},
 
 swap(Mover, #{id:=Mover}, #{id:=B}) -> B;
 swap(_, #{id:=A}, _) -> A.
-
 
 % ======================= MAIN BATTLE LOOP ============================
 
@@ -63,17 +60,28 @@ loop(_, #{state:=#{hp:=HP1}, id:=I1}, #{state:=#{hp:=HP2}, id:=I2}, Log, FullLog
 loop(#{seq:=Seq, stage:=Stage}=State,
      #{done:=already, prim_hand:=PrimHand1, orig_attr:=Orig1, state:=State1}=P1,
      #{done:=already, prim_hand:=PrimHand2, orig_attr:=Orig2, state:=State2}=P2,
-     L, FL) when (Stage == attacking) or (Stage == preparing)->
+     [{[{_, LastLogSeq}|_]} |_]=L, FL) when (Stage == attacking) or (Stage == preparing)->
 
     NewP1 = P1#{state:=State1#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand1, attr=>Orig1},
     NewP2 = P2#{state:=State2#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand2, attr=>Orig2},
 
     NewMover = toss(NewP1, NewP2),
 
+    EmptyLog = case Seq - LastLogSeq > 1 of
+        true -> {[
+                { seq, LastLogSeq+1 }, {stage, rest}, { offender, rest }, { defender, rest},
+                { hand, none}, { action, rest}, {outcome_note, rest},
+                { outcome, [] }, { damage, 0 },
+                { offender_hp, 0 },
+                { defender_hp, 0 }
+            ]};
+        _ -> {[]}
+    end,
+
 %    erlang:display(' '),
 %    erlang:display({tossing, Seq+1, NewMover}),
 
-    loop(State#{seq:=Seq+1, stage:=settling, mover:=NewMover}, NewP1, NewP2, L, FL);
+    loop(State#{seq:=Seq+1, stage:=settling, mover:=NewMover}, NewP1, NewP2, [EmptyLog | L], FL);
 
 
 % ---------------- SWAPPING OFFENDER AND DEFENDER --------------------
@@ -86,7 +94,7 @@ loop(#{seq:=Seq, stage:=Stage}=State,
 loop(#{stage:=settling, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=P2, L, FL) ->
     loop(State#{stage:=casting, mover:=swap(Mover, P1, P2)}, P1#{done:=not_yet}, P2#{done:=not_yet}, L, FL);
 
-loop(#{stage:=casting, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=P2, L, FL) ->    
+loop(#{stage:=casting, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=P2, L, FL) ->
     loop(State#{stage:=attacking, mover:=swap(Mover, P1, P2)}, P1#{done:=not_yet}, P2#{done:=not_yet}, L, FL);
 
 loop(#{mover:=Mover}=State, #{id:=Mover, done:=already}=P1, #{done:=not_yet}=P2, L, FL) ->
@@ -130,7 +138,7 @@ loop(#{stage:=casting, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L,
 % ---------------------- LOOP FOR SETTLEMENT -----------------------------
 
 % settlement is the stage that carries out the effects lasted from prior
-% rounds. The order follows the order of casting. 
+% rounds. The order follows the order of casting.
 
 loop(#{stage:=settling, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L, FL) ->
 
@@ -145,9 +153,11 @@ loop(#{stage:=settling, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L
 
 new({#{id:=Id}=P1, P2}) ->
 
+    error_logger:info_report({P1, P2}),
+
     {CastedP1, CastedP2, CastedLog} = cast:apply(P1, P2),
 
-    loop(#{seq=>0, stage=>preparing, mover=>Id}, CastedP1, CastedP2, CastedLog, []). 
+    loop(#{seq=>0, stage=>preparing, mover=>Id}, CastedP1, CastedP2, CastedLog, []).
 
 
 battle_test_100(_Data, 0) ->ok;
@@ -155,11 +165,3 @@ battle_test_100(_Data, 0) ->ok;
 battle_test_100(Data, Time) ->
     new(Data),
     battle_test_100(Data, Time-1).
-
-
-test() ->
-    Data = {[{<<"player1">>,{[{<<"id">>,<<"Maxim">>},{<<"hp">>,3400},{<<"prim_type">>,<<"physical">>},{<<"prim_max">>,235},{<<"prim_min">>,190},{<<"secd_type">>,<<"shield">>},{<<"secd_max">>,0},{<<"secd_min">>,0},{<<"armor">>,5400},{<<"hit">>,15},{<<"critic">>,20},{<<"dodge">>,20},{<<"resist">>,35},{<<"block">>,35},{<<"agility">>,50},{<<"talented">>,<<"blade_dance">>},{<<"cast_list">>,[<<"none">>,<<"poison_gas">>,<<"first_aid">>,<<"chain_lock">>,<<"shield_wall">>]}]}},{<<"player2">>,{[{<<"id">>,<<"Scarlett">>},{<<"hp">>,2700},{<<"prim_type">>,<<"physical">>},{<<"prim_max">>,205},{<<"prim_min">>,190},{<<"secd_type">>,<<"physical">>},{<<"secd_max">>,190},{<<"secd_min">>,175},{<<"armor">>,4500},{<<"hit">>,35},{<<"critic">>,30},{<<"dodge">>,30},{<<"resist">>,35},{<<"block">>,0},{<<"agility">>,75},{<<"talented_skill2">>,<<"blade_dance">>},{<<"cast_list">>,[<<"holy_hand_grenade">>,<<"poison_gas">>,<<"sure_hit">>,<<"talisman_of_death">>,<<"none">>]}]}}]},
-
-    fprof:apply(?MODULE, battle_test_100, [Data, 1000]),
-    fprof:profile(),
-    fprof:analyse({dest, "prof.fprof"}).
