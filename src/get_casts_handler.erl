@@ -44,7 +44,7 @@ handle_post(Req, State) ->
             erlang:display(Error),
             {<<"Nah">>, Req}
     end,
-    
+
 
     Data = jiffy:decode(ReqBody),
     {done, ResBody} = get_cast_names_with(Data),
@@ -53,9 +53,11 @@ handle_post(Req, State) ->
 
 get_cast_names_with(Data) ->
     {[{<<"id">>, _ID}, {<<"class">>, Class}]} = Data,
-    
+
     General = lists:flatten(ets:match(casts, {'$1', general, '_'})),
     ClassCast = lists:flatten(ets:match(casts, {'$1', binary_to_atom(Class, utf8), '_'})),
+
+    error_logger:info_report(Class),
+
     FullNameList = lists:append([[none], ClassCast, General]),
     {done, jiffy:encode(FullNameList)}.
-

@@ -65,5 +65,3 @@ handle_post(Req, State) ->
 
     Res = cowboy_req:set_resp_body(Contents, NextReq),
     {true, Res, State}.
-
-    

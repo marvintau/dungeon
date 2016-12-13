@@ -312,7 +312,7 @@ $("#class").change(function(){
 
     console.log($("#class").val());
 
-    $.postJSON("/get_cast_names", {id: $('#id1').val(), class:$('#class1').val()}, function(data){
+    $.postJSON("/get_cast_names", {id: $('#id1').val(), class:$('#class').val()}, function(data){
         console.log(data);
         ms.clear();
         ms.setData(data);
