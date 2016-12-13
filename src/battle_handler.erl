@@ -126,5 +126,3 @@ parse(SinglePlayerData) ->
             damage_taken => 0
         }
     }.
-
-

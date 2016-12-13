@@ -27,6 +27,7 @@ start(_StartType, _StartArgs) ->
                    {"/get_cast_names", get_casts_handler, []},
                    {"/add_profile", add_profile_handler, []},
                    {"/get_profile", get_profile_handler, []},
+                   {"/update_profile", update_profile_handler, []},
                    {"/get_player_list", get_player_list_handler, []},
                    {"/login", login_handler, []}
                   ]}

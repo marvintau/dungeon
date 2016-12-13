@@ -77,23 +77,23 @@ $.randomEditData = function () {
 $.getEditData = function () {
     return {
         id: $('#id').val(),
-        hp: $('#hp').val(),
+        hp: parseInt($('#hp').val()),
         class: $('#class').val(),
         prim_type: $('#prim_type').val(),
-        prim_max: $('#prim_max').val(),
-        prim_min: $('#prim_min').val(),
+        prim_max: parseInt($('#prim_max').val()),
+        prim_min: parseInt($('#prim_min').val()),
 
         secd_type: $('#secd_type').val(),
-        secd_max: $('#secd_max').val(),
-        secd_min: $('#secd_min').val(),
+        secd_max: parseInt($('#secd_max').val()),
+        secd_min: parseInt($('#secd_min').val()),
 
-        armor: $('#armor').val(),
-        hit: $('#hit').val(),
-        critical: $('#critical').val(),
-        dodge: $('#dodge').val(),
-        resist: $('#resist').val(),
-        block: $('#block').val(),
-        agi: $('#agi').val(),
+        armor: parseInt($('#armor').val()),
+        hit: parseInt($('#hit').val()),
+        critical: parseInt($('#critical').val()),
+        dodge: parseInt($('#dodge').val()),
+        resist: parseInt($('#resist').val()),
+        block: parseInt($('#block').val()),
+        agi: parseInt($('#agi').val()),
         talented_skill: $('#talented_skill').val(),
 
         cast_list : ms.getValue()
@@ -302,7 +302,7 @@ $("#player-list-2").change(function(){
 $("#class").ready(function(){
     $.postJSON("/get_cast_names", {id: $('#id').val(), class:$('#class').val()}, function(data){
         console.log(data);
-        ms = $('#cast-list').magicSuggest({data:data, maxSelection:50, maxSuggestion:5, allowFreeEntries:false});
+        ms = $('#cast-list').magicSuggest({data:data, maxSelection:50, maxSuggestion:15, allowFreeEntries:false});
     }, "json").fail(function(){
         console.log("error");
     });
@@ -310,7 +310,10 @@ $("#class").ready(function(){
 
 $("#class").change(function(){
 
+    console.log($("#class").val());
+
     $.postJSON("/get_cast_names", {id: $('#id1').val(), class:$('#class1').val()}, function(data){
+        console.log(data);
         ms.clear();
         ms.setData(data);
         console.log(JSON.stringify(ms.getData()));
@@ -319,10 +322,18 @@ $("#class").change(function(){
     });
 });
 
-$("#save").on('click', function(){
+$("#new").on('click', function(){
     var OutgoingData = $.getEditData();
 
     $.postJSON("/add_profile", JSON.stringify(OutgoingData), function(data){
+        console.log(data);
+    })
+});
+
+$("#update").on('click', function(){
+    var OutgoingData = {id:$("#player-list").val(), content:$.getEditData()};
+
+    $.postJSON("/update_profile", OutgoingData, function(data){
         console.log(data);
     })
 });
