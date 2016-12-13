@@ -49,8 +49,6 @@ handle_post(Req, State) ->
     Data = jiffy:decode(ReqBody),
     %ParsedProfile = battle_parse:parse_single_player(Data),
 
-    error_logger:info_report(Data),
-
     {ok, Conn} = epgsql:connect("localhost", "yuetao", "asdasdasd", [
         {database, "dungeon"},
         {timeout, 100}
@@ -66,9 +64,6 @@ handle_post(Req, State) ->
     InsertRes = epgsql:squery(Conn, binary_to_list(Query)),
 
     ok = epgsql:close(Conn),
-
-
-    error_logger:info_report([InsertRes]),
 
     Res = cowboy_req:set_resp_body(<<"ok">>, NextReq),
     {true, Res, State}.

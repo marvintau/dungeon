@@ -125,9 +125,34 @@ $.setData = function(playerData, i){
 
     console.log(playerData.cast_list.toString());
     $('#cast-list'+i).text(playerData.cast_list.toString());
-    // ms.clear();
-    // ms.setValue(playerData.cast_list);
 }
+
+$.getData = function(i){
+    return {
+        id: $('#id'+i).text(),
+        hp: $('#hp'+i).text(),
+        class: $('#class'+i).text(),
+        prim_type: $('#prim_type'+i).text(),
+        prim_max: $('#prim_max'+i).text(),
+        prim_min: $('#prim_min'+i).text(),
+
+        secd_type: $('#secd_type'+i).text(),
+        secd_max: $('#secd_max'+i).text(),
+        secd_min: $('#secd_min'+i).text(),
+
+        armor: $('#armor'+i).text(),
+        hit: $('#hit'+i).text(),
+        critical: $('#critical'+i).text(),
+        dodge: $('#dodge'+i).text(),
+        resist: $('#resist'+i).text(),
+        block: $('#block'+i).text(),
+        agi: $('#agi'+i).text(),
+        talented_skill: $('#talented_skill'+i).text(),
+
+        cast_list: $('#cast-list'+i).text().split(',')
+    }
+}
+
 
 $.makeJSON = function (mydata) {
     var show = $('<pre></pre>');
@@ -232,8 +257,8 @@ $("#submit").on('click', function(){
         $(res).appendTo("#table");
 
 
-        data.player1 = OutgoingData.player1;
-        data.player2 = OutgoingData.player2;
+        data.player1 = $.getData("1");
+        data.player2 = $.getData("2");
         delete data.full_log;
         var table = $.makeJSON(data);
         $(table).appendTo("#table-section");
@@ -334,6 +359,8 @@ $("#class").change(function(){
 
 $("#new").on('click', function(){
     var OutgoingData = $.getEditData();
+
+    console.log(JSON.stringify(OutgoingData));
 
     $.postJSON("/add_profile", JSON.stringify(OutgoingData), function(data){
         console.log(data);

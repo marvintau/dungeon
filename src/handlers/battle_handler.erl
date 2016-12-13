@@ -46,39 +46,35 @@ handle_post(Req, State) ->
             {<<"Nah">>, Req}
     end,
 
-    error_logger:info_report(ReqBody),
-
     {[{_, Id1}, {_, Id2}]} = jiffy:decode(ReqBody),
-    
+
     {ok, Conn} = epgsql:connect("localhost", "yuetao", "asdasdasd", [
         {database, "dungeon"},
         {timeout, 100}
     ]),
 
-    ProfileQuery1 = list_to_binary(["select * from player_profile where id=", Id1]), 
-    
-    ProfileQuery2 = list_to_binary(["select * from player_profile where id=", Id2]), 
-    
+    ProfileQuery1 = list_to_binary(["select * from player_profile where id=", Id1]),
+
+    ProfileQuery2 = list_to_binary(["select * from player_profile where id=", Id2]),
+
     {ok, _Cols, [{_, Profile1}]} = epgsql:squery(Conn, binary_to_list(ProfileQuery1)),
-    
+
     {ok, _Cols, [{_, Profile2}]} = epgsql:squery(Conn, binary_to_list(ProfileQuery2)),
 
-    erlang:display(jiffy:decode(Profile1, [return_maps])),
-        
     ok = epgsql:close(Conn),
-    
+
     {done, ResBody} = battle:new({
         parse(jiffy:decode(Profile1, [return_maps])),
         parse(jiffy:decode(Profile2, [return_maps]))
     }),
-    
+
     Res = cowboy_req:set_resp_body(ResBody, NextReq),
     {true, Res, State}.
 
 
 parse(SinglePlayerData) ->
 
-    #{<<"agi">>:=Agi, <<"armor">>:=Armor, <<"block">>:=Block, <<"cast_list">>:=CastList, 
+    #{<<"agi">>:=Agi, <<"armor">>:=Armor, <<"block">>:=Block, <<"cast_list">>:=CastList,
       <<"class">>:=Class, <<"critical">>:=Critic, <<"dodge">>:=Dodge, <<"hit">>:=HitBonus,
       <<"hp">>:=HP, <<"id">>:=ID, <<"prim_max">>:=PrimMax, <<"prim_min">>:=PrimMin, <<"prim_type">>:=PrimType,
       <<"resist">>:=Resist, <<"secd_max">>:=SecdMax, <<"secd_min">>:=SecdMin, <<"secd_type">>:=SecdType,
@@ -98,7 +94,7 @@ parse(SinglePlayerData) ->
         },
 
         done => already,
-        
+
         curr_hand  => {prim, binary_to_atom(PrimType, utf8), {PrimMin, PrimMax}},
         secd_hand  => {secd, binary_to_atom(SecdType, utf8), {SecdMin, SecdMax}},
         prim_hand  => {prim, binary_to_atom(PrimType, utf8), {PrimMin, PrimMax}},
