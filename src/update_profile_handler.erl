@@ -48,20 +48,18 @@ handle_post(Req, State) ->
 
     {[{_, Id}, {_, Content}]} = jiffy:decode(ReqBody),
 
-    error_logger:info_report({content, Content}),
+    ProfileJson = jiffy:encode(Content),
 
     {ok, Conn} = epgsql:connect("localhost", "yuetao", "asdasdasd", [
         {database, "dungeon"},
         {timeout, 100}
     ]),
 
-    PayLoad = list_to_binary(["select * from player_profile where id=", Id]),
+    Query = list_to_binary(["update player_profile set profile='", ProfileJson, "' where id=", Id]),
 
-    {ok, _Cols, [{_, Contents}]} = epgsql:squery(Conn, binary_to_list(PayLoad)),
-
-    erlang:display(Contents),
+    {ok, Contents} = epgsql:squery(Conn, binary_to_list(Query)),
 
     ok = epgsql:close(Conn),
 
-    Res = cowboy_req:set_resp_body(Contents, NextReq),
+    Res = cowboy_req:set_resp_body(<<"ok">>, NextReq),
     {true, Res, State}.

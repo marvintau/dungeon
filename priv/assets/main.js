@@ -271,6 +271,9 @@ var get_player_list = function(Dest){
 
 $("#player-list").ready(function(){
     get_player_list("#player-list");
+    $.postJSON('/get_profile', {id: "1"}, function(data){
+        $.setEditData(data);
+    })
 });
 
 $("#player-list").change(function(){
@@ -281,6 +284,9 @@ $("#player-list").change(function(){
 
 $("#player-list-1").ready(function(){
     get_player_list("#player-list-1");
+    $.postJSON('/get_profile', {id: "1"}, function(data){
+        $.setData(data, "1");
+    })
 })
 
 $("#player-list-1").change(function(){
@@ -291,6 +297,9 @@ $("#player-list-1").change(function(){
 
 $("#player-list-2").ready(function(){
     get_player_list("#player-list-2");
+    $.postJSON('/get_profile', {id: "1"}, function(data){
+        $.setData(data, "2");
+    })
 })
 
 $("#player-list-2").change(function(){
@@ -302,7 +311,8 @@ $("#player-list-2").change(function(){
 $("#class").ready(function(){
     $.postJSON("/get_cast_names", {id: $('#id').val(), class:$('#class').val()}, function(data){
         console.log(data);
-        ms = $('#cast-list').magicSuggest({data:data, maxSelection:50, maxSuggestion:15, allowFreeEntries:false});
+        ms.clear();
+        ms.setData(data);
     }, "json").fail(function(){
         console.log("error");
     });
@@ -331,9 +341,21 @@ $("#new").on('click', function(){
 });
 
 $("#update").on('click', function(){
-    var OutgoingData = {id:$("#player-list").val(), content:$.getEditData()};
+
+    var temp_id = $("#player-list").val();
+    var OutgoingData = {id: temp_id, content:$.getEditData()};
 
     $.postJSON("/update_profile", OutgoingData, function(data){
-        console.log(data);
+        get_player_list("#player-list");
+        get_player_list("#player-list-1");
+        get_player_list("#player-list-2");
+
+        $.postJSON('/get_profile', {id: temp_id}, function(data){
+            $.setEditData(data);
+        })
     })
 });
+
+$(document).ready(function(){
+    ms = $('#cast-list').magicSuggest({maxSelection:50, maxSuggestion:15, allowFreeEntries:false});
+})

@@ -44,7 +44,7 @@ handle_post(Req, State) ->
             erlang:display(Error),
             {<<"Nah">>, Req}
     end,
-    
+
 
     {[{_, Id}]} = jiffy:decode(ReqBody),
 
@@ -53,15 +53,18 @@ handle_post(Req, State) ->
         {timeout, 100}
     ]),
 
-    PayLoad = list_to_binary(["select * from player_profile where id=", Id]), 
-    
-    {ok, _Cols, [{_, Contents}]} = epgsql:squery(Conn, binary_to_list(PayLoad)),
+    PayLoad = list_to_binary(["select * from player_profile where id=", Id]),
+
+    erlang:display(PayLoad),
+
+    Contents = case epgsql:squery(Conn, binary_to_list(PayLoad)) of
+        {ok, _Cols, [{_, C}]} -> C;
+        E -> E
+    end,
 
     erlang:display(Contents),
-        
+
     ok = epgsql:close(Conn),
 
     Res = cowboy_req:set_resp_body(Contents, NextReq),
     {true, Res, State}.
-
-

@@ -44,7 +44,7 @@ handle_post(Req, State) ->
             erlang:display(Error),
             {<<"Nah">>, Req}
     end,
-    
+
 
     Data = jiffy:decode(ReqBody),
     %ParsedProfile = battle_parse:parse_single_player(Data),
@@ -57,15 +57,13 @@ handle_post(Req, State) ->
     ]),
 
 
-    PayLoad = list_to_binary([
+    Query = list_to_binary([
         "insert into player_profile (profile) values ('",
         Data,
         "')"
-    ]), 
+    ]),
 
-    error_logger:info_report(PayLoad),
-    
-    InsertRes = epgsql:squery(Conn, binary_to_list(PayLoad)),
+    InsertRes = epgsql:squery(Conn, binary_to_list(Query)),
 
     ok = epgsql:close(Conn),
 
@@ -74,5 +72,3 @@ handle_post(Req, State) ->
 
     Res = cowboy_req:set_resp_body(<<"ok">>, NextReq),
     {true, Res, State}.
-
-
