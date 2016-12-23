@@ -54,14 +54,24 @@ handle_post(Req, State) ->
         {timeout, 100}
     ]),
 
+    ID = uuid:uuid_to_string(uuid:get_v4_urandom()),
 
-    Query = list_to_binary([
-        "insert into player_profile (profile) values ('",
-        Data,
+    QueryAddProfile = list_to_binary([
+        "insert into player_profile (id, profile) values ('",
+        ID, "', '", Data,
         "')"
     ]),
 
-    InsertRes = epgsql:squery(Conn, binary_to_list(Query)),
+    QueryAddChestOpening = list_to_binary([
+        "insert into char_chest(char_id, last_opened_chest, last_opened_time) values ('",
+        ID, "', '1', now())"
+    ]),
+
+    AddProfileRes = epgsql:squery(Conn, binary_to_list(QueryAddProfile)),
+    error_logger:info_report(AddProfileRes),
+
+    AddChestRes = epgsql:squery(Conn, binary_to_list(QueryAddChestOpening)),
+    error_logger:info_report(AddChestRes),
 
     ok = epgsql:close(Conn),
 

@@ -29,7 +29,10 @@ start(_StartType, _StartArgs) ->
                    {"/update_profile", update_profile_handler, []},
 
                    {"/get_player_list", get_player_list_handler, []},
-                   {"/get_cast_names", get_casts_handler, []}
+                   {"/get_cast_names", get_casts_handler, []},
+
+                   {"/check_chest", check_chest_handler, []},
+                   {"/open_chest", open_chest_handler, []}
                   ]}
         ]),
 

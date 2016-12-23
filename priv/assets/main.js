@@ -1,3 +1,4 @@
+var listedData;
 
 var rand_choice = function(array){
     return array[Math.floor(Math.random() * array.length)];
@@ -153,8 +154,18 @@ $.getData = function(i){
     }
 }
 
+$.groupby = function(List){
+
+}
+
+$.textify = function(mydata){
+    console.log(mydata);
+}
 
 $.makeJSON = function (mydata) {
+
+    $.textify(mydata);
+
     var show = $('<pre></pre>');
     var opener = "<code class=\"json\">";
 
@@ -278,16 +289,16 @@ var get_player_list = function(Dest){
     $.postJSON("/get_player_list", {}, function(data){
         console.log(data);
 
-        listedData = Object.keys(data).map(function (key) { return data[key]; });
+        listedData = Object.keys(data).map(function (key) { return {key:key, val:data[key]}; });
 
         $('#player-list select').empty();
 
-        for(var i=0; i< listedData.length;i++){
+        listedData.forEach(function(e){
             $('<option/>', {
-                value: i+1,
-                html: listedData[i]
+                value: e.key,
+                html: e.val
             }).appendTo(Dest);
-        }
+        })
 
     }, "json").fail(function(){
         console.log("error");
@@ -296,7 +307,7 @@ var get_player_list = function(Dest){
 
 $("#player-list").ready(function(){
     get_player_list("#player-list");
-    $.postJSON('/get_profile', {id: "1"}, function(data){
+    $.postJSON('/get_profile', {id: "85f6d769-713b-48ad-9163-7ba43b7459c7"}, function(data){
         $.setEditData(data);
     })
 });
@@ -309,7 +320,7 @@ $("#player-list").change(function(){
 
 $("#player-list-1").ready(function(){
     get_player_list("#player-list-1");
-    $.postJSON('/get_profile', {id: "1"}, function(data){
+    $.postJSON('/get_profile', {id: "b119a5cb-2311-432c-b6e4-e20be932c714"}, function(data){
         $.setData(data, "1");
     })
 })
@@ -322,7 +333,7 @@ $("#player-list-1").change(function(){
 
 $("#player-list-2").ready(function(){
     get_player_list("#player-list-2");
-    $.postJSON('/get_profile', {id: "1"}, function(data){
+    $.postJSON('/get_profile', {id: "85f6d769-713b-48ad-9163-7ba43b7459c7"}, function(data){
         $.setData(data, "2");
     })
 })
@@ -382,6 +393,34 @@ $("#update").on('click', function(){
         })
     })
 });
+
+$("#refresh-chest1").on('click', function(){
+    $.postJSON('/check_chest', {id: $("#player-list-1").val()}, function(data){
+        $("#next-chest1").text(data.next_name);
+
+        remTime = (data.intv * 60 * 1000 - (Date.now() - Date.parse(data.last_time)));
+        $("#remaining1").text((remTime>0) ? remTime : 0);
+    })
+
+})
+
+$("#open-chest1").on('click', function(){
+    $.postJSON('/open_chest', {id: $("#player-list-1").val()}, function(data){
+        $("#chest-res1").empty();
+        list = $("#chest-res1");
+        data.forEach(function(e){
+            list.append("<li>"+e.name +" "+e.num+"</li>");
+        })
+    })
+
+    $.postJSON('/check_chest', {id: $("#player-list-1").val()}, function(data){
+        $("#next-chest1").text(data.next_name);
+
+        remTime = (data.intv * 60 * 1000 - (Date.now() - Date.parse(data.last_time)));
+        $("#remaining1").text((remTime>0) ? remTime : 0);
+    })
+})
+
 
 $(document).ready(function(){
     ms = $('#cast-list').magicSuggest({maxSelection:50, maxSuggestion:15, allowFreeEntries:false});

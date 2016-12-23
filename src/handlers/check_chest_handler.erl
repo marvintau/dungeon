@@ -1,4 +1,4 @@
--module(update_profile_handler).
+-module(check_chest_handler).
 
 -export([init/2]).
 -export([content_types_provided/2, content_types_accepted/2]).
@@ -21,7 +21,7 @@ content_types_accepted(Req, State) ->
 
 
 % note that the method won't be called since the callback
-% specified here will be only called when GET and HEAD request
+% specified here will be only called when GET and HEAD reQuery
 % being processed.
 
 content_types_provided(Req, State) ->
@@ -46,20 +46,30 @@ handle_post(Req, State) ->
     end,
 
 
-    {[{_, Id}, {_, Content}]} = jiffy:decode(ReqBody),
-
-    ProfileJson = jiffy:encode(Content),
+    {[{_, ID}]} = jiffy:decode(ReqBody),
 
     {ok, Conn} = epgsql:connect("localhost", "yuetao", "asdasdasd", [
         {database, "dungeon"},
         {timeout, 100}
     ]),
 
-    Query = list_to_binary(["update player_profile set profile='", ProfileJson, "' where id='", Id, "'"]),
+    Query = list_to_binary(["select
+                char_id, last_opened_chest, chest_name, open_interval, last_opened_time
+            from
+                char_chest
+                inner join chest_spec on char_chest.last_opened_chest%4+1 = chest_spec.chest_id
+                where
+            char_id = '", ID, "';"]),
 
-    {ok, Contents} = epgsql:squery(Conn, binary_to_list(Query)),
+
+    {ok, _Cols, Contents} = epgsql:squery(Conn, binary_to_list(Query)),
+
+
+    [{ID, NextChestID, NextName, Interval, LastOpen}] = Contents,
+
+    RawJsonContent = {[{id, ID}, {next_chest, NextChestID}, {next_name, NextName}, {intv, Interval}, {last_time, LastOpen}]},
 
     ok = epgsql:close(Conn),
 
-    Res = cowboy_req:set_resp_body(<<"ok">>, NextReq),
+    Res = cowboy_req:set_resp_body(jiffy:encode(RawJsonContent), NextReq),
     {true, Res, State}.

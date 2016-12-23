@@ -1,3 +1,4 @@
+{"1.1.0",
 [{<<"cowboy">>,
   {git,"https://github.com/ninenines/cowboy.git",
        {ref,"7b248e5163fd852d6defe967318da849433dadb1"}},
@@ -14,7 +15,14 @@
   {git,"https://github.com/davisp/jiffy.git",
        {ref,"a7db72493d2288533afbb417d5c2e6f11db84639"}},
   0},
+ {<<"quickrand">>,{pkg,<<"quickrand">>,<<"1.5.4">>},1},
  {<<"ranch">>,
   {git,"https://github.com/ninenines/ranch",
        {ref,"a5d2efcde9a34ad38ab89a26d98ea5335e88625a"}},
-  1}].
+  1},
+ {<<"uuid">>,{pkg,<<"uuid_erl">>,<<"1.5.4">>},0}]}.
+[
+{pkg_hash,[
+ {<<"quickrand">>, <<"47ADD4755CC5F209CBEFFD6F47C84061196CD7FAD99FD8FD12418EB0D06B939D">>},
+ {<<"uuid">>, <<"06240EFF3EAF013CC22274689B0C1FF6345645EE5D47A9E4ED7545EEB7698B23">>}]}
+].
