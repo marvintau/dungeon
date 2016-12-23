@@ -53,9 +53,9 @@ handle_post(Req, State) ->
         {timeout, 100}
     ]),
 
-    ProfileQuery1 = list_to_binary(["select * from player_profile where id=", Id1]),
+    ProfileQuery1 = list_to_binary(["select * from player_profile where id='", Id1,"'"]),
 
-    ProfileQuery2 = list_to_binary(["select * from player_profile where id=", Id2]),
+    ProfileQuery2 = list_to_binary(["select * from player_profile where id='", Id2, "'"]),
 
     {ok, _Cols, [{_, Profile1}]} = epgsql:squery(Conn, binary_to_list(ProfileQuery1)),
 
