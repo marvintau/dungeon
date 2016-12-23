@@ -397,9 +397,7 @@ $("#update").on('click', function(){
 $("#refresh-chest1").on('click', function(){
     $.postJSON('/check_chest', {id: $("#player-list-1").val()}, function(data){
         $("#next-chest1").text(data.next_name);
-
-        remTime = (data.intv * 60 * 1000 - (Date.now() - Date.parse(data.last_time)));
-        $("#remaining1").text((remTime>0) ? remTime : 0);
+        $("#remaining1").text(data.remaining);
     })
 
 })
@@ -407,17 +405,22 @@ $("#refresh-chest1").on('click', function(){
 $("#open-chest1").on('click', function(){
     $.postJSON('/open_chest', {id: $("#player-list-1").val()}, function(data){
         $("#chest-res1").empty();
-        list = $("#chest-res1");
-        data.forEach(function(e){
-            list.append("<li>"+e.name +" "+e.num+"</li>");
-        })
+        if(typeof data === 'string') {
+            $("#chest-res1").text(data);
+        } else {
+            list = $("#chest-res1");
+            data.forEach(function(e){
+                list.append("<li>"+e.name +" "+e.num+"</li>");
+            })
+        }
     })
 
     $.postJSON('/check_chest', {id: $("#player-list-1").val()}, function(data){
         $("#next-chest1").text(data.next_name);
 
-        remTime = (data.intv * 60 * 1000 - (Date.now() - Date.parse(data.last_time)));
-        $("#remaining1").text((remTime>0) ? remTime : 0);
+        console.log(data);
+
+        $("#remaining1").text(data.remaining);
     })
 })
 

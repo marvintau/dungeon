@@ -45,7 +45,6 @@ handle_post(Req, State) ->
             {<<"Nah">>, Req}
     end,
 
-
     {[{_, ID}]} = jiffy:decode(ReqBody),
 
     {ok, Conn} = epgsql:connect("localhost", "yuetao", "asdasdasd", [
@@ -53,6 +52,27 @@ handle_post(Req, State) ->
         {timeout, 100}
     ]),
 
+    % 如果剩余的时间小于等于0时，才能去开宝箱
+    QueryCheck = list_to_binary(["select
+                interval '0' >= interval '1m' * open_interval - (now() - last_opened_time) as remaining
+            from
+                char_chest
+                inner join chest_spec on char_chest.last_opened_chest%4+1 = chest_spec.chest_id
+                where
+            char_id = '", ID, "';"]),
+
+
+    {ok, _Cols, [{OkayToOpen}]} = epgsql:squery(Conn, binary_to_list(QueryCheck)),
+    erlang:display(OkayToOpen),
+
+    RawJsonContent = case OkayToOpen of
+        <<"t">> -> update_query(ID, Conn);
+        _ -> <<"not-right-time-to-open">>
+    end,
+    Res = cowboy_req:set_resp_body(jiffy:encode(RawJsonContent), NextReq),
+    {true, Res, State}.
+
+update_query(ID, Conn) ->
     QueryUpdate = list_to_binary(["update char_chest
         set
             last_opened_chest = last_opened_chest % 4 + 1,
@@ -99,6 +119,4 @@ handle_post(Req, State) ->
     RawJsonContent = [{[{id, ItemID}, {name, ItemName}, {num, ItemNum}]} || {ItemID, ItemName, ItemNum} <- lists:sublist(PossibleDroppedItem, DroppedNumber)],
 
     ok = epgsql:close(Conn),
-
-    Res = cowboy_req:set_resp_body(jiffy:encode(RawJsonContent), NextReq),
-    {true, Res, State}.
+    RawJsonContent.
