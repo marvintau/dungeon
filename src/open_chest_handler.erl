@@ -61,7 +61,7 @@ handle_post(Req, State) ->
     ]),
 
     QueryGetDroppedItemTypes = list_to_binary(["
-        select round(random() * (max_item_types - min_item_types)) + min_item_types as item_types
+        select chest_id, round(random() * (max_item_types - min_item_types)) + min_item_types as item_types
         from
             char_chest
         inner join chest_spec on char_chest.last_opened_chest = chest_spec.chest_id
@@ -69,31 +69,31 @@ handle_post(Req, State) ->
         "
     ]),
 
+    {ok, 1} = epgsql:squery(Conn, binary_to_list(QueryUpdate)),
+
+    {ok, _, [{ChestID, DroppedNumberBin}]} = epgsql:squery(Conn, binary_to_list(QueryGetDroppedItemTypes)),
+    DroppedNumber = binary_to_integer(DroppedNumberBin),
+    error_logger:info_report({ChestID, DroppedNumber}),
+
     QueryListPossibleItems = list_to_binary(["
+
         select item_id, item_name, items
         FROM
         (SELECT
             tem.item_id, item_name, items, generate_series(1, drop_rate/5) as nah
         from
             (select
-                char_id, opened_chest.chest_id, chest_name, item_id, drop_rate,
+                chest_id, item_id, drop_rate,
                 round(random() * (max_items - min_items) + min_items) as items
             from
-                opened_chest
-            inner join item_from_chest on item_from_chest.chest_id = opened_chest.chest_id
+                item_from_chest
+            where chest_id='", ChestID, "'
             ) as tem
         inner join
             item_description on tem.item_id = item_description.item_id) as populated
         group by item_id, item_name, items
-        order by random()
-        "
+        order by random()"
     ]),
-
-    {ok, 1} = epgsql:squery(Conn, binary_to_list(QueryUpdate)),
-
-    {ok, _, [{DroppedNumberBin}]} = epgsql:squery(Conn, binary_to_list(QueryGetDroppedItemTypes)),
-    DroppedNumber = binary_to_integer(DroppedNumberBin),
-    error_logger:info_report(DroppedNumber),
 
     {ok, _, PossibleDroppedItem} = epgsql:squery(Conn, binary_to_list(QueryListPossibleItems)),
     RawJsonContent = [{[{id, ItemID}, {name, ItemName}, {num, ItemNum}]} || {ItemID, ItemName, ItemNum} <- lists:sublist(PossibleDroppedItem, DroppedNumber)],
