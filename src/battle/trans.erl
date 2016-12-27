@@ -77,7 +77,7 @@ apply(Last, [Trans | RemTrans], #{id:=OID}=O, #{id:=DID}=D, Logs) ->
     Log = {[
         {status, Status},
         {last_round, Last},
-        {dest, {[{attr, A}, {person, ref:who_this(P, OID, DID)}]}},
+        {dest, {[{attr, A}, {applier, ref:who_this(P, OID, DID)}]}},
         {diff, Diff}
     ]},
 

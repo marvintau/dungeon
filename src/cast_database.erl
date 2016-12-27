@@ -22,7 +22,7 @@ create_casts() ->
 
     Talents = [
         {brave_shield_counterback, talent, [
-            {1, off, [
+            {1, [
                 { {{0, null, attacking}, [{block, '==', {attr, outcome, off}}]}, [
                   {{add, {-125}, absorbable},{state, hp, def}}
                 ], damage}
@@ -30,7 +30,7 @@ create_casts() ->
         ]},
 
         {blade_dance, talent, [
-            {1, off, [
+            {1, [
                 { {{0, null, settling}, []}, [
                   {{add_mul, {0.1}, none}, {attr, critical, off}},
                   {{add_mul, {0.5}, none}, {attr, critical_multiplier, off}}
@@ -39,7 +39,7 @@ create_casts() ->
         ]},
 
         {freeze, talent, [
-            {1, def, [
+            {1, [
                 { {{0, 2, settling}, []}, [
                   {{set, {1}, none}, {attr, cast_disabled, def}},
                   {{set, {1}, none}, {attr, attack_disabled, def}},
@@ -52,7 +52,7 @@ create_casts() ->
         ]},
 
         {assault, talent, [
-            {1, off, [
+            {1, [
                 { {{0, null, attacking}, [{dodge, '==', {attr, outcome, def}}]}, [
                   {{add, {1}, none}, {state, rem_moves, off}},
                   {{set, {0}, none}, {attr, dodge, def}},
@@ -72,7 +72,7 @@ create_casts() ->
     CastsGeneral = [
 
         {rune_of_the_void, general, [
-            {1, def, [
+            {1, [
                 { {{0, 1, casting}, []}, [
                   {{set, {1}, none}, {attr, cast_disabled, def}}
                 ], invalidate}
@@ -80,7 +80,7 @@ create_casts() ->
         ]},
 
         {holy_hand_grenade, general, [
-            {1, def, [
+            {1, [
                 { {{0, 1, casting}, []}, [
                   {{add, {{-500, -1}}, none}, {state, hp, def}}
                 ], damage}
@@ -88,7 +88,7 @@ create_casts() ->
         ]},
 
         {talisman_of_death, general, [
-            {1, def, [
+            {1, [
                 { {{0, 1, casting}, []}, [
                   {{add_mul, {-0.15}, resistable}, {state, hp, def}}
                 ], damage}
@@ -96,7 +96,7 @@ create_casts() ->
         ]},
 
         {talisman_of_spellshrouding, general, [
-            {1, off, [
+            {1, [
                 { {{0, 2, casting}, []}, [
                   {{add, {30}, none}, {attr, resist, off}}
                 ], buff}
@@ -104,7 +104,7 @@ create_casts() ->
         ]},
 
         {poison_gas, general, [
-            {0.5, def, [
+            {0.5, [
                 {
                  {{0, 2, casting}, []},
                  [{{set, {1}, none}, {attr, attack_disabled, def}},
@@ -113,7 +113,7 @@ create_casts() ->
                   {{set, {0}, none}, {attr, block, def}}
                  ], dizzy}
             ]},
-            {0.5, off, [
+            {0.5, [
                 {
                  {{0, 2, casting}, []},
                  [{{set, {1}, none}, {attr, attack_disabled, off}},
@@ -127,7 +127,7 @@ create_casts() ->
 
     Warrior = [
         {shield_wall, warrior, [
-            {1, off, [
+            {1, [
                 { {{0, 1, casting}, []},
                 [{{set, {0}, none}, {attr, dodge, off}},
                  {{set, {119}, none}, {attr, block, off}},
@@ -138,7 +138,7 @@ create_casts() ->
         ]},
 
         {sure_hit, warrior, [
-            {2, off, [
+            {2, [
                 {
                  {{0, 2, casting}, []},
                  [{{set, {0}, none}, {attr, resist, def}},
@@ -150,19 +150,19 @@ create_casts() ->
         ]},
 
         {double_swing, warrior, [
-            {1, off, [
+            {1, [
                 { {{0, 1, casting}, []}, [{{add, {2}, none}, {state, rem_moves, off}}], buff}
             ]}
         ]},
 
         {chain_lock, warrior, [
-            {1, def, [
+            {1, [
                 { {{0, 1, casting}, []}, [{{set, {1}, resistable}, {attr, attack_disabled, def}}], disarm}
             ]}
         ]},
 
         {first_aid, warrior, [
-            {1, off, [
+            {1, [
                 { {{0, 1, casting}, []}, [{{add_mul, {0.08}, none}, {state, hp, off}}], heal}
             ]}
         ]}
@@ -171,31 +171,31 @@ create_casts() ->
 
     Hunter = [
         {tornado, hunter, [
-            {1, def, [
+            {1, [
                 { {{0, 5, casting}, []}, [{{add_mul, {-0.05}, none}, {attr, hit_bonus, def}}, {{add, {-50}, absorbable}, {state, hp, def}}], debuff}
             ]}
         ]},
 
         {mend, hunter, [
-            {1, off, [
+            {1, [
                 { {{0, 3, casting}, []}, [{{add_mul, {0.07}, none}, {state, hp, off}}], heal}
             ]}
         ]},
 
         {outbreak, hunter, [
-            {1, def, [
+            {1, [
                 { {{0, 3, attacking}, []}, [{{add, {-70}, resistable}, {state, hp, def}}], damage}
             ]}
         ]},
 
         {roots, hunter, [
-            {1, def, [
+            {1, [
                 { {{0, 1, casting}, []}, [{{set, {1}, resistable}, {state, rem_moves, def}}], debuff}
             ]}
         ]},
 
         {tree_hide, hunter, [
-            {1, off, [
+            {1, [
                 { {{0, 3, casting}, []}, [{{add_mul, {0.7}, resistable}, {attr, armor, off}}], buff}
             ]}
         ]}
@@ -203,25 +203,25 @@ create_casts() ->
 
     Rogue = [
         {healing_potion, rogue, [
-            {1, off, [
+            {1, [
                 { {{0, 1, casting}, []}, [{{add, {{175, 255}}, none}, {state, hp, off}}], heal}
             ]}
         ]},
 
         {pierce_armor, rogue, [
-            {1, def, [
+            {1, [
                 { {{0, 2, casting}, []}, [{{add_mul, {-0.5}, resistable}, {attr, armor, def}}], debuff}
             ]}
         ]},
 
         {flurry, rogue, [
-            {1, off, [
+            {1, [
                 { {{0, 2, casting}, []}, [{{set, {3}, none}, {state, rem_moves, off}}], buff}
             ]}
         ]},
 
         {spellbreak, rogue, [
-            {1, off, [
+            {1, [
                 { {{0, 2, casting}, []}, [
                   {{add, {70}, none}, {attr, resist, off}}
                 ], buff}
@@ -229,7 +229,7 @@ create_casts() ->
         ]},
 
         {perfect_strike, rogue, [
-            {1, off, [
+            {1, [
                 { {{0, 1, casting}, []}, [
                   {{set, {0}, none}, {attr, dodge, def}},
                   {{set, {0}, none}, {attr, block, def}},
@@ -242,7 +242,7 @@ create_casts() ->
 
     Mage = [
         {vampiric_bolt, mage, [
-            {1, def, [
+            {1, [
                 { {{0, 1, casting}, []}, [
                   {{add_inc_mul, {{state, hp, def}, 0.1}, none}, {state, hp, off}}
                 ], heal},
@@ -253,7 +253,7 @@ create_casts() ->
         ]},
 
         {arcane_surge, mage, [
-            {1, off, [
+            {1, [
                 { {{0, 1, casting}, []}, [
                   {{add, {2}, none}, {state, rem_moves, off}}
                 ], buff_rem_moves}
@@ -261,7 +261,7 @@ create_casts() ->
         ]},
 
         {lower_resist, mage, [
-            {1, off, [
+            {1, [
                 { {{0, 1, casting}, []}, [
                   {{set, {1}, none}, {attr, attack_disabled, off}},
                   {{set, {1}, none}, {attr, cast_disabled, off}},
@@ -269,7 +269,7 @@ create_casts() ->
                   {{set, {0}, none}, {attr, block, off}}
                 ], dizzy}
             ]},
-            {1, def, [
+            {1, [
                 { {{0, 3, casting}, []}, [
                     {{add_mul, {0.3}, none}, {attr, resist, def}}
                 ], debuff}
@@ -277,7 +277,7 @@ create_casts() ->
         ]},
 
         {pyromania, mage, [
-            {1, def, [
+            {1, [
                 { {{0, 3, casting}, []}, [
                   {{add, {-50}, resistable}, {state, hp, def}}
                 ], damage},
@@ -288,7 +288,7 @@ create_casts() ->
         ]},
 
         {mind_blast, mage, [
-            {1, def, [
+            {1, [
                 { {{0, 1, casting}, []}, [
                   {{add, {-125}, resistable}, {state, hp, def}}
                 ], damage},

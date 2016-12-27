@@ -92,10 +92,10 @@ log(#{seq:=Seq, stage:=Stage, mover:=Mover},
     #{id:=IdD, state:=#{hp:=HpD}, attr:=#{outcome:=Outcome, damage_taken:=Damage}})  ->
     
     {[
-        { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, IdD},
+        { seq, Seq }, {stage, Stage}, { offender, Mover },
         { hand, Which}, { action, WeaponType},
-        { outcome_note, Outcome }, {outcome, []}, { damage, Damage },
-        { offender_hp, HpO}, { defender_hp, HpD}
+        { react, Outcome }, {outcome, []}, { damage, Damage },
+        { offenderHP, HpO}, { defenderHP, HpD}
     ]}.
 
 trans(S,

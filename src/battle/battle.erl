@@ -44,7 +44,7 @@ loop(_, #{state:=#{hp:=HP1}, id:=I1}, #{state:=#{hp:=HP2}, id:=I2}, Log, FullLog
              end,
 
     {done, jiffy:encode({[
-        {proc, lists:reverse([L || L <- Log, L =/= {[]}])}, {full_log, lists:reverse(FullLog)}, {res,Winner}
+        {records, lists:reverse([L || L <- Log, L =/= {[]}])}, {full_log, lists:reverse(FullLog)}, {winner,Winner}
     ]} )};
 
 
@@ -69,11 +69,11 @@ loop(#{seq:=Seq, stage:=Stage}=State,
 
     EmptyLog = case Seq - LastLogSeq > 1 of
         true -> {[
-                { seq, LastLogSeq+1 }, {stage, rest}, { offender, rest }, { defender, rest},
-                { hand, none}, { action, rest}, {outcome_note, rest},
+                { seq, LastLogSeq+1 }, {stage, rest}, { offender, rest },
+                { hand, none}, { action, rest}, {react, rest},
                 { outcome, [] }, { damage, 0 },
-                { offender_hp, 0 },
-                { defender_hp, 0 }
+                { offenderHP, 0 },
+                { defenderHP, 0 }
             ]};
         _ -> {[]}
     end,
@@ -98,13 +98,9 @@ loop(#{stage:=casting, mover:=Mover}=State, #{done:=already}=P1, #{done:=already
     loop(State#{stage:=attacking, mover:=swap(Mover, P1, P2)}, P1#{done:=not_yet}, P2#{done:=not_yet}, L, FL);
 
 loop(#{mover:=Mover}=State, #{id:=Mover, done:=already}=P1, #{done:=not_yet}=P2, L, FL) ->
-    %erlang:display({swapping, Mover, 2}),
-    %erlang:display({maps:get(id, P2), maps:get(rem_moves, maps:get(state, P2))}),
     loop(State#{mover:=swap(Mover, P1, P2)}, P1, P2, L, FL);
 
 loop(#{mover:=Mover}=State, #{done:=not_yet}=P1, #{id:=Mover, done:=already}=P2, L, FL) ->
-    %erlang:display({swapping, Mover, 3}),
-    %erlang:display({maps:get(id, P2), maps:get(rem_moves, maps:get(state, P2))}),
     loop(State#{mover:=swap(Mover, P1, P2)}, P1, P2, L, FL);
 
 

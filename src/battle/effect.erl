@@ -8,11 +8,11 @@
 log(EffName, Mover, #{seq:=Seq, stage:=Stage}, #{state:=#{hp:=HpO}}, #{state:=#{hp:=HpD}}, Note, Logs) ->
 
     {[
-        { seq, Seq }, {stage, Stage}, { offender, Mover }, { defender, who},
-        { hand, none}, { action, EffName}, {outcome_note, Note},
+        { seq, Seq }, {stage, Stage}, { offender, Mover },
+        { hand, none}, { action, EffName}, {react, Note},
         { outcome, Logs }, { damage, 0 },
-        { offender_hp, HpO },
-        { defender_hp, HpD }
+        { offenderHP, HpO },
+        { defenderHP, HpD }
     ]}.
 
    
