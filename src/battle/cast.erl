@@ -2,9 +2,8 @@
 
 -author('Yue Marvin Tao').
 
--export([cast/4]).
-
--export([apply/2, apply/4]).
+-export([apply/4]).
+-export([apply_opening/4]).
 
 
 rand() -> element(3, erlang:timestamp())/1000000.
@@ -61,18 +60,6 @@ cast(S, #{casts:=[CastName | RemainingCasts], effects:=ExistingEffects}=O, D, L)
 
 
 
-
-apply(#{talented:=TalentedP1}=P1, #{talented:=TalentedP2}=P2) ->
-
-    S1 = #{seq=>0, stage=>preparing, mover=>maps:get(id, P1)},
-    S2 = #{seq=>0, stage=>preparing, mover=>maps:get(id, P2)},
-
-    {P1CastedLogs, P1Effect} = parse_cast(TalentedP1, S1, P1, P2),
-    {P2CastedLogs, P2Effect} = parse_cast(TalentedP2, S2, P2, P1),
-
-    {P1#{effects:=P1Effect}, P2#{effects:=P2Effect}, lists:append(P1CastedLogs, P2CastedLogs)}.
-
-
 apply(State, #{attr:=#{cast_disabled:=0}}=O, D, Log) ->
     {MovedO, MovedD, MovedLog} = cast(State, O, D, Log),
     effect:apply(State, MovedO#{done:=already}, MovedD, MovedLog);
@@ -84,3 +71,21 @@ apply(_State, #{casts:=Casts}=O, D, Log) ->
     end,
 
     {O#{casts:=ConsumedCasts, done:=already}, D, Log}.
+
+
+cast_opening(_S, #{talented:=none}=O, D, L) ->
+    {O, D, L};
+
+cast_opening(S, #{talented:=Opening, effects:=ExistingEffects}=O, D, L) ->
+
+    {CurrLogs, CurrEffects} = parse_cast(Opening, S, O, D),
+    NewEffects = lists:append(CurrEffects, ExistingEffects),
+    NewLog = lists:append(CurrLogs, L),
+
+    {O#{effects:=NewEffects}, D, NewLog}.
+
+apply_opening(State, O, D, Log) ->
+    {MovedO, MovedD, MovedLog} = cast_opening(State, O, D, Log),
+    effect:apply(State, MovedO#{done:=already}, MovedD, MovedLog).
+
+

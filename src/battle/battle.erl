@@ -57,24 +57,27 @@ loop(_, #{state:=#{hp:=HP1}, id:=I1}, #{state:=#{hp:=HP2}, id:=I2}, Log, FullLog
 % new round, the attributes should be restored in this stage. Meanwhile,
 % both players will be restored to primary hand.
 
-loop(#{seq:=Seq, stage:=Stage}=State,
+loop(#{seq:=Seq, stage:=attacking}=State,
      #{done:=already, prim_hand:=PrimHand1, orig_attr:=Orig1, state:=State1}=P1,
      #{done:=already, prim_hand:=PrimHand2, orig_attr:=Orig2, state:=State2}=P2,
-     [{[{_, LastLogSeq}|_]} |_]=L, FL) when (Stage == attacking) or (Stage == preparing)->
+     L, FL) ->
 
-    NewP1 = P1#{state:=State1#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand1, attr=>Orig1},
-    NewP2 = P2#{state:=State2#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand2, attr=>Orig2},
+    NewP1 = P1#{state:=State1#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand1, attr:=Orig1},
+    NewP2 = P2#{state:=State2#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand2, attr:=Orig2},
 
     NewMover = toss(NewP1, NewP2),
 
-    EmptyLog = case Seq - LastLogSeq > 1 of
-        true -> {[
-                { seq, LastLogSeq+1 }, {stage, rest}, { offender, rest },
-                { action, rest},
-                { outcome, [] }, { damage, 0 },
-                { offenderHP, 0 },
-                { defenderHP, 0 }
-            ]};
+    EmptyLog = case L of
+        [{[{_, LastLogSeq}|_]} |_] -> case Seq - LastLogSeq > 1 of
+                true -> {[
+                        { seq, LastLogSeq+1 }, {stage, rest}, { offender, rest },
+                        { action, rest},
+                        { outcome, [] }, { damage, 0 },
+                        { offenderHP, 0 },
+                        { defenderHP, 0 }
+                    ]};
+                _ -> {[]}
+            end;
         _ -> {[]}
     end,
 
@@ -91,8 +94,18 @@ loop(#{seq:=Seq, stage:=Stage}=State,
 % simply change to defender without changing anything else. If defender,
 % we need to switch to the next phase.
 
-loop(#{stage:=settling, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=P2, L, FL) ->
-    loop(State#{stage:=casting, mover:=swap(Mover, P1, P2)}, P1#{done:=not_yet}, P2#{done:=not_yet}, L, FL);
+loop(#{stage:=settling, mover:=Mover, is_opening:=IsOpening}=State, #{done:=already}=P1, #{done:=already}=P2, L, FL) ->
+
+    NextStage = case IsOpening of
+        true -> opening;
+        _    -> casting
+    end,
+
+    loop(State#{stage:=NextStage, mover:=swap(Mover, P1, P2)}, P1#{done:=not_yet}, P2#{done:=not_yet}, L, FL);
+
+
+loop(#{stage:=opening, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=P2, L, FL) ->
+    loop(State#{is_opening:=false, stage:=attacking, mover:=swap(Mover, P1, P2)}, P1#{done:=already}, P2#{done:=already}, L, FL);
 
 loop(#{stage:=casting, mover:=Mover}=State, #{done:=already}=P1, #{done:=already}=P2, L, FL) ->
     loop(State#{stage:=attacking, mover:=swap(Mover, P1, P2)}, P1#{done:=not_yet}, P2#{done:=not_yet}, L, FL);
@@ -102,6 +115,31 @@ loop(#{mover:=Mover}=State, #{id:=Mover, done:=already}=P1, #{done:=not_yet}=P2,
 
 loop(#{mover:=Mover}=State, #{done:=not_yet}=P1, #{id:=Mover, done:=already}=P2, L, FL) ->
     loop(State#{mover:=swap(Mover, P1, P2)}, P1, P2, L, FL);
+
+
+
+% ------------------------- LOOP FOR CAST -----------------------------
+
+loop(#{stage:=opening, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L, FL) ->
+
+    erlang:display("entered opening"),
+
+    {#{state:=#{hp:=HpA}}=OpeningA, #{state:=#{hp:=HpB}}=OpeningB, OpeningLog} = case Mover of
+        IDA -> cast:apply_opening(S, A, B, L);
+        IDB -> {NewB, NewA, NewLog} = cast:apply_opening(S, B, A, L), {NewA, NewB, NewLog}
+    end,
+
+    loop(S, OpeningA, OpeningB, OpeningLog, [#{seq=>Seq, a=>HpA, b=>HpB} | FL]);
+
+
+loop(#{stage:=casting, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L, FL) ->
+
+    {#{state:=#{hp:=HpA}}=CastA, #{state:=#{hp:=HpB}}=CastB, CastLog} = case Mover of
+        IDA -> cast:apply(S, A, B, L);
+        IDB -> {NewB, NewA, NewLog} = cast:apply(S, B, A, L), {NewA, NewB, NewLog}
+    end,
+
+    loop(S, CastA, CastB, CastLog, [#{seq=>Seq, a=>HpA, b=>HpB} | FL]);
 
 
 % ------------------------ LOOP FOR ATTACK  ---------------------------
@@ -117,18 +155,6 @@ loop(#{stage:=attacking, mover:=Mover, seq:=Seq}=S, #{id:=IDA, attr:=AttrA}=A, #
     end,
 
     loop(S, AttackA#{attr:=AttrA#{outcome:=none}}, AttackB#{attr:=AttrB#{outcome:=none}}, AttackLog, [#{seq=>Seq, a=>HpA, b=>HpB} | FL]);
-
-
-% ------------------------- LOOP FOR CAST -----------------------------
-
-loop(#{stage:=casting, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L, FL) ->
-
-    {#{state:=#{hp:=HpA}}=CastA, #{state:=#{hp:=HpB}}=CastB, CastLog} = case Mover of
-        IDA -> cast:apply(S, A, B, L);
-        IDB -> {NewB, NewA, NewLog} = cast:apply(S, B, A, L), {NewA, NewB, NewLog}
-    end,
-
-    loop(S, CastA, CastB, CastLog, [#{seq=>Seq, a=>HpA, b=>HpB} | FL]);
 
 
 % ---------------------- LOOP FOR SETTLEMENT -----------------------------
@@ -147,17 +173,9 @@ loop(#{stage:=settling, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L
 
 
 
-new({#{id:=Id}=P1, P2}) ->
+new({#{id:=Id, orig_attr:=OrigP1}=P1, #{orig_attr:=OrigP2}=P2}) ->
 
-    error_logger:info_report({P1, P2}),
+    erlang:display(battle_begins),
 
-    {CastedP1, CastedP2, CastedLog} = cast:apply(P1, P2),
+    loop(#{seq=>0, stage=>attacking, mover=>Id, is_opening=>true}, P1#{attr=>OrigP1, done:=already}, P2#{attr=>OrigP2, done:=already}, [], []).
 
-    loop(#{seq=>0, stage=>preparing, mover=>Id}, CastedP1, CastedP2, CastedLog, []).
-
-
-battle_test_100(_Data, 0) ->ok;
-
-battle_test_100(Data, Time) ->
-    new(Data),
-    battle_test_100(Data, Time-1).
