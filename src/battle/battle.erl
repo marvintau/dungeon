@@ -70,7 +70,7 @@ loop(#{seq:=Seq, stage:=Stage}=State,
     EmptyLog = case Seq - LastLogSeq > 1 of
         true -> {[
                 { seq, LastLogSeq+1 }, {stage, rest}, { offender, rest },
-                { hand, none}, { action, rest}, {react, rest},
+                { action, rest},
                 { outcome, [] }, { damage, 0 },
                 { offenderHP, 0 },
                 { defenderHP, 0 }

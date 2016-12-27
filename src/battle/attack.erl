@@ -88,13 +88,13 @@ is_no_damage_move(#{curr_hand:={secd, shield, _}})-> true;
 is_no_damage_move(_) -> false.
 
 log(#{seq:=Seq, stage:=Stage, mover:=Mover},
-    #{state:=#{hp:=HpO}, curr_hand:={Which, WeaponType, _}},
-    #{id:=IdD, state:=#{hp:=HpD}, attr:=#{outcome:=Outcome, damage_taken:=Damage}})  ->
+    #{state:=#{hp:=HpO}, curr_hand:={WhichHand, _, _}},
+    #{state:=#{hp:=HpD}, attr:=#{outcome:=Outcome, damage_taken:=Damage}})  ->
     
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover },
-        { hand, Which}, { action, WeaponType},
-        { react, Outcome }, {outcome, []}, { damage, Damage },
+        { action, list_to_binary(lists:append([atom_to_list(Outcome), "_", atom_to_list(WhichHand)]))},
+        { outcome, []}, { damage, Damage },
         { offenderHP, HpO}, { defenderHP, HpD}
     ]}.
 

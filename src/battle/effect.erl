@@ -5,11 +5,11 @@
 
 -export([apply/4]).
 
-log(EffName, Mover, #{seq:=Seq, stage:=Stage}, #{state:=#{hp:=HpO}}, #{state:=#{hp:=HpD}}, Note, Logs) ->
+log(EffName, Mover, #{seq:=Seq, stage:=Stage}, #{state:=#{hp:=HpO}}, #{state:=#{hp:=HpD}}, Logs) ->
 
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover },
-        { hand, none}, { action, EffName}, {react, Note},
+        { action, EffName},
         { outcome, Logs }, { damage, 0 },
         { offenderHP, HpO },
         { defenderHP, HpD }
@@ -32,13 +32,13 @@ apply(_S, #{hp:=H1}=O, #{hp:=H2}=D, Log, _) when (H1 =< 0) or (H2 =< 0) ->
 apply(_S, O, D, Log, []) ->
     {O, D, Log};
 
-apply(S, O, D, Log, [ {Name, Mover, Conds, Transes, Note} | Remaining]) ->
+apply(S, O, D, Log, [ {Name, Mover, Conds, Transes} | Remaining]) ->
 
     {NewO, NewD, NewLog} = case conds:check(Conds, S, O, D) of
         
         true ->
             {NextO, NextD, Logs} = trans:apply(Conds, Transes, O, D),
-            {NextO, NextD, [log(Name, Mover, S, NextO, NextD, Note, Logs)]};
+            {NextO, NextD, [log(Name, Mover, S, NextO, NextD, Logs)]};
         
         _    ->
             {O, D, []}

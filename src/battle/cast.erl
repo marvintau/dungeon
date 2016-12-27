@@ -14,23 +14,23 @@ rand() -> element(3, erlang:timestamp())/1000000.
 % latter function is the actual entrance that takes cast name as argument, and
 % find the specification in database, and re-interpret it with battle context.
 
-parse_single_effect(Name, {Cond, Trans, EffectNote}, #{seq:=CurrSeq, mover:=Mover}) ->
-    {Name, Mover, conds:seq(Cond, CurrSeq), Trans, EffectNote}.
+parse_single_effect(Name, {Cond, Trans}, #{seq:=CurrSeq, mover:=Mover}) ->
+    {Name, Mover, conds:seq(Cond, CurrSeq), Trans}.
 
 parse_single_group(Name, {Prob, Effects}, S) ->
     case rand() < Prob of
-        true -> {success, lists:map(fun(Spec) -> parse_single_effect(Name, Spec, S) end, Effects)};
-        _ -> {failed, bad_luck}
+        true -> lists:map(fun(Spec) -> parse_single_effect(Name, Spec, S) end, Effects);
+        _ ->    bad_luck
     end.
 
 parse_groups(Name, Groups, S) ->
    [parse_single_group(Name, Group, S) || Group <- Groups]. 
 
-log(CastName, Note, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
+log(CastName, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
 
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover },
-        { hand, none}, { action, CastName}, {react, Note},
+        { action, CastName},
         { outcome, [] }, { damage, 0 },
         { offenderHP, maps:get(hp, maps:get(state, O)) },
         { defenderHP, maps:get(hp, maps:get(state, D)) }
@@ -39,7 +39,7 @@ log(CastName, Note, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
 
 parse_groups_logged({Name, _Type, Groups}, S, O, D) ->
     Parsed = parse_groups(Name, Groups, S),
-    {Logs, Effects} = lists:unzip([{log(Name, Outcome, S, O, D), CurrEffects} || {Outcome, CurrEffects} <- Parsed]),
+    {Logs, Effects} = lists:unzip([{log(Name, S, O, D), CurrEffects} || CurrEffects <- Parsed]),
     {Logs, [Effect || Effect <- lists:flatten(Effects), Effect =/= bad_luck]}.
 
 parse_cast(Name, S, O, D) ->

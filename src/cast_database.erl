@@ -25,7 +25,7 @@ create_casts() ->
             {1, [
                 { {{0, null, attacking}, [{block, '==', {attr, outcome, off}}]}, [
                   {{add, {-125}, absorbable},{state, hp, def}}
-                ], damage}
+                ] }
             ]}
         ]},
 
@@ -34,7 +34,7 @@ create_casts() ->
                 { {{0, null, settling}, []}, [
                   {{add_mul, {0.1}, none}, {attr, critical, off}},
                   {{add_mul, {0.5}, none}, {attr, critical_multiplier, off}}
-                ], buff}
+                ] }
             ]}
         ]},
 
@@ -47,7 +47,7 @@ create_casts() ->
                   {{set, {0}, none}, {attr, block, def}},
                   {{set, {0}, none}, {attr, resist, def}},
                   {{set, {119}, none}, {attr, critical, off}}
-                ], freeze}
+                ] }
             ]}
         ]},
 
@@ -58,13 +58,13 @@ create_casts() ->
                   {{set, {0}, none}, {attr, dodge, def}},
                   {{set, {0}, none}, {attr, block, def}},
                   {{set, {0}, none}, {attr, resist, def}}
-                ], icon_only},
+                ] },
                 { {{0, null, attacking}, [{block, '==', {attr, outcome, def}}]}, [
                   {{add, {1}, none}, {state, rem_moves, off}},
                   {{set, {0}, none}, {attr, dodge, def}},
                   {{set, {0}, none}, {attr, block, def}},
                   {{set, {0}, none}, {attr, resist, def}}
-                ], icon_only}
+                ] }
              ]}
         ]}
     ],
@@ -75,7 +75,7 @@ create_casts() ->
             {1, [
                 { {{0, 1, casting}, []}, [
                   {{set, {1}, none}, {attr, cast_disabled, def}}
-                ], invalidate}
+                ] }
             ]}
         ]},
 
@@ -83,7 +83,7 @@ create_casts() ->
             {1, [
                 { {{0, 1, casting}, []}, [
                   {{add, {{-500, -1}}, none}, {state, hp, def}}
-                ], damage}
+                ] }
             ]}
         ]},
 
@@ -91,7 +91,7 @@ create_casts() ->
             {1, [
                 { {{0, 1, casting}, []}, [
                   {{add_mul, {-0.15}, resistable}, {state, hp, def}}
-                ], damage}
+                ] }
             ]}
         ]},
 
@@ -99,7 +99,7 @@ create_casts() ->
             {1, [
                 { {{0, 2, casting}, []}, [
                   {{add, {30}, none}, {attr, resist, off}}
-                ], buff}
+                ] }
             ]}
         ]},
 
@@ -111,7 +111,7 @@ create_casts() ->
                   {{set, {1}, none}, {attr, cast_disabled, def}},
                   {{set, {0}, none}, {attr, dodge, def}},
                   {{set, {0}, none}, {attr, block, def}}
-                 ], dizzy}
+                 ] }
             ]},
             {0.5, [
                 {
@@ -120,7 +120,7 @@ create_casts() ->
                   {{set, {1}, none}, {attr, cast_disabled, off}},
                   {{set, {0}, none}, {attr, dodge, off}},
                   {{set, {0}, none}, {attr, block, off}}
-                 ], dizzy}
+                 ] }
             ]}
         ]}
     ],
@@ -133,7 +133,7 @@ create_casts() ->
                  {{set, {119}, none}, {attr, block, off}},
                  {{set, {0}, none}, {attr, hit_bonus, def}},
                  {{set, {0}, none}, {attr, critical, def}}
-                ], icon_only}
+                ] }
             ]}
         ]},
 
@@ -145,25 +145,25 @@ create_casts() ->
                   {{set, {0}, none}, {attr, block, def}},
                   {{set, {0}, none}, {attr, dodge, def}},
                   {{set, {0}, none}, {attr, critical, off}}
-                ], icon_only}
+                ] }
             ]}
         ]},
 
         {double_swing, warrior, [
             {1, [
-                { {{0, 1, casting}, []}, [{{add, {2}, none}, {state, rem_moves, off}}], buff}
+                { {{0, 1, casting}, []}, [{{add, {2}, none}, {state, rem_moves, off}}] }
             ]}
         ]},
 
         {chain_lock, warrior, [
             {1, [
-                { {{0, 1, casting}, []}, [{{set, {1}, resistable}, {attr, attack_disabled, def}}], disarm}
+                { {{0, 1, casting}, []}, [{{set, {1}, resistable}, {attr, attack_disabled, def}}] }
             ]}
         ]},
 
         {first_aid, warrior, [
             {1, [
-                { {{0, 1, casting}, []}, [{{add_mul, {0.08}, none}, {state, hp, off}}], heal}
+                { {{0, 1, casting}, []}, [{{add_mul, {0.08}, none}, {state, hp, off}}] }
             ]}
         ]}
     ],
@@ -172,31 +172,31 @@ create_casts() ->
     Hunter = [
         {tornado, hunter, [
             {1, [
-                { {{0, 5, casting}, []}, [{{add_mul, {-0.05}, none}, {attr, hit_bonus, def}}, {{add, {-50}, absorbable}, {state, hp, def}}], debuff}
+                { {{0, 5, casting}, []}, [{{add_mul, {-0.05}, none}, {attr, hit_bonus, def}}, {{add, {-50}, absorbable}, {state, hp, def}}] }
             ]}
         ]},
 
         {mend, hunter, [
             {1, [
-                { {{0, 3, casting}, []}, [{{add_mul, {0.07}, none}, {state, hp, off}}], heal}
+                { {{0, 3, casting}, []}, [{{add_mul, {0.07}, none}, {state, hp, off}}] }
             ]}
         ]},
 
         {outbreak, hunter, [
             {1, [
-                { {{0, 3, attacking}, []}, [{{add, {-70}, resistable}, {state, hp, def}}], damage}
+                { {{0, 3, attacking}, []}, [{{add, {-70}, resistable}, {state, hp, def}}] }
             ]}
         ]},
 
         {roots, hunter, [
             {1, [
-                { {{0, 1, casting}, []}, [{{set, {1}, resistable}, {state, rem_moves, def}}], debuff}
+                { {{0, 1, casting}, []}, [{{set, {1}, resistable}, {state, rem_moves, def}}] }
             ]}
         ]},
 
         {tree_hide, hunter, [
             {1, [
-                { {{0, 3, casting}, []}, [{{add_mul, {0.7}, resistable}, {attr, armor, off}}], buff}
+                { {{0, 3, casting}, []}, [{{add_mul, {0.7}, resistable}, {attr, armor, off}}] }
             ]}
         ]}
     ],
@@ -204,19 +204,19 @@ create_casts() ->
     Rogue = [
         {healing_potion, rogue, [
             {1, [
-                { {{0, 1, casting}, []}, [{{add, {{175, 255}}, none}, {state, hp, off}}], heal}
+                { {{0, 1, casting}, []}, [{{add, {{175, 255}}, none}, {state, hp, off}}] }
             ]}
         ]},
 
         {pierce_armor, rogue, [
             {1, [
-                { {{0, 2, casting}, []}, [{{add_mul, {-0.5}, resistable}, {attr, armor, def}}], debuff}
+                { {{0, 2, casting}, []}, [{{add_mul, {-0.5}, resistable}, {attr, armor, def}}] }
             ]}
         ]},
 
         {flurry, rogue, [
             {1, [
-                { {{0, 2, casting}, []}, [{{set, {3}, none}, {state, rem_moves, off}}], buff}
+                { {{0, 2, casting}, []}, [{{set, {3}, none}, {state, rem_moves, off}}] }
             ]}
         ]},
 
@@ -224,7 +224,7 @@ create_casts() ->
             {1, [
                 { {{0, 2, casting}, []}, [
                   {{add, {70}, none}, {attr, resist, off}}
-                ], buff}
+                ] }
             ]}
         ]},
 
@@ -235,7 +235,7 @@ create_casts() ->
                   {{set, {0}, none}, {attr, block, def}},
                   {{set, {0}, none}, {attr, hit_bonus, off}},
                   {{set, {119}, none}, {attr, critical, off}}
-                ], icon_only}
+                ] }
             ]}
         ]}
     ],
@@ -245,10 +245,10 @@ create_casts() ->
             {1, [
                 { {{0, 1, casting}, []}, [
                   {{add_inc_mul, {{state, hp, def}, 0.1}, none}, {state, hp, off}}
-                ], heal},
+                ] },
                 { {{0, 1, casting}, []}, [
                   {{add_mul, {-0.1}, none}, {state, hp, def}}
-                ], damage}
+                ] }
             ]}
         ]},
 
@@ -256,7 +256,7 @@ create_casts() ->
             {1, [
                 { {{0, 1, casting}, []}, [
                   {{add, {2}, none}, {state, rem_moves, off}}
-                ], buff_rem_moves}
+                ] }
             ]}
         ]},
 
@@ -267,12 +267,12 @@ create_casts() ->
                   {{set, {1}, none}, {attr, cast_disabled, off}},
                   {{set, {0}, none}, {attr, dodge, off}},
                   {{set, {0}, none}, {attr, block, off}}
-                ], dizzy}
+                ] }
             ]},
             {1, [
                 { {{0, 3, casting}, []}, [
                     {{add_mul, {0.3}, none}, {attr, resist, def}}
-                ], debuff}
+                ] }
             ]}
         ]},
 
@@ -280,10 +280,10 @@ create_casts() ->
             {1, [
                 { {{0, 3, casting}, []}, [
                   {{add, {-50}, resistable}, {state, hp, def}}
-                ], damage},
+                ] },
                 { {{0, 1, casting}, []}, [
                   {{add_mul, {-0.5}, resistable}, {attr, critical, def}}
-                ], debuff}
+                ] }
             ]}
         ]},
 
@@ -291,10 +291,10 @@ create_casts() ->
             {1, [
                 { {{0, 1, casting}, []}, [
                   {{add, {-125}, resistable}, {state, hp, def}}
-                ], damage},
+                ] },
                 { {{0, 1, casting}, []}, [
                   {{set, {1}, resistable}, {state, rem_moves, def}}
-                ], debuff}
+                ] }
             ]}
         ]}
     ],
