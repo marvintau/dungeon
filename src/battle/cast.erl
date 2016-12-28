@@ -30,7 +30,7 @@ log(CastName, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover },
         { action, CastName},
-        { outcome, [] }, { damage, 0 },
+        { effects, [] }, { damage, 0 },
         { offenderHP, maps:get(hp, maps:get(state, O)) },
         { defenderHP, maps:get(hp, maps:get(state, D)) }
     ]}.

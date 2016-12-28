@@ -38,14 +38,19 @@ roulette(
     {Dodge, Resist, Block} = case {Curr, Secd} of
         
         {magic, _} ->
+            erlang:display(1),
             {0, Res, 0};
         
         {physical, shield} ->
+            erlang:display(2),
             {Dod, 0, Blo};
 
         {physical, _} ->
+            erlang:display(3),
             {Dod, 0, 0};
-        _ ->             
+
+        _ ->
+            erlang:display(4),             
             {0, 0, 0}            
     end,
 
@@ -56,7 +61,10 @@ roulette(
 
     Roulette = [MAX_LIMIT - NewDodge - Resist - Block - Critical, NewDodge, Resist, Block, Critical],
 
-    element(bin(rand:uniform() * 120, Roulette), {attack, dodge, resist, block, critical}).
+    Binned = bin(rand:uniform() * 120, Roulette),
+    Result = element(Binned, {attack, dodge, resist, block, critical}),
+    erlang:display(Roulette),
+    Result.
 
 % --------------- PLAYER AS MAGE ------------------------------
 % Magic attack cannot be blocked, thus make sure that block has
@@ -94,7 +102,7 @@ log(#{seq:=Seq, stage:=Stage, mover:=Mover},
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover },
         { action, list_to_binary(lists:append([atom_to_list(Outcome), "_", atom_to_list(WhichHand)]))},
-        { outcome, []}, { damage, Damage },
+        { effects, []}, { damage, Damage },
         { offenderHP, HpO}, { defenderHP, HpD}
     ]}.
 

@@ -10,7 +10,7 @@ log(EffName, Mover, #{seq:=Seq, stage:=Stage}, #{state:=#{hp:=HpO}}, #{state:=#{
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover },
         { action, EffName},
-        { outcome, Logs }, { damage, 0 },
+        { effects, Logs }, { damage, 0 },
         { offenderHP, HpO },
         { defenderHP, HpD }
     ]}.

@@ -128,7 +128,7 @@ create_casts() ->
     Warrior = [
         {shield_wall, warrior, [
             {1, [
-                { {{0, 1, casting}, []},
+                { {{0, 10, casting}, []},
                 [{{set, {0}, none}, {attr, dodge, off}},
                  {{set, {119}, none}, {attr, block, off}},
                  {{set, {0}, none}, {attr, hit_bonus, def}},

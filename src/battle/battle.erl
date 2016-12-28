@@ -72,7 +72,7 @@ loop(#{seq:=Seq, stage:=attacking}=State,
                 true -> {[
                         { seq, LastLogSeq+1 }, {stage, rest}, { offender, rest },
                         { action, rest},
-                        { outcome, [] }, { damage, 0 },
+                        { effects, [] }, { damage, 0 },
                         { offenderHP, 0 },
                         { defenderHP, 0 }
                     ]};
@@ -117,12 +117,26 @@ loop(#{mover:=Mover}=State, #{done:=not_yet}=P1, #{id:=Mover, done:=already}=P2,
     loop(State#{mover:=swap(Mover, P1, P2)}, P1, P2, L, FL);
 
 
+% ------------------------ LOOP FOR ATTACK  ---------------------------
+% In order to guarantee that there is no status dependency, all status
+% modification regarding attributes will be restored except HP, number
+% of remaining attacks current gamer in move.
+
+loop(#{stage:=attacking, mover:=Mover, seq:=Seq}=S, #{id:=IDA, attr:=AttrA}=A, #{id:=IDB, attr:=AttrB}=B, L, FL) ->
+
+    % erlang:display({Seq, maps:get(done, A), maps:get(done, B)}),
+
+    {#{state:=#{hp:=HpA}}=AttackA, #{state:=#{hp:=HpB}}=AttackB, AttackLog} = case Mover of
+        IDA -> attack:apply(S, A, B, L);
+        IDB -> {NewB, NewA, NewLog} = attack:apply(S, B, A, L), {NewA, NewB, NewLog}
+    end,
+
+    loop(S, AttackA#{attr:=AttrA#{outcome:=none}}, AttackB#{attr:=AttrB#{outcome:=none}}, AttackLog, [#{seq=>Seq, a=>HpA, b=>HpB} | FL]);
+
 
 % ------------------------- LOOP FOR CAST -----------------------------
 
 loop(#{stage:=opening, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L, FL) ->
-
-    erlang:display("entered opening"),
 
     {#{state:=#{hp:=HpA}}=OpeningA, #{state:=#{hp:=HpB}}=OpeningB, OpeningLog} = case Mover of
         IDA -> cast:apply_opening(S, A, B, L);
@@ -140,21 +154,6 @@ loop(#{stage:=casting, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L,
     end,
 
     loop(S, CastA, CastB, CastLog, [#{seq=>Seq, a=>HpA, b=>HpB} | FL]);
-
-
-% ------------------------ LOOP FOR ATTACK  ---------------------------
-% In order to guarantee that there is no status dependency, all status
-% modification regarding attributes will be restored except HP, number
-% of remaining attacks current gamer in move.
-
-loop(#{stage:=attacking, mover:=Mover, seq:=Seq}=S, #{id:=IDA, attr:=AttrA}=A, #{id:=IDB, attr:=AttrB}=B, L, FL) ->
-
-    {#{state:=#{hp:=HpA}}=AttackA, #{state:=#{hp:=HpB}}=AttackB, AttackLog} = case Mover of
-        IDA -> attack:apply(S, A, B, L);
-        IDB -> {NewB, NewA, NewLog} = attack:apply(S, B, A, L), {NewA, NewB, NewLog}
-    end,
-
-    loop(S, AttackA#{attr:=AttrA#{outcome:=none}}, AttackB#{attr:=AttrB#{outcome:=none}}, AttackLog, [#{seq=>Seq, a=>HpA, b=>HpB} | FL]);
 
 
 % ---------------------- LOOP FOR SETTLEMENT -----------------------------
@@ -177,5 +176,5 @@ new({#{id:=Id, orig_attr:=OrigP1}=P1, #{orig_attr:=OrigP2}=P2}) ->
 
     erlang:display(battle_begins),
 
-    loop(#{seq=>0, stage=>attacking, mover=>Id, is_opening=>true}, P1#{attr=>OrigP1, done:=already}, P2#{attr=>OrigP2, done:=already}, [], []).
+    loop(#{seq=>-1, stage=>attacking, mover=>Id, is_opening=>true}, P1#{attr=>OrigP1, done:=already}, P2#{attr=>OrigP2, done:=already}, [], []).
 
