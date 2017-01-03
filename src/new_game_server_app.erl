@@ -32,7 +32,9 @@ start(_StartType, _StartArgs) ->
                    {"/get_cast_names", get_casts_handler, []},
 
                    {"/check_chest", check_chest_handler, []},
-                   {"/open_chest", open_chest_handler, []}
+                   {"/open_chest", open_chest_handler, []},
+
+                   {"/reset_database", reset_database_handler, []}
                   ]}
         ]),
 

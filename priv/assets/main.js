@@ -424,6 +424,11 @@ $("#open-chest1").on('click', function(){
     })
 })
 
+$("#reset-database").on('click', function(){
+    $.postJSON('/reset_database', {}, function(data){
+        window.location.reload(true);
+    })
+})
 
 $(document).ready(function(){
     ms = $('#cast-list').magicSuggest({maxSelection:50, maxSuggestion:15, allowFreeEntries:false});

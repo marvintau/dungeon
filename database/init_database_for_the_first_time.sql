@@ -1,5 +1,3 @@
-drop table player_profile cascade;
-
 CREATE TABLE player_profile (
     id uuid,	  
     profile jsonb,
@@ -38,8 +36,6 @@ insert into player_profile (id, profile) values
 
 select id, profile ->> 'id' as name from player_profile;
 
-drop table char_chest;
-
 create table char_chest(
     char_id uuid,
     last_opened_chest int,
@@ -57,8 +53,6 @@ insert into char_chest(char_id, last_opened_chest, last_opened_time) values
 
 select * from char_chest ;
 
-drop table chest_spec CASCADE;
-
 create table chest_spec (
     chest_id int,
     chest_name CHARACTER VARYING(40),
@@ -70,11 +64,9 @@ create table chest_spec (
 );
 
 copy chest_spec(chest_id, chest_name, min_item_types, max_item_types, open_interval)
-from '/Users/yuetao/projects/dungeon/database/preset_data/chest_specs.csv' delimiter ',' csv header;
+from '/Users/marvin/Github/dungeon/database/preset_data/chest_specs.csv' delimiter ',' csv header;
 
 select * from chest_spec;
-
-drop table item_from_chest;
 
 create table item_from_chest (
     item_id int,
@@ -88,19 +80,17 @@ create table item_from_chest (
 );
 
 copy item_from_chest(chest_id, item_id, min_items, max_items, drop_rate)
-from '/Users/yuetao/projects/dungeon/database/preset_data/chest-golden.csv' delimiter ',' csv header;
+from '/Users/marvin/Github/dungeon/database/preset_data/chest-golden.csv' delimiter ',' csv header;
 copy item_from_chest(chest_id, item_id, min_items, max_items, drop_rate)
-from '/Users/yuetao/projects/dungeon/database/preset_data/chest-bronze.csv' delimiter ',' csv header;
+from '/Users/marvin/Github/dungeon/database/preset_data/chest-bronze.csv' delimiter ',' csv header;
 copy item_from_chest(chest_id, item_id, min_items, max_items, drop_rate)
-from '/Users/yuetao/projects/dungeon/database/preset_data/chest-wood.csv' delimiter ',' csv header;
+from '/Users/marvin/Github/dungeon/database/preset_data/chest-wood.csv' delimiter ',' csv header;
 copy item_from_chest(chest_id, item_id, min_items, max_items, drop_rate)
-from '/Users/yuetao/projects/dungeon/database/preset_data/chest-silver.csv' delimiter ',' csv header;
+from '/Users/marvin/Github/dungeon/database/preset_data/chest-silver.csv' delimiter ',' csv header;
 copy item_from_chest(chest_id, item_id, min_items, max_items, drop_rate)
-from '/Users/yuetao/projects/dungeon/database/preset_data/chest-iron.csv' delimiter ',' csv header;
+from '/Users/marvin/Github/dungeon/database/preset_data/chest-iron.csv' delimiter ',' csv header;
 
 select * from item_from_chest;
-
-drop table item_description;
 
 create table item_description(
     item_id int,
@@ -110,6 +100,6 @@ create table item_description(
 );
 
 copy item_description(item_id, item_name, item_desc, image_name)
-from '/Users/yuetao/projects/dungeon/database/preset_data/item-names.csv' delimiter ',' csv header;
+from '/Users/marvin/Github/dungeon/database/preset_data/item-names.csv' delimiter ',' csv header;
 
 select * from item_description;

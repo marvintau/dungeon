@@ -48,7 +48,7 @@ handle_post(Req, State) ->
 
     {[{_, Id1}, {_, Id2}]} = jiffy:decode(ReqBody),
 
-    {ok, Conn} = epgsql:connect("localhost", "yuetao", "asdasdasd", [
+    {ok, Conn} = epgsql:connect("localhost", "marvin", "asdasdasd", [
         {database, "dungeon"},
         {timeout, 100}
     ]),
@@ -82,7 +82,7 @@ parse(SinglePlayerData) ->
 
     #{
 
-        id         => binary_to_atom(ID, utf8),
+        id         => ID,
 
         % State is the data that will be modified during a battle, and the result will
         % be preserved.

@@ -25,12 +25,17 @@ parse_single_group(Name, {Prob, Effects}, S) ->
 parse_groups(Name, Groups, S) ->
    [parse_single_group(Name, Group, S) || Group <- Groups]. 
 
-log(CastName, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
+log(CastName, CurrEffect, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
+
+    Damage = case CurrEffect of
+        bad_luck -> 4294409;
+        _ -> 0
+    end,
 
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover },
         { action, CastName},
-        { effects, [] }, { damage, 0 },
+        { effects, [] }, { damage, Damage },
         { offenderHP, maps:get(hp, maps:get(state, O)) },
         { defenderHP, maps:get(hp, maps:get(state, D)) }
     ]}.
@@ -38,7 +43,7 @@ log(CastName, #{seq:=Seq, stage:=Stage, mover:=Mover}, O, D) ->
 
 parse_groups_logged({Name, _Type, Groups}, S, O, D) ->
     Parsed = parse_groups(Name, Groups, S),
-    {Logs, Effects} = lists:unzip([{log(Name, S, O, D), CurrEffects} || CurrEffects <- Parsed]),
+    {Logs, Effects} = lists:unzip([{log(Name, CurrEffect, S, O, D), CurrEffect} || CurrEffect <- Parsed]),
     {Logs, [Effect || Effect <- lists:flatten(Effects), Effect =/= bad_luck]}.
 
 parse_cast(Name, S, O, D) ->
