@@ -396,6 +396,7 @@ $("#update").on('click', function(){
 
 $("#refresh-chest1").on('click', function(){
     $.postJSON('/check_chest', {id: $("#player-list-1").val()}, function(data){
+        console.log(JSON.stringify(data));
         $("#next-chest1").text(data.next_name);
         $("#remaining1").text(data.remaining);
     })
@@ -404,6 +405,9 @@ $("#refresh-chest1").on('click', function(){
 
 $("#open-chest1").on('click', function(){
     $.postJSON('/open_chest', {id: $("#player-list-1").val()}, function(data){
+
+        console.log(JSON.stringify(data));
+
         $("#chest-res1").empty();
         if(typeof data === 'string') {
             $("#chest-res1").text(data);
