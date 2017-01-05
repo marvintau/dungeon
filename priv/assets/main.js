@@ -289,7 +289,7 @@ var get_player_list = function(Dest){
     $.postJSON("/get_player_list", {}, function(data){
         console.log(data);
 
-        listedData = Object.keys(data).map(function (key) { return {key:key, val:data[key]}; });
+        listedData = data.map(function(elem){return {key:elem.id, val:elem.name}});
 
         $('#player-list select').empty();
 

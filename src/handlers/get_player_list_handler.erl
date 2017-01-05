@@ -58,11 +58,10 @@ handle_post(Req, State) ->
     PayLoad = list_to_binary("select id, profile ->> 'id' from player_profile"), 
     
     {ok, _Cols, Contents} = epgsql:squery(Conn, binary_to_list(PayLoad)),
-
         
     ok = epgsql:close(Conn),
 
-    Res = cowboy_req:set_resp_body(jiffy:encode({Contents}), NextReq),
+    Res = cowboy_req:set_resp_body(jiffy:encode([{[{<<"id">>, ID}, {<<"name">>, Name}]} || {ID, Name} <- Contents]), NextReq),
     {true, Res, State}.
 
 
