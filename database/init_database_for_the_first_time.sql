@@ -1,3 +1,5 @@
+drop table player_profile CASCADE;
+
 CREATE TABLE player_profile (
     id uuid,	  
     profile jsonb,
@@ -36,6 +38,8 @@ insert into player_profile (id, profile) values
 
 select id, profile ->> 'id' as name from player_profile;
 
+drop table char_chest cascade;
+
 create table char_chest(
     char_id uuid,
     last_opened_chest int,
@@ -53,6 +57,8 @@ insert into char_chest(char_id, last_opened_chest, last_opened_time) values
 
 select * from char_chest ;
 
+drop table chest_spec cascade;
+
 create table chest_spec (
     chest_id int,
     chest_name CHARACTER VARYING(40),
@@ -67,6 +73,8 @@ copy chest_spec(chest_id, chest_name, min_item_types, max_item_types, open_inter
 from '/Users/marvin/Github/dungeon/database/preset_data/chest_specs.csv' delimiter ',' csv header;
 
 select * from chest_spec;
+
+drop table item_from_chest;
 
 create table item_from_chest (
     item_id int,
@@ -91,6 +99,8 @@ copy item_from_chest(chest_id, item_id, min_items, max_items, drop_rate)
 from '/Users/marvin/Github/dungeon/database/preset_data/chest-iron.csv' delimiter ',' csv header;
 
 select * from item_from_chest;
+
+drop table item_description;
 
 create table item_description(
     item_id int,

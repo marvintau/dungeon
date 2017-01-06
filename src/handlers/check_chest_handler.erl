@@ -60,7 +60,7 @@ handle_post(Req, State) ->
                 extract(epoch from last_opened_time) * 100000 as last_opened_time
             from
                 char_chest
-                inner join chest_spec on char_chest.last_opened_chest%4+1 = chest_spec.chest_id
+                inner join chest_spec on char_chest.last_opened_chest % 5 + 1 = chest_spec.chest_id
                 where
             char_id = '", ID, "';"]),
 
