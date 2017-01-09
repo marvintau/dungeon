@@ -54,9 +54,12 @@ handle_post(Req, State) ->
     ]),
 
     % 提交一个query，返回用户id，下一次将要打开的chest类型，此类型chest需要等待的时间，以及上次开chest的时间
+
+    error_logger:info_report({incoming_request_check_chest, Req}),
+
     QueryCheck = list_to_binary(["select
-                char_id, last_opened_chest, chest_name,
-                interval '1m' * open_interval - (now() - last_opened_time) as remaining,
+                char_id, last_opened_chest % 5 + 1, chest_name,
+                interval '1s' * open_interval - (now() - last_opened_time) as remaining,
                 extract(epoch from last_opened_time) * 100000 as last_opened_time
             from
                 char_chest
@@ -90,6 +93,7 @@ handle_post(Req, State) ->
 
             % 再重新发起一次check的请求，
             {ok, 1} = epgsql:squery(Conn, binary_to_list(QueryReset)),
+            erlang:display(reset),
 
             {ok, _Cols, UpdatedContents} = epgsql:squery(Conn, binary_to_list(QueryCheck)),
             [{ID, NextChestID0, NextName0, Remaining0, _}] = UpdatedContents,

@@ -54,7 +54,7 @@ handle_post(Req, State) ->
 
     % 如果剩余的时间小于等于0时，才能去开宝箱
     QueryCheck = list_to_binary(["select
-                interval '0' >= interval '1m' * open_interval - (now() - last_opened_time) as remaining
+                interval '0' >= interval '1s' * open_interval - (now() - last_opened_time) as remaining
             from
                 char_chest
                 inner join chest_spec on char_chest.last_opened_chest % 5 + 1 = chest_spec.chest_id
@@ -65,12 +65,14 @@ handle_post(Req, State) ->
     {ok, _Cols, [{OkayToOpen}]} = epgsql:squery(Conn, binary_to_list(QueryCheck)),
     erlang:display(OkayToOpen),
 
-    % RawJsonContent = case OkayToOpen of
-    %     <<"t">> -> update_query(ID, Conn);
-    %     _ -> <<"not-right-time-to-open">>
-    % end,
+    RawJsonContent = case OkayToOpen of
+        <<"t">> -> update_query(ID, Conn);
+        _ -> <<"not-right-time-to-open">>
+    end,
 
-    RawJsonContent = update_query(ID, Conn),
+    % for test only
+    % =============
+    % RawJsonContent = update_query(ID, Conn),
 
     Res = cowboy_req:set_resp_body(jiffy:encode(RawJsonContent), NextReq),
     {true, Res, State}.
