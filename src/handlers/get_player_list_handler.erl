@@ -55,7 +55,7 @@ handle_post(Req, State) ->
         {timeout, 100}
     ]),
 
-    PayLoad = list_to_binary("select id, profile ->> 'id' from player_profile"), 
+    PayLoad = list_to_binary("select id, profile ->> 'id' from character_card_profile"), 
     
     {ok, _Cols, Contents} = epgsql:squery(Conn, binary_to_list(PayLoad)),
         

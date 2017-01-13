@@ -53,9 +53,9 @@ handle_post(Req, State) ->
         {timeout, 100}
     ]),
 
-    ProfileQuery1 = list_to_binary(["select * from player_profile where id='", Id1,"'"]),
+    ProfileQuery1 = list_to_binary(["select * from character_card_profile where id='", Id1,"'"]),
 
-    ProfileQuery2 = list_to_binary(["select * from player_profile where id='", Id2, "'"]),
+    ProfileQuery2 = list_to_binary(["select * from character_card_profile where id='", Id2, "'"]),
 
     {ok, _Cols, [{_, Profile1}]} = epgsql:squery(Conn, binary_to_list(ProfileQuery1)),
 
@@ -74,8 +74,10 @@ handle_post(Req, State) ->
 
 parse(SinglePlayerData) ->
 
+    erlang:display(SinglePlayerData),
+
     #{<<"agi">>:=Agi, <<"armor">>:=Armor, <<"block">>:=Block, <<"cast_list">>:=CastList,
-      <<"class">>:=Class, <<"critical">>:=Critic, <<"dodge">>:=Dodge, <<"hit">>:=HitBonus,
+      <<"class">>:=Class, <<"range_type">>:=RangeType, <<"critical">>:=Critic, <<"dodge">>:=Dodge, <<"hit">>:=HitBonus,
       <<"hp">>:=HP, <<"id">>:=ID, <<"prim_max">>:=PrimMax, <<"prim_min">>:=PrimMin, <<"prim_type">>:=PrimType,
       <<"resist">>:=Resist, <<"secd_max">>:=SecdMax, <<"secd_min">>:=SecdMin, <<"secd_type">>:=SecdType,
       <<"talented_skill">>:=TalentedSkill} = SinglePlayerData,
@@ -88,12 +90,15 @@ parse(SinglePlayerData) ->
         % be preserved.
 
         state      => #{
+            position   => 3,
             hp         => HP,
             rem_moves  => 0,
             diff => 0
         },
 
         done => already,
+
+        range_type => RangeType,
 
         curr_hand  => {prim, binary_to_atom(PrimType, utf8), {PrimMin, PrimMax}},
         secd_hand  => {secd, binary_to_atom(SecdType, utf8), {SecdMin, SecdMax}},

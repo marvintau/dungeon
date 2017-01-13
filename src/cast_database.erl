@@ -23,6 +23,7 @@ create_casts() ->
     Talents = [
         {brave_shield_counterback, talent, [
             {1, [
+                { {{0, null, settling}, []}, [] },
                 { {{0, null, attacking}, [{block, '==', {attr, outcome, off}}]}, [
                   {{add, {-125}, absorbable},{state, hp, def}}
                 ] }
@@ -53,6 +54,7 @@ create_casts() ->
 
         {assault, talent, [
             {1, [
+                { {{0, null, settling}, []}, [] },
                 { {{0, null, attacking}, [{dodge, '==', {attr, outcome, def}}]}, [
                   {{add, {1}, none}, {state, rem_moves, off}},
                   {{set, {0}, none}, {attr, dodge, def}},
@@ -184,6 +186,7 @@ create_casts() ->
 
         {outbreak, hunter, [
             {1, [
+                { {{0, 3, settling}, []}, [] },
                 { {{0, 3, attacking}, []}, [{{add, {-70}, resistable}, {state, hp, def}}] }
             ]}
         ]},

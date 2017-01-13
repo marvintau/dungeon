@@ -38,19 +38,15 @@ roulette(
     {Dodge, Resist, Block} = case {Curr, Secd} of
         
         {magic, _} ->
-            erlang:display(1),
             {0, Res, 0};
         
         {physical, shield} ->
-            erlang:display(2),
             {Dod, 0, Blo};
 
         {physical, _} ->
-            erlang:display(3),
             {Dod, 0, 0};
 
         _ ->
-            erlang:display(4),             
             {0, 0, 0}            
     end,
 
@@ -63,7 +59,6 @@ roulette(
 
     Binned = bin(rand:uniform() * 120, Roulette),
     Result = element(Binned, {attack, dodge, resist, block, critical}),
-    erlang:display(Roulette),
     Result.
 
 % --------------- PLAYER AS MAGE ------------------------------
@@ -96,14 +91,15 @@ is_no_damage_move(#{curr_hand:={secd, shield, _}})-> true;
 is_no_damage_move(_) -> false.
 
 log(#{seq:=Seq, stage:=Stage, mover:=Mover},
-    #{state:=#{hp:=HpO}, curr_hand:={WhichHand, _, _}},
-    #{state:=#{hp:=HpD}, attr:=#{outcome:=Outcome, damage_taken:=Damage}})  ->
+    #{state:=#{hp:=HpO, position:=PosO}, curr_hand:={WhichHand, _, _}},
+    #{state:=#{hp:=HpD, position:=PosD}, attr:=#{outcome:=Outcome, damage_taken:=Damage}})  ->
     
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover },
         { action, list_to_binary(lists:append([atom_to_list(Outcome), "_", atom_to_list(WhichHand)]))},
         { effects, []}, { damage, Damage },
-        { offenderHP, HpO}, { defenderHP, HpD}
+        { offenderHP, HpO}, { defenderHP, HpD},
+        { offenderPos, PosO}, {defenderPos, PosD}
     ]}.
 
 trans(S,

@@ -53,7 +53,7 @@ handle_post(Req, State) ->
         {timeout, 100}
     ]),
 
-    PayLoad = list_to_binary(["select * from player_profile where id='", Id,"'"]),
+    PayLoad = list_to_binary(["select * from character_card_profile where id='", Id,"'"]),
 
     erlang:display(PayLoad),
 

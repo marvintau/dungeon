@@ -55,7 +55,7 @@ handle_post(Req, State) ->
         {timeout, 100}
     ]),
 
-    Query = list_to_binary(["update player_profile set profile='", ProfileJson, "' where id='", Id, "'"]),
+    Query = list_to_binary(["update character_card_profile set profile='", ProfileJson, "' where id='", Id, "'"]),
 
     {ok, Contents} = epgsql:squery(Conn, binary_to_list(Query)),
 

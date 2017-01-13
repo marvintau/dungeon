@@ -29,6 +29,8 @@ $.setEditData = function(playerData) {
     $('#id').val(playerData.id);
     $('#hp').val(playerData.hp);
     $('#class').val(playerData.class);
+    $('#range_type').val(playerData.range_type);
+
     $('#prim_type').val(playerData.prim_type);
     $('#prim_max').val(playerData.prim_max);
     $('#prim_min').val(playerData.prim_min);
@@ -80,6 +82,7 @@ $.getEditData = function () {
         id: $('#id').val(),
         hp: parseInt($('#hp').val()),
         class: $('#class').val(),
+        range_type : $('#range_type').val(),
         prim_type: $('#prim_type').val(),
         prim_max: parseInt($('#prim_max').val()),
         prim_min: parseInt($('#prim_min').val()),
@@ -107,6 +110,7 @@ $.setData = function(playerData, i){
     $('#id'+i).text(playerData.id);
     $('#hp'+i).text(playerData.hp);
     $('#class'+i).text(playerData.class);
+    $('#range_type'+i).text(playerData.range_type);
     $('#prim_type'+i).text(playerData.prim_type);
     $('#prim_max'+i).text(playerData.prim_max);
     $('#prim_min'+i).text(playerData.prim_min);
@@ -133,6 +137,7 @@ $.getData = function(i){
         id: $('#id'+i).text(),
         hp: $('#hp'+i).text(),
         class: $('#class'+i).text(),
+        range_type: $('#range_type'+i).text(),
         prim_type: $('#prim_type'+i).text(),
         prim_max: $('#prim_max'+i).text(),
         prim_min: $('#prim_min'+i).text(),
@@ -253,6 +258,8 @@ $("#submit-20").on('click', function(){
 
 
 $("#submit").on('click', function(){
+
+    var OutgoingData = $.getData()
 
     OutgoingData = {player1: $("#player-list-1").val(), player2: $("#player-list-2").val()},
 

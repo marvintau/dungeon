@@ -176,5 +176,12 @@ new({#{id:=Id, orig_attr:=OrigP1}=P1, #{orig_attr:=OrigP2}=P2}) ->
 
     erlang:display(battle_begins),
 
-    loop(#{seq=>-1, stage=>attacking, mover=>Id, is_opening=>true}, P1#{attr=>OrigP1, done:=already}, P2#{attr=>OrigP2, done:=already}, [], []).
+    State = #{
+        seq=>-1,
+        stage=>attacking,
+        mover=>Id,
+        is_opening=>true
+    },
+
+    loop(State, P1#{attr=>OrigP1, done:=already}, P2#{attr=>OrigP2, done:=already}, [], []).
 

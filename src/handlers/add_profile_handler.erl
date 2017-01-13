@@ -57,7 +57,7 @@ handle_post(Req, State) ->
     ID = uuid:uuid_to_string(uuid:get_v4_urandom()),
 
     QueryAddProfile = list_to_binary([
-        "insert into player_profile (id, profile) values ('",
+        "insert into character_card_profile (id, profile) values ('",
         ID, "', '", Data,
         "')"
     ]),

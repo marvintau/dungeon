@@ -5,14 +5,16 @@
 
 -export([apply/4]).
 
-log(EffName, Mover, #{seq:=Seq, stage:=Stage}, #{state:=#{hp:=HpO}}, #{state:=#{hp:=HpD}}, Logs) ->
+log(EffName, Mover, #{seq:=Seq, stage:=Stage}, #{state:=#{hp:=HpO, position:=PosO}}, #{state:=#{hp:=HpD, position:=PosD}}, Logs) ->
 
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover },
         { action, EffName},
         { effects, Logs }, { damage, 0 },
         { offenderHP, HpO },
-        { defenderHP, HpD }
+        { defenderHP, HpD },
+        { offenderPos, PosO},
+        { defenderPos, PosD}
     ]}.
 
    
