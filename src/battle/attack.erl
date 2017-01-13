@@ -92,21 +92,24 @@ is_no_damage_move(_) -> false.
 
 log(#{seq:=Seq, stage:=Stage, mover:=Mover},
     #{state:=#{hp:=HpO, position:=PosO}, curr_hand:={WhichHand, _, _}},
-    #{state:=#{hp:=HpD, position:=PosD}, attr:=#{outcome:=Outcome, damage_taken:=Damage}})  ->
+    #{state:=#{hp:=HpD, position:=PosD}, attr:=#{outcome:=Outcome, damage_taken:=Damage}},
+    OffPosAct, DefPosAct)  ->
     
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover },
         { action, list_to_binary(lists:append([atom_to_list(Outcome), "_", atom_to_list(WhichHand)]))},
         { effects, []}, { damage, Damage },
         { offenderHP, HpO}, { defenderHP, HpD},
-        { offenderPos, PosO}, {defenderPos, PosD}
+        { offenderPos, PosO}, {defenderPos, PosD},
+        { offenderPosAct, OffPosAct}, {defenderPosAct, DefPosAct}
     ]}.
 
 trans(S,
-       #{curr_hand:={HandType, AttackType, DamageRange}, prim_hand:=PrimHand, secd_hand:=SecdHand,
+       #{range_type:=RangeTypeO,
+         curr_hand:={HandType, AttackType, DamageRange}, prim_hand:=PrimHand, secd_hand:=SecdHand,
          attr:=#{damage_multiplier:=DamageMul, critical_multiplier:=CritMul, damage_addon:=DamageAddon},
-         state:=#{rem_moves:=RemMoves}=StateA}=A,
-       #{attr:=#{armor:=Armor}=CurrAttrD, state:=#{hp:=H2}=StateD}=D, L) ->
+         state:=#{rem_moves:=RemMoves, position:=PosO}=StateA}=A,
+       #{attr:=#{armor:=Armor}=CurrAttrD, state:=#{hp:=H2, position:=PosD}=StateD}=D, L) ->
 
     Outcome = roulette(A, D),
     
@@ -123,14 +126,38 @@ trans(S,
         secd -> A#{curr_hand:=PrimHand}
     end,
     NextD = D#{attr:=CurrAttrD#{damage_taken:=AddedDamage, outcome:=Outcome}, state:=StateD#{hp:=H2 - AddedDamage}},
+    #{state:=NextStateD} = NextD,
+
+    {NewPosO, NewPosD, NewPosActO, NewPosActD} = case binary_to_atom(RangeTypeO, utf8) of
+        near when (PosO + PosD) =/= 5 ->
+            {5 - PosD, PosD, chase, not_assigned_yet};
+        far when abs((PosO + PosD) - 5) > 2 ->
+            {PosO + 1, PosD, chase, not_assigned_yet};
+        far when PosO + PosD =:= 5 ->
+            case PosO of
+                1 -> {PosO, PosD - 2, stand, back_jump_2};
+                _ -> {PosO - 1, PosD, back_jump, not_assigned_yet}
+            end;
+        _ ->
+            {PosO, PosD, stand, not_assigned_yet}
+    end,
+
+    NewPosActDAfter = case NewPosActD of
+        not_assigned_yet ->
+            case rand:uniform() > 0.9 of
+                true -> blown_out;
+                _ -> stand
+            end;
+        _ -> NewPosActD
+    end,
 
 
     NextLog = case is_no_damage_move(A) of
         true -> L;
-        _ -> [log(S, A, NextD) | L]
+        _ -> [log(S, A, NextD, NewPosActO, NewPosActDAfter) | L]
     end,
    
-    {NextA#{state:=StateA#{rem_moves:=RemMoves-1}}, NextD, NextLog}.
+    {NextA#{state:=StateA#{rem_moves:=RemMoves-1, position:= NewPosO}}, NextD#{state:=NextStateD#{position:=NewPosD}}, NextLog}.
 
 
 apply(State, #{attr:=#{attack_disabled:=0}}=O, D, Log) ->

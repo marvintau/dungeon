@@ -38,7 +38,8 @@ log(CastName, CurrEffect, #{seq:=Seq, stage:=Stage, mover:=Mover}, #{state:=#{po
         { effects, [] }, { damage, Damage },
         { offenderHP, maps:get(hp, maps:get(state, O)) },
         { defenderHP, maps:get(hp, maps:get(state, D)) },
-        { offenderPos, PosO}, {defenderPos, PosD}
+        { offenderPos, PosO}, {defenderPos, PosD},
+        { offenderPosAct, none}, {defenderPosAct, none}
     ]}.
 
 

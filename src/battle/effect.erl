@@ -14,7 +14,8 @@ log(EffName, Mover, #{seq:=Seq, stage:=Stage}, #{state:=#{hp:=HpO, position:=Pos
         { offenderHP, HpO },
         { defenderHP, HpD },
         { offenderPos, PosO},
-        { defenderPos, PosD}
+        { defenderPos, PosD},
+        { offenderPosAct, none}, {defenderPosAct, none}
     ]}.
 
    
