@@ -91,9 +91,9 @@ is_no_damage_move(#{curr_hand:={secd, shield, _}})-> true;
 is_no_damage_move(_) -> false.
 
 log(#{seq:=Seq, stage:=Stage, mover:=Mover},
-    #{state:=#{hp:=HpO, position:=PosO}, curr_hand:={WhichHand, _, _}},
-    #{state:=#{hp:=HpD, position:=PosD}, attr:=#{outcome:=Outcome, damage_taken:=Damage}},
-    OffPosAct, DefPosAct)  ->
+    #{state:=#{hp:=HpO}, curr_hand:={WhichHand, _, _}},
+    #{state:=#{hp:=HpD}, attr:=#{outcome:=Outcome, damage_taken:=Damage}},
+    OffPosAct, DefPosAct, PosO, PosD)  ->
     
     {[
         { seq, Seq }, {stage, Stage}, { offender, Mover },
@@ -128,36 +128,45 @@ trans(S,
     NextD = D#{attr:=CurrAttrD#{damage_taken:=AddedDamage, outcome:=Outcome}, state:=StateD#{hp:=H2 - AddedDamage}},
     #{state:=NextStateD} = NextD,
 
-    {NewPosO, NewPosD, NewPosActO, NewPosActD} = case binary_to_atom(RangeTypeO, utf8) of
-        near when (PosO + PosD) =/= 5 ->
-            {5 - PosD, PosD, chase, not_assigned_yet};
-        far when abs((PosO + PosD) - 5) > 2 ->
-            {PosO + 1, PosD, chase, not_assigned_yet};
-        far when PosO + PosD =:= 5 ->
-            case PosO of
-                1 -> {PosO, PosD - 2, stand, back_jump_2};
-                _ -> {PosO - 1, PosD, back_jump, not_assigned_yet}
-            end;
-        _ ->
-            {PosO, PosD, stand, not_assigned_yet}
+
+    {NewPosO, NewPosD, NewPosActO, NewPosActD} = case is_no_damage_move(A) of
+        true -> {PosO, PosD, stand, stand};
+        _    -> case binary_to_atom(RangeTypeO, utf8) of
+            near when (PosO + PosD) /= 5 ->
+                {5 - PosD, PosD, chase, not_assigned_yet};
+            near ->
+                {PosO, PosD, stand, not_assigned_yet};
+
+            far when abs((PosO + PosD) - 5) > 2 ->
+                {PosO + 1, PosD, chase, not_assigned_yet};
+            far when PosO + PosD =:= 5 ->
+                case PosO of
+                    1 -> {PosO, PosD - 2, stand, back_jump_2};
+                    _ -> {PosO - 1, PosD, back_jump, not_assigned_yet}
+                end;
+            far ->
+                {PosO, PosD, stand, not_assigned_yet}
+        end
     end,
 
-    NewPosActDAfter = case NewPosActD of
-        not_assigned_yet ->
+    {NewPosDAfter, NewPosActDAfter} = case {NewPosD, NewPosActD} of
+        {1, not_assigned_yet} -> {1, stand};
+        {_, not_assigned_yet} ->
             case rand:uniform() > 0.9 of
-                true -> blown_out;
-                _ -> stand
+                true -> {NewPosD - 1, blown_out};
+                _ -> {NewPosD, stand}
             end;
-        _ -> NewPosActD
+        _ -> {NewPosD, NewPosActD}
     end,
 
+    erlang:display({NewPosActO, NewPosActDAfter, NewPosO, NewPosDAfter}),
 
     NextLog = case is_no_damage_move(A) of
         true -> L;
-        _ -> [log(S, A, NextD, NewPosActO, NewPosActDAfter) | L]
+        _ -> [log(S, A, NextD, NewPosActO, NewPosActDAfter, NewPosO, NewPosDAfter) | L]
     end,
    
-    {NextA#{state:=StateA#{rem_moves:=RemMoves-1, position:= NewPosO}}, NextD#{state:=NextStateD#{position:=NewPosD}}, NextLog}.
+    {NextA#{state:=StateA#{rem_moves:=RemMoves-1, position:= NewPosO}}, NextD#{state:=NextStateD#{position:=NewPosDAfter}}, NextLog}.
 
 
 apply(State, #{attr:=#{attack_disabled:=0}}=O, D, Log) ->

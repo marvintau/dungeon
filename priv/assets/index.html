@@ -40,9 +40,11 @@
         </nav>
 
         <div class="col-md-12">
-            <div class="col-md-4" style="position: fixed;">
+            <div class="col-md-4">
 
                 <button class="btn btn-danger" id="reset-database">重置玩家数据</button> 注意：重置之后要手动刷新页面
+
+                <div id="weather"></div>
 
                 <div class="h-divider"></div>
                 <h1>Player 1</h1>
@@ -50,7 +52,7 @@
                 <div class="row">
                     <div class="form-group-sm col-sm-2">
                         <label>ID</label>
-                        <div class="" id="id1" ></div>
+                        <div class="" id="card_name1" ></div>
                     </div>
 
                     <div class="form-group-sm col-sm-2">
@@ -63,6 +65,10 @@
                         <div class="" id="range_type1"></div>
                     </div>
 
+                    <div class="form-group-sm col-sm-2">
+                        <label>觉醒</label>
+                        <div class="" id="image_name1"></div>
+                    </div>
 
                     <div class="form-group-sm col-sm-2">
                         <label>血量</label>
@@ -163,7 +169,7 @@
                 <div class="row">
                     <div class="form-group-sm col-sm-2">
                         <label>ID</label>
-                        <div class="" id="id2" ></div>
+                        <div class="" id="card_name2" ></div>
                     </div>
 
                     <div class="form-group-sm col-sm-2">
@@ -176,6 +182,10 @@
                         <div class="" id="range_type2"></div>
                     </div>
 
+                    <div class="form-group-sm col-sm-2">
+                        <label>觉醒</label>
+                        <div class="" id="image_name2"></div>
+                    </div>
                      <div class="form-group-sm col-sm-2">
                         <label>血量</label>
                         <div class="" id="hp2" ></div>
@@ -272,7 +282,7 @@
                 <div class="row">
                     <div class="form-group-sm col-sm-2">
                         <label>ID</label>
-                        <input class="form-control" id="id" >
+                        <input class="form-control" id="card_name" >
                     </div>
                     <div class="form-group-sm col-sm-2">
                         <label>职业</label>
@@ -290,6 +300,11 @@
                             <option value="far">远程</option>
                             <option value="near">近程</option>
                         </select>
+                    </div>
+
+                     <div class="form-group-sm col-sm-2">
+                        <label>觉醒</label>
+                        <input class="form-control" id="image_name" >
                     </div>
 
                      <div class="form-group-sm col-sm-2">
@@ -394,7 +409,7 @@
 
             </div>
 
-            <div class="col-md-6" style="left:900px;">
+            <div class="col-md-6">
                 <div id="chart-section" height="600" style="height:400px;">
                 </div>
 
@@ -403,7 +418,6 @@
             </div>
 
         </div><!-- /.container -->
-
 
         <!-- Bootstrap core JavaScript
         ================================================== -->
@@ -416,5 +430,6 @@
         <script src="highlight.pack.js"></script>
         <script>hljs.initHighlightingOnLoad();</script>
         <script src="dungeon.js"></script>
+
         </body>
     </html>

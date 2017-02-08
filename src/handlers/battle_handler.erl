@@ -63,12 +63,12 @@ handle_post(Req, State) ->
 
     ok = epgsql:close(Conn),
 
-    {done, ResBody} = battle:new({
+    {done, {records, Records}, {full_log, FullLogs}, {winner, Winner}} = battle:new({
         parse(jiffy:decode(Profile1, [return_maps])),
         parse(jiffy:decode(Profile2, [return_maps]))
     }),
 
-    Res = cowboy_req:set_resp_body(ResBody, NextReq),
+    Res = cowboy_req:set_resp_body(jiffy:encode({[{records, Records}, {winner, Winner}, {full_log, FullLogs}]}), NextReq),
     {true, Res, State}.
 
 
@@ -76,21 +76,31 @@ parse(SinglePlayerData) ->
 
     erlang:display(SinglePlayerData),
 
-    #{<<"agi">>:=Agi, <<"armor">>:=Armor, <<"block">>:=Block, <<"cast_list">>:=CastList,
-      <<"class">>:=Class, <<"range_type">>:=RangeType, <<"critical">>:=Critic, <<"dodge">>:=Dodge, <<"hit">>:=HitBonus,
-      <<"hp">>:=HP, <<"id">>:=ID, <<"prim_max">>:=PrimMax, <<"prim_min">>:=PrimMin, <<"prim_type">>:=PrimType,
+    % #{<<"agi">>=>75,<<"armor">>=>4500,  <<"block">>=>0,     <<"card_name">>=><<230,153,174,233,128,154,229,136,186,229,174,162>>,
+    % <<"cast_list">>=>[<<"poison_gas">>,<<"talisman_of_spellshrouding">>,<<"talisman_of_death">>,<<"holy_hand_grenade">>,<<"none">>],
+    % <<"class">>=><<"rogue">>,<<"critical">>=>30,<<"dodge">>=>30,<<"hit">>=>35,<<"hp">>=>2700,<<"image_name">>=><<"normal_rogue">>,
+    % <<"prim_max">>=>205,<<"prim_min">>=>190,<<"prim_type">>=><<"physical">>,<<"range_type">>=><<"near">>,<<"resist">>=>35,
+    % <<"secd_max">>=>190,<<"secd_min">>=>175,<<"secd_type">>=><<"physical">>,<<"talented_skill">>=><<"blade_dance">>}
+
+    % {<<"agi">>=>40,<<"armor">>=>4500,<<"block">>=>0,<<"card_name">>=><<231,151,180,229,145,134,231,140,142,228,186,186>>,
+    % <<"cast_list">>=>[<<"poison_gas">>,<<"talisman_of_spellshrouding">>,<<"talisman_of_death">>,<<"holy_hand_grenade">>,<<"none">>],
+    % <<"class">>=><<"hunter">>,<<"critical">>=>30,<<"dodge">>=>30,<<"hit">>=>35,<<"hp">>=>3400,<<"prim_max">>=>3700,<<"prim_min">>=>335,<<"prim_type">>=><<"physical">>,<<"range_type">>=><<"far">>,<<"resist">>=>35,<<"secd_max">>=>100,<<"secd_min">>=>50,<<"secd_type">>=><<"bare">>,<<"talented_skill">>=><<"blade_dance">>}
+
+    #{<<"agi">>:=Agi,  <<"armor">>:=Armor, <<"block">>:=Block, <<"card_name">>:=CardName,
+      <<"cast_list">>:=CastList,  <<"class">>:=Class, <<"range_type">>:=RangeType, <<"critical">>:=Critic, <<"dodge">>:=Dodge, <<"hit">>:=HitBonus,
+      <<"hp">>:=HP, <<"prim_max">>:=PrimMax, <<"prim_min">>:=PrimMin, <<"prim_type">>:=PrimType, <<"image_name">>:=_ImageName,
       <<"resist">>:=Resist, <<"secd_max">>:=SecdMax, <<"secd_min">>:=SecdMin, <<"secd_type">>:=SecdType,
       <<"talented_skill">>:=TalentedSkill} = SinglePlayerData,
 
     #{
 
-        id         => ID,
+        id         => CardName,
 
         % State is the data that will be modified during a battle, and the result will
         % be preserved.
 
         state      => #{
-            position   => 3,
+            position   => 2,
             hp         => HP,
             rem_moves  => 0,
             diff => 0

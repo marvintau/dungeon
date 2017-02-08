@@ -25,64 +25,43 @@ var pad_with_null = function(array) {
     return array.concat(pad);
 }
 
-$.setEditData = function(playerData) {
-    $('#id').val(playerData.id);
-    $('#hp').val(playerData.hp);
-    $('#class').val(playerData.class);
-    $('#range_type').val(playerData.range_type);
+$.setEditData = function(cardData) {
+    $('#card_name').val(cardData.card_profile.card_name);
+    $('#hp').val(cardData.card_profile.hp);
+    $('#class').val(cardData.card_profile.class);
+    $('#range_type').val(cardData.card_profile.range_type);
+    $('#image_name').val(cardData.card_profile.image_name);
 
-    $('#prim_type').val(playerData.prim_type);
-    $('#prim_max').val(playerData.prim_max);
-    $('#prim_min').val(playerData.prim_min);
+    $('#prim_type').val(cardData.card_profile.prim_type);
+    $('#prim_max').val(cardData.card_profile.prim_max);
+    $('#prim_min').val(cardData.card_profile.prim_min);
 
-    $('#secd_type').val(playerData.secd_type);
-    $('#secd_max').val(playerData.secd_max);
-    $('#secd_min').val(playerData.secd_min);
+    $('#secd_type').val(cardData.card_profile.secd_type);
+    $('#secd_max').val(cardData.card_profile.secd_max);
+    $('#secd_min').val(cardData.card_profile.secd_min);
 
-    $('#armor').val(playerData.armor);
-    $('#hit').val(playerData.hit);
-    $('#critical').val(playerData.critical);
-    $('#dodge').val(playerData.dodge);
-    $('#resist').val(playerData.resist);
-    $('#block').val(playerData.block);
-    $('#agi').val(playerData.agi);
-    $('#talented_skill').val(playerData.talented_skill);
-
-    ms.clear();
-    ms.setValue(playerData.cast_list);
-}
-
-$.randomEditData = function () {
-    $('#id').val("Scarlett");
-    $('#hp').val("2700");
-    $('#class').val("rogue");
-    $('#prim_type').val("physical");
-    $('#prim_max').val("205");
-    $('#prim_min').val("190");
-
-    $('#secd_type').val("physical");
-    $('#secd_max').val("190");
-    $('#secd_min').val("175");
-
-    $('#armor').val("4500");
-    $('#hit').val("35");
-    $('#critical').val("30");
-    $('#dodge').val("30");
-    $('#resist').val("35");
-    $('#block').val("0");
-    $('#agi').val("75");
-    $('#talented_skill').val("blade_dance");
+    $('#armor').val(cardData.card_profile.armor);
+    $('#hit').val(cardData.card_profile.hit);
+    $('#critical').val(cardData.card_profile.critical);
+    $('#dodge').val(cardData.card_profile.dodge);
+    $('#resist').val(cardData.card_profile.resist);
+    $('#block').val(cardData.card_profile.block);
+    $('#agi').val(cardData.card_profile.agi);
+    $('#talented_skill').val(cardData.card_profile.talented_skill);
 
     ms.clear();
-    ms.setValue(perm_slice(ms.getData()));
+    ms.setValue(cardData.card_profile.cast_list);
 }
+
 
 $.getEditData = function () {
     return {
-        id: $('#id').val(),
+        card_name: $('#card_name').val(),
         hp: parseInt($('#hp').val()),
         class: $('#class').val(),
         range_type : $('#range_type').val(),
+        image_name : $('#image_name').val(),
+
         prim_type: $('#prim_type').val(),
         prim_max: parseInt($('#prim_max').val()),
         prim_min: parseInt($('#prim_min').val()),
@@ -105,39 +84,45 @@ $.getEditData = function () {
 }
 
 
-$.setData = function(playerData, i){
+$.setData = function(cardData, i){
 
-    $('#id'+i).text(playerData.id);
-    $('#hp'+i).text(playerData.hp);
-    $('#class'+i).text(playerData.class);
-    $('#range_type'+i).text(playerData.range_type);
-    $('#prim_type'+i).text(playerData.prim_type);
-    $('#prim_max'+i).text(playerData.prim_max);
-    $('#prim_min'+i).text(playerData.prim_min);
+    console.log(JSON.stringify(cardData.card_profile));
 
-    $('#secd_type'+i).text(playerData.secd_type);
-    $('#secd_max'+i).text(playerData.secd_max);
-    $('#secd_min'+i).text(playerData.secd_min);
+    $('#card_name'+i).text(cardData.card_profile.card_name);
+    $('#hp'+i).text(cardData.card_profile.hp);
+    $('#class'+i).text(cardData.card_profile.class);
+    $('#range_type'+i).text(cardData.card_profile.range_type);
+    $('#image_name'+i).text(cardData.card_profile.image_name);
 
-    $('#armor'+i).text(playerData.armor);
-    $('#hit'+i).text(playerData.hit);
-    $('#critical'+i).text(playerData.critical);
-    $('#dodge'+i).text(playerData.dodge);
-    $('#resist'+i).text(playerData.resist);
-    $('#block'+i).text(playerData.block);
-    $('#agi'+i).text(playerData.agi);
-    $('#talented_skill'+i).text(playerData.talented_skill);
+    $('#prim_type'+i).text(cardData.card_profile.prim_type);
+    $('#prim_max'+i).text(cardData.card_profile.prim_max);
+    $('#prim_min'+i).text(cardData.card_profile.prim_min);
 
-    console.log(playerData.cast_list.toString());
-    $('#cast-list'+i).text(playerData.cast_list.toString());
+    $('#secd_type'+i).text(cardData.card_profile.secd_type);
+    $('#secd_max'+i).text(cardData.card_profile.secd_max);
+    $('#secd_min'+i).text(cardData.card_profile.secd_min);
+
+    $('#armor'+i).text(cardData.card_profile.armor);
+    $('#hit'+i).text(cardData.card_profile.hit);
+    $('#critical'+i).text(cardData.card_profile.critical);
+    $('#dodge'+i).text(cardData.card_profile.dodge);
+    $('#resist'+i).text(cardData.card_profile.resist);
+    $('#block'+i).text(cardData.card_profile.block);
+    $('#agi'+i).text(cardData.card_profile.agi);
+    $('#talented_skill'+i).text(cardData.card_profile.talented_skill);
+
+    console.log(cardData.card_profile.cast_list.toString());
+    $('#cast-list'+i).text(cardData.card_profile.cast_list.toString());
 }
 
 $.getData = function(i){
     return {
-        id: $('#id'+i).text(),
+        card_name: $('#card_name'+i).text(),
         hp: $('#hp'+i).text(),
         class: $('#class'+i).text(),
         range_type: $('#range_type'+i).text(),
+        image_name:$('#image_name'+i).text(),
+
         prim_type: $('#prim_type'+i).text(),
         prim_max: $('#prim_max'+i).text(),
         prim_min: $('#prim_min'+i).text(),
@@ -293,10 +278,9 @@ $("#reset").on('click', function(){
 });
 
 var get_player_list = function(Dest){
-    $.postJSON("/get_player_list", {}, function(data){
-        console.log(data);
+    $.postJSON("/get_card_list", {}, function(data){
 
-        listedData = data.map(function(elem){return {key:elem.id, val:elem.name}});
+        listedData = data.map(function(elem){return {key:elem.id, val:elem.card_name}});
 
         $('#player-list select').empty();
 
@@ -314,40 +298,40 @@ var get_player_list = function(Dest){
 
 $("#player-list").ready(function(){
     get_player_list("#player-list");
-    $.postJSON('/get_profile', {id: "85f6d769-713b-48ad-9163-7ba43b7459c7"}, function(data){
-        $.setEditData(data);
+    $.postJSON('/get_card_profile', {id: ["946ae77c-183b-4538-b439-ac9036024676"]}, function(data){
+        $.setEditData(data[0]);
     })
 });
 
 $("#player-list").change(function(){
-    $.postJSON('/get_profile', {id: $("#player-list").val()}, function(data){
-        $.setEditData(data);
+    $.postJSON('/get_card_profile', {id: [$("#player-list").val()]}, function(data){
+        $.setEditData(data[0]);
     })
 });
 
 $("#player-list-1").ready(function(){
     get_player_list("#player-list-1");
-    $.postJSON('/get_profile', {id: "b119a5cb-2311-432c-b6e4-e20be932c714"}, function(data){
-        $.setData(data, "1");
+    $.postJSON('/get_card_profile', {id: ["946ae77c-183b-4538-b439-ac9036024676"]}, function(data){
+        $.setData(data[0], "1");
     })
 })
 
 $("#player-list-1").change(function(){
-    $.postJSON('/get_profile', {id: $("#player-list-1").val()}, function(data){
-        $.setData(data, "1");
+    $.postJSON('/get_card_profile', {id: [$("#player-list-1").val()]}, function(data){
+        $.setData(data[0], "1");
     })
 });
 
 $("#player-list-2").ready(function(){
     get_player_list("#player-list-2");
-    $.postJSON('/get_profile', {id: "85f6d769-713b-48ad-9163-7ba43b7459c7"}, function(data){
-        $.setData(data, "2");
+    $.postJSON('/get_card_profile', {id: ["946ae77c-183b-4538-b439-ac9036024676"]}, function(data){
+        $.setData(data[0], "2");
     })
 })
 
 $("#player-list-2").change(function(){
-    $.postJSON('/get_profile', {id: $("#player-list-2").val()}, function(data){
-        $.setData(data, "2");
+    $.postJSON('/get_card_profile', {id: [$("#player-list-2").val()]}, function(data){
+        $.setData(data[0], "2");
     })
 });
 
@@ -380,7 +364,7 @@ $("#new").on('click', function(){
 
     console.log(JSON.stringify(OutgoingData));
 
-    $.postJSON("/add_profile", JSON.stringify(OutgoingData), function(data){
+    $.postJSON("/add_card_profile", JSON.stringify(OutgoingData), function(data){
         console.log(data);
     })
 });
@@ -390,13 +374,13 @@ $("#update").on('click', function(){
     var temp_id = $("#player-list").val();
     var OutgoingData = {id: temp_id, content:$.getEditData()};
 
-    $.postJSON("/update_profile", OutgoingData, function(data){
+    $.postJSON("/update_card_profile", OutgoingData, function(data){
         get_player_list("#player-list");
         get_player_list("#player-list-1");
         get_player_list("#player-list-2");
 
-        $.postJSON('/get_profile', {id: temp_id}, function(data){
-            $.setEditData(data);
+        $.postJSON('/get_card_profile', {id: [temp_id]}, function(data){
+            $.setEditData(data[0]);
         })
     })
 });

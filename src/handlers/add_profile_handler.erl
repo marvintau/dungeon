@@ -62,16 +62,9 @@ handle_post(Req, State) ->
         "')"
     ]),
 
-    QueryAddChestOpening = list_to_binary([
-        "insert into char_chest(char_id, last_opened_chest, last_opened_time) values ('",
-        ID, "', '1', now())"
-    ]),
 
     AddProfileRes = epgsql:squery(Conn, binary_to_list(QueryAddProfile)),
     error_logger:info_report(AddProfileRes),
-
-    AddChestRes = epgsql:squery(Conn, binary_to_list(QueryAddChestOpening)),
-    error_logger:info_report(AddChestRes),
 
     ok = epgsql:close(Conn),
 

@@ -43,9 +43,9 @@ loop(_, #{state:=#{hp:=HP1}, id:=I1}, #{state:=#{hp:=HP2}, id:=I2}, Log, FullLog
                 HP2 < 0 -> I1
              end,
 
-    {done, jiffy:encode({[
+    {done, 
         {records, lists:reverse([L || L <- Log, L =/= {[]}])}, {full_log, lists:reverse(FullLog)}, {winner,Winner}
-    ]} )};
+    };
 
 
 % ------------------ RECALCULATING NEW OFFENDER ----------------------
@@ -58,12 +58,12 @@ loop(_, #{state:=#{hp:=HP1}, id:=I1}, #{state:=#{hp:=HP2}, id:=I2}, Log, FullLog
 % both players will be restored to primary hand.
 
 loop(#{seq:=Seq, stage:=attacking}=State,
-     #{done:=already, prim_hand:=PrimHand1, orig_attr:=Orig1, state:=State1}=P1,
-     #{done:=already, prim_hand:=PrimHand2, orig_attr:=Orig2, state:=State2}=P2,
+     #{done:=already, prim_hand:=PrimHand1, orig_attr:=Orig1, state:=#{position:=PosP1}=State1}=P1,
+     #{done:=already, prim_hand:=PrimHand2, orig_attr:=Orig2, state:=#{position:=PosP2}=State2}=P2,
      L, FL) ->
 
-    NewP1 = P1#{state:=State1#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand1, attr:=Orig1},
-    NewP2 = P2#{state:=State2#{rem_moves:=2}, done:=not_yet, curr_hand:=PrimHand2, attr:=Orig2},
+    NewP1 = P1#{state:=State1#{rem_moves:=2, position:=PosP1}, done:=not_yet, curr_hand:=PrimHand1, attr:=Orig1},
+    NewP2 = P2#{state:=State2#{rem_moves:=2, position:=PosP2}, done:=not_yet, curr_hand:=PrimHand2, attr:=Orig2},
 
     NewMover = toss(NewP1, NewP2),
 
@@ -74,7 +74,8 @@ loop(#{seq:=Seq, stage:=attacking}=State,
                         { action, rest},
                         { effects, [] }, { damage, 0 },
                         { offenderHP, 0 },
-                        { defenderHP, 0 }
+                        { defenderHP, 0 },
+                        { offenderPos, PosP1 }, {defenderPos, PosP2}
                     ]};
                 _ -> {[]}
             end;
@@ -82,7 +83,7 @@ loop(#{seq:=Seq, stage:=attacking}=State,
     end,
 
 %    erlang:display(' '),
-%    erlang:display({tossing, Seq+1, NewMover}),
+   erlang:display({new_round, Seq+1, NewMover}),
 
     loop(State#{seq:=Seq+1, stage:=settling, mover:=NewMover}, NewP1, NewP2, [EmptyLog | L], FL);
 

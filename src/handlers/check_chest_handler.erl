@@ -70,6 +70,8 @@ handle_post(Req, State) ->
 
     {ok, _Cols, Contents} = epgsql:squery(Conn, binary_to_list(QueryCheck)),
 
+    erlang:display(Contents),
+
     [{ID, NextChestID, NextName, Remaining, LastOpen}] = Contents,
 
     % 检查此次开箱子请求是否和记录的上一次开箱子在同一天

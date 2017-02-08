@@ -45,26 +45,38 @@ handle_post(Req, State) ->
             {<<"Nah">>, Req}
     end,
 
+    erlang:display(ReqBody),
 
     {[{_, Id}]} = jiffy:decode(ReqBody),
+
+    case is_list(Id)  of
+        true ->
+            % error_logger:info_report([ list_to_binary(["'", I, "'"]) || I <- Id]),
+            IDs = string:join([ lists:concat(["'", binary_to_list(I), "'"]) || I <- Id], ", "),
+            error_logger:info_report(IDs),
+            PayLoad = list_to_binary(["select * from character_card_profile where id in (", IDs, ")"]);
+        _ -> 
+            PayLoad = list_to_binary(["select * from character_card_profile where id='", Id,"'"])
+        end,
+
+
+    erlang:display(PayLoad),
 
     {ok, Conn} = epgsql:connect("localhost", "yuetao", "asdasdasd", [
         {database, "dungeon"},
         {timeout, 100}
     ]),
 
-    PayLoad = list_to_binary(["select * from character_card_profile where id='", Id,"'"]),
 
-    erlang:display(PayLoad),
 
     Contents = case epgsql:squery(Conn, binary_to_list(PayLoad)) of
-        {ok, _Cols, [{_, C}]} -> C;
+        {ok, _Cols, ResList} -> [ {[{card_id, ID}, {card_profile, jiffy:decode(Res)}]} || {ID, Res} <- ResList];
         E -> E
     end,
 
-    erlang:display(Contents),
+    error_logger:info_report(Contents),
 
     ok = epgsql:close(Conn),
 
-    Res = cowboy_req:set_resp_body(Contents, NextReq),
+    Res = cowboy_req:set_resp_body(jiffy:encode(Contents), NextReq),
     {true, Res, State}.
