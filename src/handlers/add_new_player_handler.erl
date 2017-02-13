@@ -98,5 +98,7 @@ handle_post(Req, State) ->
 
     ok = epgsql:close(Conn),
 
-    Res = cowboy_req:set_resp_body(<<"ok">>, NextReq),
+    erlang:display({new_player, ID, created}),
+
+    Res = cowboy_req:set_resp_body(list_to_binary(["{\"id\":\"",ID, "\"}"]), NextReq),
     {true, Res, State}.

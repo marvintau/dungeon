@@ -58,7 +58,7 @@ get_cast_names_with(Data) ->
     General = lists:flatten(ets:match(casts, {'$1', general, '_'})),
     ClassCast = lists:flatten(ets:match(casts, {'$1', binary_to_atom(Class, utf8), '_'})),
 
-    FullNameList = lists:append([[none], ClassCast, General]),
+    FullNameList = lists:append([ClassCast, General,[none]]),
 
     erlang:display(FullNameList),
 

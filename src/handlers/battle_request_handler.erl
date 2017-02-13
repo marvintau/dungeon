@@ -73,15 +73,18 @@ handle_post(Req, State) ->
     % {ok,[{column,<<"id">>,uuid,16,-1,0},{column,<<"profile">>,jsonb,-1,-1,0}],[]}}
     {ok, _Cols, [{_, Profile1}]} = epgsql:squery(Conn, binary_to_list(ProfileQuery1)),
 
-
     {ok, _Cols, [{_, Profile2}]} = epgsql:squery(Conn, binary_to_list(ProfileQuery2)),
 
     ok = epgsql:close(Conn),
 
-    {done, {records, Records}, {full_log, _FullLog}, {winner, Winner}} = battle:new({
-        parse(jiffy:decode(Profile1, [return_maps])),
-        parse(jiffy:decode(Profile2, [return_maps]))
-    }),
+    {done, {records, Records}, {full_log, _FullLog}, {winner, Winner}} = case (Profile1 == Profile2) of
+            true ->
+                {done, {records, []}, {full_log, []}, {winner, none}};
+            _ ->
+                battle:new({
+                    parse(jiffy:decode(Profile1, [return_maps])),
+                    parse(jiffy:decode(Profile2, [return_maps]))})
+            end,
 
     Res = cowboy_req:set_resp_body(jiffy:encode({[{records, Records}, {winner, Winner}, {player1, jiffy:decode(Profile1)}, {player2, jiffy:decode(Profile2)}]}), NextReq),
     {true, Res, State}.

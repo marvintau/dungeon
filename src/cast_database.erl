@@ -281,11 +281,12 @@ create_casts() ->
 
         {pyromania, mage, [
             {1, [
-                { {{0, 3, casting}, []}, [
-                  {{add, {-50}, resistable}, {state, hp, def}}
-                ] },
                 { {{0, 1, casting}, []}, [
+                  {{add, {-50}, resistable}, {state, hp, def}},
                   {{add_mul, {-0.5}, resistable}, {attr, critical, def}}
+                ] },
+                { {{1, 2, casting}, []}, [
+                  {{add, {-50}, resistable}, {state, hp, def}}
                 ] }
             ]}
         ]},

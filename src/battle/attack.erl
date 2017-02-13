@@ -130,29 +130,36 @@ trans(S,
 
 
     {NewPosO, NewPosD, NewPosActO, NewPosActD} = case is_no_damage_move(A) of
+        
         true -> {PosO, PosD, stand, stand};
+        
         _    -> case binary_to_atom(RangeTypeO, utf8) of
-            near when (PosO + PosD) /= 5 ->
+        
+            near when (PosO + PosD) < 5 ->
                 {5 - PosD, PosD, chase, not_assigned_yet};
+
             near ->
                 {PosO, PosD, stand, not_assigned_yet};
 
-            far when abs((PosO + PosD) - 5) > 2 ->
+            far when (PosO + PosD) < 3 ->
                 {PosO + 1, PosD, chase, not_assigned_yet};
-            far when PosO + PosD =:= 5 ->
+
+            far when PosO + PosD == 5 ->
                 case PosO of
                     1 -> {PosO, PosD - 2, stand, back_jump_2};
                     _ -> {PosO - 1, PosD, back_jump, not_assigned_yet}
                 end;
+
             far ->
                 {PosO, PosD, stand, not_assigned_yet}
+        
         end
     end,
 
     {NewPosDAfter, NewPosActDAfter} = case {NewPosD, NewPosActD} of
         {1, not_assigned_yet} -> {1, stand};
         {_, not_assigned_yet} ->
-            case rand:uniform() > 0.9 of
+            case rand:uniform() > 0.5 of
                 true -> {NewPosD - 1, blown_out};
                 _ -> {NewPosD, stand}
             end;
