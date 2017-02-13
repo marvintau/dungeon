@@ -269,12 +269,11 @@ create_casts() ->
                   {{set, {1}, none}, {attr, attack_disabled, off}},
                   {{set, {1}, none}, {attr, cast_disabled, off}},
                   {{set, {0}, none}, {attr, dodge, off}},
-                  {{set, {0}, none}, {attr, block, off}}
-                ] }
-            ]},
-            {1, [
-                { {{0, 3, casting}, []}, [
-                    {{add_mul, {0.3}, none}, {attr, resist, def}}
+                  {{set, {0}, none}, {attr, block, off}},
+                  {{add_mul, {-0.3}, none}, {attr, resist, def}}
+                ] },
+                { {{1, 2, settling}, []}, [
+                    {{add_mul, {-0.3}, none}, {attr, resist, def}}
                 ] }
             ]}
         ]},
@@ -285,7 +284,7 @@ create_casts() ->
                   {{add, {-50}, resistable}, {state, hp, def}},
                   {{add_mul, {-0.5}, resistable}, {attr, critical, def}}
                 ] },
-                { {{1, 2, casting}, []}, [
+                { {{1, 2, settling}, []}, [
                   {{add, {-50}, resistable}, {state, hp, def}}
                 ] }
             ]}

@@ -12,12 +12,17 @@ rand() ->
 % Any cast that might change the normal way of determine the order of
 % attack will be put here.
 
-toss(#{casts:=[rune_of_the_void|_], id:=A}, _) ->
+toss(next_for_opening, #{talented:=freeze}, #{id:=B}) ->
+    B;
+toss(next_for_opening, #{id:=A}, #{talented:=freeze}) ->
     A;
-toss(_, #{casts:=[rune_of_the_void|_], id:=B}) ->
+
+toss(next_for_casting, #{casts:=[rune_of_the_void|_], id:=A}, _) ->
+    A;
+toss(next_for_casting, _, #{casts:=[rune_of_the_void|_], id:=B}) ->
     B;
 
-toss(#{id:=A, attr:=#{agility:=AgiA}},
+toss(_, #{id:=A, attr:=#{agility:=AgiA}},
      #{id:=B, attr:=#{agility:=AgiB}}) ->
     case rand() * (AgiA + AgiB) > AgiA of
         true -> B;
@@ -57,7 +62,7 @@ loop(_, #{state:=#{hp:=HP1}, id:=I1}, #{state:=#{hp:=HP2}, id:=I2}, Log, FullLog
 % new round, the attributes should be restored in this stage. Meanwhile,
 % both players will be restored to primary hand.
 
-loop(#{seq:=Seq, stage:=attacking}=State,
+loop(#{seq:=Seq, stage:=attacking, is_opening:=IsOpening}=State,
      #{done:=already, prim_hand:=PrimHand1, orig_attr:=Orig1, state:=#{position:=PosP1}=State1}=P1,
      #{done:=already, prim_hand:=PrimHand2, orig_attr:=Orig2, state:=#{position:=PosP2}=State2}=P2,
      L, FL) ->
@@ -65,7 +70,10 @@ loop(#{seq:=Seq, stage:=attacking}=State,
     NewP1 = P1#{state:=State1#{rem_moves:=2, position:=PosP1}, done:=not_yet, curr_hand:=PrimHand1, attr:=Orig1},
     NewP2 = P2#{state:=State2#{rem_moves:=2, position:=PosP2}, done:=not_yet, curr_hand:=PrimHand2, attr:=Orig2},
 
-    NewMover = toss(NewP1, NewP2),
+    NewMover = case IsOpening of
+        true -> toss(next_for_opening, NewP1, NewP2);
+        _ -> toss(next_for_casting, NewP1, NewP2)
+    end,
 
     EmptyLog = case L of
         [{[{_, LastLogSeq}|_]} |_] -> case Seq - LastLogSeq > 1 of
