@@ -61,16 +61,18 @@ handle_post(Req, State) ->
 
 
     quickrand:seed(),
-    ID = uuid:uuid_to_string(uuid:get_v4_urandom()),
-
+    IDstring = uuid:uuid_to_string(uuid:get_v4_urandom()),
     Name = random_name(),
-    erlang:display(Name),
+
+    QueryCheckNumberOfIdenticalNames = list_to_binary(["select count(profile->'player_name') from player_profile where profile->>'player_name' like '", Name, "%'"]),
+    {ok, _, [{Numbers}]}= epgsql:squery(Conn, binary_to_list(QueryCheckNumberOfIdenticalNames)),
+    NewName = list_to_binary([Name, integer_to_binary(binary_to_integer(Numbers)+1)]),
 
     QueryAddProfile = list_to_binary([
         "insert into player_profile (id, profile) values ('",
-        ID,
+        IDstring,
         "', '{\"player_name\": \"",
-        Name,
+        NewName,
         "\", \"player_level\":1,
         \"default_card\": \"946ae77c-183b-4538-b439-ac9036024676\",
         \"card_list\":[\"946ae77c-183b-4538-b439-ac9036024676\",
@@ -87,7 +89,7 @@ handle_post(Req, State) ->
 
     QueryAddChestOpening = list_to_binary([
         "insert into char_chest(char_id, last_opened_chest, last_opened_time) values ('",
-        ID, "', '1', now())"
+        IDstring, "', '1', now())"
     ]),
 
     AddProfileRes = epgsql:squery(Conn, binary_to_list(QueryAddProfile)),
@@ -98,7 +100,7 @@ handle_post(Req, State) ->
 
     ok = epgsql:close(Conn),
 
-    erlang:display({new_player, ID, created}),
+    erlang:display({new_player, IDstring, created}),
 
-    Res = cowboy_req:set_resp_body(list_to_binary(["{\"id\":\"",ID, "\"}"]), NextReq),
+    Res = cowboy_req:set_resp_body(list_to_binary(["{\"id\":\"",IDstring, "\"}"]), NextReq),
     {true, Res, State}.
