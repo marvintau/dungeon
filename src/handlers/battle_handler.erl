@@ -48,7 +48,7 @@ handle_post(Req, State) ->
 
     {[{_, Id1}, {_, Id2}]} = jiffy:decode(ReqBody),
 
-    {ok, Conn} = epgsql:connect("localhost", "marvin", "asdasdasd", [
+    {ok, Conn} = epgsql:connect("localhost", "yuetao", "asdasdasd", [
         {database, "dungeon"},
         {timeout, 100}
     ]),

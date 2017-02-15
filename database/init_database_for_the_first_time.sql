@@ -198,7 +198,7 @@ create table chest_spec (
 );
 
 copy chest_spec(chest_id, chest_name, min_item_types, max_item_types, open_interval)
-from '/Users/marvin/Github/dungeon/database/preset_data/chest_specs.csv' delimiter ',' csv header;
+from '/home/marvin/dungeon/database/preset_data/chest_specs.csv' delimiter ',' csv header;
 
 select * from chest_spec;
 
@@ -216,15 +216,15 @@ create table item_from_chest (
 );
 
 copy item_from_chest(chest_id, item_id, min_items, max_items, drop_rate)
-from '/Users/marvin/Github/dungeon/database/preset_data/chest-golden.csv' delimiter ',' csv header;
+from '/home/marvin/dungeon/database/preset_data/chest-golden.csv' delimiter ',' csv header;
 copy item_from_chest(chest_id, item_id, min_items, max_items, drop_rate)
-from '/Users/marvin/Github/dungeon/database/preset_data/chest-bronze.csv' delimiter ',' csv header;
+from '/home/marvin/dungeon/database/preset_data/chest-bronze.csv' delimiter ',' csv header;
 copy item_from_chest(chest_id, item_id, min_items, max_items, drop_rate)
-from '/Users/marvin/Github/dungeon/database/preset_data/chest-wood.csv' delimiter ',' csv header;
+from '/home/marvin/dungeon/database/preset_data/chest-wood.csv' delimiter ',' csv header;
 copy item_from_chest(chest_id, item_id, min_items, max_items, drop_rate)
-from '/Users/marvin/Github/dungeon/database/preset_data/chest-silver.csv' delimiter ',' csv header;
+from '/home/marvin/dungeon/database/preset_data/chest-silver.csv' delimiter ',' csv header;
 copy item_from_chest(chest_id, item_id, min_items, max_items, drop_rate)
-from '/Users/marvin/Github/dungeon/database/preset_data/chest-iron.csv' delimiter ',' csv header;
+from '/home/marvin/dungeon/database/preset_data/chest-iron.csv' delimiter ',' csv header;
 
 select * from item_from_chest;
 
@@ -238,7 +238,7 @@ create table item_description(
 );
 
 copy item_description(item_id, item_name, item_desc, image_name)
-from '/Users/marvin/Github/dungeon/database/preset_data/item-names.csv' delimiter ',' csv header;
+from '/home/marvin/dungeon/database/preset_data/item-names.csv' delimiter ',' csv header;
 
 select * from item_description;
 

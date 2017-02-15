@@ -49,7 +49,7 @@ handle_post(Req, State) ->
     erlang:display(jiffy:decode(ReqBody)),
     {[{_, Id1}, {_, Id2}, {_, Skills}]} = jiffy:decode(ReqBody),
 
-    {ok, Conn} = epgsql:connect("localhost", "marvin", "asdasdasd", [
+    {ok, Conn} = epgsql:connect("localhost", "yuetao", "asdasdasd", [
         {database, "dungeon"},
         {timeout, 100}
     ]),
