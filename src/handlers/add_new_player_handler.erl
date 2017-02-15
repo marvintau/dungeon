@@ -88,8 +88,7 @@ handle_post(Req, State) ->
     erlang:display(QueryAddProfile),
 
     QueryAddChestOpening = list_to_binary([
-        "insert into char_chest(char_id, last_opened_chest, last_opened_time) values ('",
-        IDstring, "', '1', now())"
+        "insert into char_chest(char_id, last_opened_chest, last_opened_time) values ('", IDstring, "', '1', now())"
     ]),
 
     AddProfileRes = epgsql:squery(Conn, binary_to_list(QueryAddProfile)),

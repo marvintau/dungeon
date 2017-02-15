@@ -56,24 +56,17 @@ handle_post(Req, State) ->
 
     SkillsBinary = jiffy:encode(Skills),
 
-    ChangeSelfSkills = list_to_binary([
-        "update character_card_profile
-        set profile=(select jsonb_set(profile, '{cast_list}', jsonb '",SkillsBinary ,"') from
-        (select profile from character_card_profile where id='",Id1 ,"') as profile)
-        where id='",Id1 ,"'"
-    ]),
+    ProfileQuery1 = list_to_binary(["select jsonb_set(profile, '{cast_list}', jsonb '",SkillsBinary ,"') from
+        (select profile from character_card_profile where id='",Id1 ,"') as profile"]),
 
-    ProfileQuery1 = list_to_binary(["select * from character_card_profile where id='", Id1,"'"]),
-
-    ProfileQuery2 = list_to_binary(["select * from character_card_profile where id='", Id2, "'"]),
+    ProfileQuery2 = list_to_binary(["select profile from character_card_profile where id='", Id2, "'"]),
 
 
-    {ok, _Contents} = epgsql:squery(Conn, binary_to_list(ChangeSelfSkills)),
+    {ok, _Cols, [{Profile1}]} = epgsql:squery(Conn, binary_to_list(ProfileQuery1)),
+    erlang:display(Profile1),
 
-    % {ok,[{column,<<"id">>,uuid,16,-1,0},{column,<<"profile">>,jsonb,-1,-1,0}],[]}}
-    {ok, _Cols, [{_, Profile1}]} = epgsql:squery(Conn, binary_to_list(ProfileQuery1)),
-
-    {ok, _Cols, [{_, Profile2}]} = epgsql:squery(Conn, binary_to_list(ProfileQuery2)),
+    {ok, _, [{Profile2}]} = epgsql:squery(Conn, binary_to_list(ProfileQuery2)),
+    erlang:display(Profile2),
 
     ok = epgsql:close(Conn),
 
