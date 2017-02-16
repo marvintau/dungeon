@@ -66,7 +66,10 @@ handle_post(Req, State) ->
 
     QueryCheckNumberOfIdenticalNames = list_to_binary(["select count(profile->'player_name') from player_profile where profile->>'player_name' like '", Name, "%'"]),
     {ok, _, [{Numbers}]}= epgsql:squery(Conn, binary_to_list(QueryCheckNumberOfIdenticalNames)),
-    NewName = list_to_binary([Name, integer_to_binary(binary_to_integer(Numbers)+1)]),
+    NewName = case Numbers of 
+        0 -> Name;
+        More -> list_to_binary([Name, integer_to_binary(binary_to_integer(More))])
+    end,
 
     QueryAddProfile = list_to_binary([
         "insert into player_profile (id, profile) values ('",
