@@ -224,7 +224,7 @@ $("#submit-20").on('click', function(){
     result = {};
 
     for(var i = 0; i < 1000; i++){
-        $.postJSON("/battle", OutgoingData, function(data){
+        $.postJSON("/api/battle", OutgoingData, function(data){
 
             // var IncomingData = data.full_log;
 
@@ -250,7 +250,7 @@ $("#submit").on('click', function(){
 
     console.log(OutgoingData);
 
-    $.postJSON("/battle", OutgoingData, function(data){
+    $.postJSON("/api/battle", OutgoingData, function(data){
 
         $('#table-section').empty();
 
@@ -278,7 +278,7 @@ $("#reset").on('click', function(){
 });
 
 var get_player_list = function(Dest){
-    $.postJSON("/get_card_list", {}, function(data){
+    $.postJSON("/api/get_card_list", {}, function(data){
 
         listedData = data.map(function(elem){return {key:elem.id, val:elem.card_name}});
 
@@ -298,45 +298,45 @@ var get_player_list = function(Dest){
 
 $("#player-list").ready(function(){
     get_player_list("#player-list");
-    $.postJSON('/get_card_profile', {id: ["946ae77c-183b-4538-b439-ac9036024676"]}, function(data){
+    $.postJSON('/api/get_card_profile', {id: ["946ae77c-183b-4538-b439-ac9036024676"]}, function(data){
         $.setEditData(data[0]);
     })
 });
 
 $("#player-list").change(function(){
-    $.postJSON('/get_card_profile', {id: [$("#player-list").val()]}, function(data){
+    $.postJSON('/api/get_card_profile', {id: [$("#player-list").val()]}, function(data){
         $.setEditData(data[0]);
     })
 });
 
 $("#player-list-1").ready(function(){
     get_player_list("#player-list-1");
-    $.postJSON('/get_card_profile', {id: ["946ae77c-183b-4538-b439-ac9036024676"]}, function(data){
+    $.postJSON('/api/get_card_profile', {id: ["946ae77c-183b-4538-b439-ac9036024676"]}, function(data){
         $.setData(data[0], "1");
     })
 })
 
 $("#player-list-1").change(function(){
-    $.postJSON('/get_card_profile', {id: [$("#player-list-1").val()]}, function(data){
+    $.postJSON('/api/get_card_profile', {id: [$("#player-list-1").val()]}, function(data){
         $.setData(data[0], "1");
     })
 });
 
 $("#player-list-2").ready(function(){
     get_player_list("#player-list-2");
-    $.postJSON('/get_card_profile', {id: ["946ae77c-183b-4538-b439-ac9036024676"]}, function(data){
+    $.postJSON('/api/get_card_profile', {id: ["946ae77c-183b-4538-b439-ac9036024676"]}, function(data){
         $.setData(data[0], "2");
     })
 })
 
 $("#player-list-2").change(function(){
-    $.postJSON('/get_card_profile', {id: [$("#player-list-2").val()]}, function(data){
+    $.postJSON('/api/get_card_profile', {id: [$("#player-list-2").val()]}, function(data){
         $.setData(data[0], "2");
     })
 });
 
 $("#class").ready(function(){
-    $.postJSON("/get_cast_names", {id: $('#id').val(), class:$('#class').val()}, function(data){
+    $.postJSON("/api/get_cast_names", {id: $('#id').val(), class:$('#class').val()}, function(data){
         console.log(data);
         ms.clear();
         ms.setData(data);
@@ -349,7 +349,7 @@ $("#class").change(function(){
 
     console.log($("#class").val());
 
-    $.postJSON("/get_cast_names", {id: $('#id1').val(), class:$('#class').val()}, function(data){
+    $.postJSON("/api/get_cast_names", {id: $('#id1').val(), class:$('#class').val()}, function(data){
         console.log(data);
         ms.clear();
         ms.setData(data);
@@ -364,7 +364,7 @@ $("#new").on('click', function(){
 
     console.log(JSON.stringify(OutgoingData));
 
-    $.postJSON("/add_card_profile", JSON.stringify(OutgoingData), function(data){
+    $.postJSON("/api/add_card_profile", JSON.stringify(OutgoingData), function(data){
         console.log(data);
     })
 });
@@ -374,19 +374,19 @@ $("#update").on('click', function(){
     var temp_id = $("#player-list").val();
     var OutgoingData = {id: temp_id, content:$.getEditData()};
 
-    $.postJSON("/update_card_profile", OutgoingData, function(data){
+    $.postJSON("/api/update_card_profile", OutgoingData, function(data){
         get_player_list("#player-list");
         get_player_list("#player-list-1");
         get_player_list("#player-list-2");
 
-        $.postJSON('/get_card_profile', {id: [temp_id]}, function(data){
+        $.postJSON('/api/get_card_profile', {id: [temp_id]}, function(data){
             $.setEditData(data[0]);
         })
     })
 });
 
 $("#refresh-chest1").on('click', function(){
-    $.postJSON('/check_chest', {id: $("#player-list-1").val()}, function(data){
+    $.postJSON('/api/check_chest', {id: $("#player-list-1").val()}, function(data){
         console.log(JSON.stringify(data));
         $("#next-chest1").text(data.next_name);
         $("#remaining1").text(data.remaining);
@@ -395,7 +395,7 @@ $("#refresh-chest1").on('click', function(){
 })
 
 $("#open-chest1").on('click', function(){
-    $.postJSON('/open_chest', {id: $("#player-list-1").val()}, function(data){
+    $.postJSON('/api/open_chest', {id: $("#player-list-1").val()}, function(data){
 
         console.log(JSON.stringify(data));
 
@@ -410,7 +410,7 @@ $("#open-chest1").on('click', function(){
         }
     })
 
-    $.postJSON('/check_chest', {id: $("#player-list-1").val()}, function(data){
+    $.postJSON('/api/check_chest', {id: $("#player-list-1").val()}, function(data){
         $("#next-chest1").text(data.next_name);
 
         console.log(data);
@@ -420,7 +420,7 @@ $("#open-chest1").on('click', function(){
 })
 
 $("#reset-database").on('click', function(){
-    $.postJSON('/reset_database', {}, function(data){
+    $.postJSON('/api/reset_database', {}, function(data){
         window.location.reload(true);
     })
 })
