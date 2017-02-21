@@ -36,12 +36,14 @@ allow_missing_posts(Req, State) ->
 
 handle_post(Req, State) ->
 
+    error_logger:info_report(get_card_profile),
+
     {ReqBody, NextReq} = try cowboy_req:read_body(Req) of
         {ok, ReqBodyRaw, NewReq} ->
             {ReqBodyRaw, NewReq}
     catch
         error:Error ->
-            erlang:display(Error),
+            error_logger:error_report(Error),
             {<<"Nah">>, Req}
     end,
 
@@ -51,9 +53,7 @@ handle_post(Req, State) ->
 
     case is_list(Id)  of
         true ->
-            % error_logger:info_report([ list_to_binary(["'", I, "'"]) || I <- Id]),
             IDs = string:join([ lists:concat(["'", binary_to_list(I), "'"]) || I <- Id], ", "),
-            error_logger:info_report(IDs),
             PayLoad = list_to_binary(["select * from character_card_profile where id in (", IDs, ")"]);
         _ -> 
             PayLoad = list_to_binary(["select * from character_card_profile where id='", Id,"'"])
@@ -74,7 +74,6 @@ handle_post(Req, State) ->
         E -> E
     end,
 
-    error_logger:info_report(Contents),
 
     ok = epgsql:close(Conn),
 

@@ -70,15 +70,13 @@ handle_post(Req, State) ->
 
     {ok, _Cols, Contents} = epgsql:squery(Conn, binary_to_list(QueryCheck)),
 
-    erlang:display(Contents),
-
     [{ID, NextChestID, NextName, Remaining, LastOpen}] = Contents,
 
     % 检查此次开箱子请求是否和记录的上一次开箱子在同一天
     RawJsonContent = case is_same_day(LastOpen) of
         % 如果同一天，OK
         {true, _} ->
-            erlang:display(open_chest_at_same_day),
+            error_logger:info_report(open_chest_at_same_day),
             {[{id, ID}, {next_chest, NextChestID}, {next_name, NextName}, {remaining, Remaining}]};
 
         % 如果不在同一天
@@ -95,7 +93,7 @@ handle_post(Req, State) ->
 
             % 再重新发起一次check的请求，
             {ok, 1} = epgsql:squery(Conn, binary_to_list(QueryReset)),
-            erlang:display(reset),
+            error_logger:info_report({open_at_next_day, reset}),
 
             {ok, _Cols, UpdatedContents} = epgsql:squery(Conn, binary_to_list(QueryCheck)),
             [{ID, NextChestID0, NextName0, Remaining0, _}] = UpdatedContents,

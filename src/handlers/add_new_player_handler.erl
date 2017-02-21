@@ -50,7 +50,7 @@ handle_post(Req, State) ->
             {ReqBodyRaw, NewReq}
     catch
         error:Error ->
-            erlang:display(Error),
+            error_logger:info_report({request, error, Error}),
             {<<"Nah">>, Req}
     end,
 
@@ -89,21 +89,16 @@ handle_post(Req, State) ->
             \"1b0cf5e0-2164-46fd-8424-2146fca99fb9\"]}')"
     ]),
 
-    erlang:display(QueryAddProfile),
-
     QueryAddChestOpening = list_to_binary([
         "insert into char_chest(char_id, last_opened_chest, last_opened_time) values ('", IDstring, "', '1', now())"
     ]),
 
     AddProfileRes = epgsql:squery(Conn, binary_to_list(QueryAddProfile)),
-    error_logger:info_report(AddProfileRes),
-
     AddChestRes = epgsql:squery(Conn, binary_to_list(QueryAddChestOpening)),
-    error_logger:info_report(AddChestRes),
 
     ok = epgsql:close(Conn),
 
-    erlang:display({new_player, IDstring, created}),
+    error_logger:infor_report({new_player, IDstring, created}),
 
     Res = cowboy_req:set_resp_body(list_to_binary(["{\"id\":\"",IDstring, "\"}"]), NextReq),
     {true, Res, State}.

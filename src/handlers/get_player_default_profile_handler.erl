@@ -36,12 +36,14 @@ allow_missing_posts(Req, State) ->
 
 handle_post(Req, State) ->
 
+    error_logger:info_report(obtaining_player_default_profile),
+
     {ReqBody, NextReq} = try cowboy_req:read_body(Req) of
         {ok, ReqBodyRaw, NewReq} ->
             {ReqBodyRaw, NewReq}
     catch
         error:Error ->
-            erlang:display(Error),
+            error_logger:error_report(Error),
             {<<"Nah">>, Req}
     end,
 
@@ -55,14 +57,10 @@ handle_post(Req, State) ->
 
     PayLoad = list_to_binary(["select * from player_profile where id='", Id,"'"]),
 
-    erlang:display(PayLoad),
-
     Contents = case epgsql:squery(Conn, binary_to_list(PayLoad)) of
         {ok, _Cols, [{_, C}]} -> C;
         E -> E
     end,
-
-    erlang:display(Contents),
 
     ok = epgsql:close(Conn),
 

@@ -63,6 +63,8 @@ handle_post(Req, State) ->
 
     ok = epgsql:close(Conn),
 
+    error_logger:info_report({battle_between, Id1, Id2}),
+
     {done, {records, Records}, {full_log, FullLogs}, {winner, Winner}} = case (Profile1 == Profile2) of
             true ->
                 {done, {records, []}, {full_log, []}, {winner, none}};
@@ -77,8 +79,6 @@ handle_post(Req, State) ->
 
 
 parse(SinglePlayerData) ->
-
-    erlang:display(SinglePlayerData),
 
     #{<<"agi">>:=Agi,  <<"armor">>:=Armor, <<"block">>:=Block, <<"card_name">>:=CardName,
       <<"cast_list">>:=CastList,  <<"class">>:=Class, <<"range_type">>:=RangeType, <<"critical">>:=Critic, <<"dodge">>:=Dodge, <<"hit">>:=HitBonus,

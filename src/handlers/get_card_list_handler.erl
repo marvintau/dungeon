@@ -36,12 +36,14 @@ allow_missing_posts(Req, State) ->
 
 handle_post(Req, State) ->
 
+    error_logger:info_report(player_obtaining_card_profiles),
+
     {ReqBody, NextReq} = try cowboy_req:read_body(Req) of
         {ok, ReqBodyRaw, NewReq} ->
             {ReqBodyRaw, NewReq}
     catch
         error:Error ->
-            erlang:display(Error),
+            error_logger:error_report(Error),
             {<<"Nah">>, Req}
     end,
     
@@ -59,8 +61,6 @@ handle_post(Req, State) ->
     
     {ok, _Cols, Contents} = epgsql:squery(Conn, binary_to_list(PayLoad)),
 
-    erlang:display(Contents),
-        
     ok = epgsql:close(Conn),
 
     Res = cowboy_req:set_resp_body(jiffy:encode([{[{id, ID}, {card_name, jiffy:decode(Profile)}]} || {ID, Profile} <- Contents]), NextReq),

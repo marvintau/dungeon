@@ -36,6 +36,8 @@ allow_missing_posts(Req, State) ->
 
 handle_post(Req, State) ->
 
+    error_logger:info_report(open_chest_check),
+
     {ReqBody, NextReq} = try cowboy_req:read_body(Req) of
         {ok, ReqBodyRaw, NewReq} ->
             {ReqBodyRaw, NewReq}
