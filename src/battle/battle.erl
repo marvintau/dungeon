@@ -152,6 +152,8 @@ loop(#{stage:=opening, mover:=Mover, seq:=Seq}=S, #{id:=IDA}=A, #{id:=IDB}=B, L,
         IDB -> {NewB, NewA, NewLog} = cast:apply_opening(S, B, A, L), {NewA, NewB, NewLog}
     end,
 
+    error_logger:info_report(OpeningB),
+
     loop(S, OpeningA, OpeningB, OpeningLog, [#{seq=>Seq, a=>HpA, b=>HpB} | FL]);
 
 

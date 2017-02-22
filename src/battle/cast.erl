@@ -67,9 +67,13 @@ cast(S, #{casts:=[CastName | RemainingCasts], effects:=ExistingEffects}=O, D, L)
 
 
 
-apply(State, #{attr:=#{cast_disabled:=0}}=O, D, Log) ->
-    {MovedO, MovedD, MovedLog} = cast(State, O, D, Log),
-    effect:apply(State, MovedO#{done:=already}, MovedD, MovedLog);
+apply(State, #{attr:=#{cast_disabled:=CastDisabled}}=O, D, Log) ->
+    {MovedO, MovedD, MovedLog} = case CastDisabled of
+        0 -> {CastedO, CastedD, CastedLog} = cast(State, O, D, Log),
+             effect:apply(State, CastedO, CastedD, CastedLog);
+        _ -> {O, D, Log}
+    end,
+    {MovedO#{done:=already}, MovedD, MovedLog};
 
 apply(_State, #{casts:=Casts}=O, D, Log) ->
     ConsumedCasts = case Casts of
@@ -91,8 +95,7 @@ cast_opening(S, #{talented:=Opening, effects:=ExistingEffects}=O, D, L) ->
 
     {O#{effects:=NewEffects}, D, NewLog}.
 
-apply_opening(State, O, D, Log) ->
+apply_opening(State, O, #{id:=ID}=D, Log) ->
     {MovedO, MovedD, MovedLog} = cast_opening(State, O, D, Log),
-    effect:apply(State, MovedO#{done:=already}, MovedD, MovedLog).
-
-
+    {EffectedO, EffectedD, EffectedLog} = effect:apply(State, MovedO, MovedD, MovedLog),
+    {EffectedO#{done:=already}, EffectedD, EffectedLog}.

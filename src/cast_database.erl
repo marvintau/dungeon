@@ -44,6 +44,7 @@ create_casts() ->
                 { {{0, 3, settling}, []}, [
                   {{set, {1}, none}, {attr, cast_disabled, def}},
                   {{set, {1}, none}, {attr, attack_disabled, def}},
+                  {{set, {1}, none}, {attr, is_frozen, def}},
                   {{set, {0}, none}, {attr, dodge, def}},
                   {{set, {0}, none}, {attr, block, def}},
                   {{set, {0}, none}, {attr, resist, def}},
@@ -106,7 +107,7 @@ create_casts() ->
         ]},
 
         {poison_gas, general, [
-            {0.5, [
+            {1, [
                 {
                  {{0, 2, casting}, []},
                  [{{set, {1}, none}, {attr, attack_disabled, def}},

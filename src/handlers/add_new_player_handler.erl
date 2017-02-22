@@ -90,7 +90,7 @@ handle_post(Req, State) ->
     ]),
 
     QueryAddChestOpening = list_to_binary([
-        "insert into char_chest(char_id, last_opened_chest, last_opened_time) values ('", IDstring, "', '1', now())"
+        "insert into char_chest(char_id, last_opened_chest, last_opened_time, is_today_done) values ('", IDstring, "', '0', now(), 'no')"
     ]),
 
     AddProfileRes = epgsql:squery(Conn, binary_to_list(QueryAddProfile)),
@@ -98,7 +98,7 @@ handle_post(Req, State) ->
 
     ok = epgsql:close(Conn),
 
-    error_logger:infor_report({new_player, IDstring, created}),
+    error_logger:info_msg("new user (~ts ~ts) created.~n", [IDstring, NewName]),
 
     Res = cowboy_req:set_resp_body(list_to_binary(["{\"id\":\"",IDstring, "\"}"]), NextReq),
     {true, Res, State}.

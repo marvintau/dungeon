@@ -109,7 +109,7 @@ trans(S,
          curr_hand:={HandType, AttackType, DamageRange}, prim_hand:=PrimHand, secd_hand:=SecdHand,
          attr:=#{damage_multiplier:=DamageMul, critical_multiplier:=CritMul, damage_addon:=DamageAddon},
          state:=#{rem_moves:=RemMoves, position:=PosO}=StateA}=A,
-       #{attr:=#{armor:=Armor}=CurrAttrD, state:=#{hp:=H2, position:=PosD}=StateD}=D, L) ->
+       #{attr:=#{armor:=Armor, is_frozen:=IsFrozen}=CurrAttrD, state:=#{hp:=H2, position:=PosD}=StateD}=D, L) ->
 
     Outcome = roulette(A, D),
     
@@ -159,7 +159,7 @@ trans(S,
     {NewPosDAfter, NewPosActDAfter} = case {NewPosD, NewPosActD} of
         {1, not_assigned_yet} -> {1, stand};
         {_, not_assigned_yet} ->
-            case rand:uniform() > 0.5 of
+            case ((rand:uniform() > 0.5) and (IsFrozen == 0) and (Outcome /= dodge) and (Outcome /=block)) of
                 true -> {NewPosD - 1, blown_out};
                 _ -> {NewPosD, stand}
             end;
@@ -186,6 +186,7 @@ apply(State, #{attr:=#{attack_disabled:=0}}=O, D, Log) ->
     end,
 
     {DefReactedD, DefReactedO, DefReactedLog} = effect:apply(State, MovedD, DoneMovedO, MovedLog),
+
     {ReactedO, ReactedD, ReactedLog} = effect:apply(State, DefReactedO, DefReactedD, DefReactedLog),
 
     {ReactedO, ReactedD, ReactedLog};

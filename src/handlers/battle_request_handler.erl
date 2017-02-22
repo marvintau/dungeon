@@ -120,6 +120,8 @@ parse(SinglePlayerData) ->
             attack_disabled => 0,
             cast_disabled => 0,
             effect_invalidated => 0,
+            is_frozen => 0,
+
             armor      => Armor,
             hit_bonus  => HitBonus,
             critical   => Critic,

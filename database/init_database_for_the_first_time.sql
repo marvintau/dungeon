@@ -253,19 +253,20 @@ create table char_chest(
     char_id uuid,
     last_opened_chest int,
     last_opened_time TIMESTAMP,
+    is_today_done BOOLEAN,
 
     foreign key(char_id) references player_profile(id),
     foreign key(last_opened_chest) references chest_spec(chest_id)
 );
 
 insert into char_chest(char_id, last_opened_chest, last_opened_time) values
-('f2740862-674b-479e-b02c-500e8a0285a0', '1', now()),
-('8673cc53-e2a8-4375-b6a3-007e2ebe6d5f', '1', now()),
-('68b19bbe-bc2a-400f-b4e7-6e632b3b908f', '1', now()),
-('db863aec-ee33-4161-884b-ef7109db4d25', '1', now()),
-('54e52b98-b8cc-40c0-a5a5-9f3598b12f87', '1', now()),
-('536b144c-4867-4ba4-b687-7e01c5419a49', '1', now()),
-('31213724-55a4-4f0c-8dd9-b17e80c38b03', '1', now()),
-('81322bdc-652c-467f-861e-b7e27610c106', '1', now());
+('f2740862-674b-479e-b02c-500e8a0285a0', '0', now(), 'no'),
+('8673cc53-e2a8-4375-b6a3-007e2ebe6d5f', '0', now(), 'no'),
+('68b19bbe-bc2a-400f-b4e7-6e632b3b908f', '0', now(), 'no'),
+('db863aec-ee33-4161-884b-ef7109db4d25', '0', now(), 'no'),
+('54e52b98-b8cc-40c0-a5a5-9f3598b12f87', '0', now(), 'no'),
+('536b144c-4867-4ba4-b687-7e01c5419a49', '0', now(), 'no'),
+('31213724-55a4-4f0c-8dd9-b17e80c38b03', '0', now(), 'no'),
+('81322bdc-652c-467f-861e-b7e27610c106', '0', now(), 'no');
 
 select * from char_chest ;

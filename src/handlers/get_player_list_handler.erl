@@ -58,8 +58,6 @@ handle_post(Req, State) ->
     PayLoad = list_to_binary("select id, profile from player_profile"), 
     
     {ok, _Cols, Contents} = epgsql:squery(Conn, binary_to_list(PayLoad)),
-
-    erlang:display(Contents),
         
     ok = epgsql:close(Conn),
 
