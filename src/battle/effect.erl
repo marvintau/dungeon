@@ -35,7 +35,8 @@ apply(_S, #{hp:=H1}=O, #{hp:=H2}=D, Log, _) when (H1 =< 0) or (H2 =< 0) ->
 apply(_S, O, D, Log, []) ->
     {O, D, Log};
 
-apply(S, O, D, Log, [ {Name, Mover, Conds, Transes} | Remaining]) ->
+apply(#{seq:=Seq}=S, O, D, Log, [ {Name, Mover, Conds, Transes} | Remaining]) ->
+
 
     {NewO, NewD, NewLog} = case conds:check(Conds, S, O, D) of
         
@@ -45,6 +46,12 @@ apply(S, O, D, Log, [ {Name, Mover, Conds, Transes} | Remaining]) ->
         
         _    ->
             {O, D, []}
+    end,
+
+    case (Name == freeze) and (Seq == 1) of
+    true ->
+        error_logger:info_report(NewD);
+    _ -> ok
     end,
 
     apply(S, NewO, NewD, lists:append(NewLog, Log), Remaining).

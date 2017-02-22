@@ -60,7 +60,7 @@ handle_post(Req, State) ->
     QueryCheck = list_to_binary(["select
                 char_id, last_opened_chest % 5 + 1, chest_name,
                 interval '1s' * open_interval - (now() - last_opened_time) as remaining,
-                extract(epoch from last_opened_time) * 100000 as last_opened_time
+                extract(epoch from last_opened_time) * 100000 as last_opened_time, is_today_done
             from
                 char_chest
                 inner join chest_spec on char_chest.last_opened_chest % 5 + 1 = chest_spec.chest_id
@@ -69,37 +69,37 @@ handle_post(Req, State) ->
 
 
     {ok, _Cols, Contents} = epgsql:squery(Conn, binary_to_list(QueryCheck)),
-
-    erlang:display(Contents),
-
-    [{ID, NextChestID, NextName, Remaining, LastOpen}] = Contents,
+    
+    error_logger:info_report(Contents),
+    [{ID, NextChestID, NextName, Remaining, LastOpen, IsTodayDone}] = Contents,
 
     % 检查此次开箱子请求是否和记录的上一次开箱子在同一天
     RawJsonContent = case is_same_day(LastOpen) of
         % 如果同一天，OK
         {true, _} ->
-            erlang:display(open_chest_at_same_day),
-            {[{id, ID}, {next_chest, NextChestID}, {next_name, NextName}, {remaining, Remaining}]};
+            error_logger:info_report({open_chest_at_same_day, {is_today_done, IsTodayDone}}),
+            {[{id, ID}, {next_chest, NextChestID}, {next_name, NextName}, {remaining, Remaining}, {is_today_done, IsTodayDone}]};
 
         % 如果不在同一天
         _ ->
 
-            % 在这里提交一个query，把此用户上次开的箱子变成0（就是不存在），上次开的时间变成今天0时
-            % 由于发起QueryCheck返回的是下一个要打开的箱子类型，所以不存在返回0，或是找不到箱子类型的情形（放心）
+            % 在这里提交一个query，把此用户上次开的箱子变成0（但实际上不会轮到它开），上次开的时间变成今天0时
+            % 由于发起QueryCheck返回的是下一个要打开的箱子类型，所以确保返回的下一个要打开的箱子ID仍然是1
             QueryReset= list_to_binary(["update char_chest
                 set
                     last_opened_chest = 0,
-                    last_opened_time = now() + age(now())
+                    last_opened_time = now() + age(now()),
+                    is_today_done = 'no'
                 where char_id = '", ID, "';"
             ]),
 
             % 再重新发起一次check的请求，
             {ok, 1} = epgsql:squery(Conn, binary_to_list(QueryReset)),
-            erlang:display(reset),
+            error_logger:info_report({open_at_next_day, reset}),
 
             {ok, _Cols, UpdatedContents} = epgsql:squery(Conn, binary_to_list(QueryCheck)),
             [{ID, NextChestID0, NextName0, Remaining0, _}] = UpdatedContents,
-            {[{id, ID}, {next_chest, NextChestID0}, {next_name, NextName0}, {remaining, Remaining0}]}
+            {[{id, ID}, {next_chest, NextChestID0}, {next_name, NextName0}, {remaining, Remaining0}, {is_today_done, IsTodayDone}]}
         end,
 
     ok = epgsql:close(Conn),

@@ -36,19 +36,19 @@ allow_missing_posts(Req, State) ->
 
 handle_post(Req, State) ->
 
+    error_logger:info_report(obtaining_players_list),
+
     {ReqBody, NextReq} = try cowboy_req:read_body(Req) of
         {ok, ReqBodyRaw, NewReq} ->
             {ReqBodyRaw, NewReq}
     catch
         error:Error ->
-            erlang:display(Error),
+            error_logger:error_report(Error),
             {<<"Nah">>, Req}
     end,
     
 
     Data = jiffy:decode(ReqBody),
-
-    error_logger:info_report(Data),
 
     {ok, Conn} = epgsql:connect("localhost", "yuetao", "asdasdasd", [
         {database, "dungeon"},
@@ -58,8 +58,6 @@ handle_post(Req, State) ->
     PayLoad = list_to_binary("select id, profile from player_profile"), 
     
     {ok, _Cols, Contents} = epgsql:squery(Conn, binary_to_list(PayLoad)),
-
-    erlang:display(Contents),
         
     ok = epgsql:close(Conn),
 

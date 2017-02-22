@@ -22,25 +22,25 @@ start(_StartType, _StartArgs) ->
     Dispatch = cowboy_router:compile([
             {'_', [
                    {"/dungeon/[...]", cowboy_static, {priv_dir, new_game_server, "assets"}},
-                   {"/battle", battle_handler, []},
-                   {"/battle_request", battle_request_handler, []},
+                   {"/api/battle", battle_handler, []},
+                   {"/api/battle_request", battle_request_handler, []},
 
                    % retrieve player infomation
-                   {"/get_player_list", get_player_list_handler, []},
-                   {"/get_card_list", get_card_list_handler, []},
-                   {"/get_player_profile", get_player_profile_handler, []},
-                   {"/add_new_player", add_new_player_handler, []},
+                   {"/api/get_player_list", get_player_list_handler, []},
+                   {"/api/get_card_list", get_card_list_handler, []},
+                   {"/api/get_player_profile", get_player_profile_handler, []},
+                   {"/api/add_new_player", add_new_player_handler, []},
 
-                   {"/add_card_profile", add_profile_handler, []},
-                   {"/get_card_profile", get_profile_handler, []},
-                   {"/update_card_profile", update_profile_handler, []},
+                   {"/api/add_card_profile", add_profile_handler, []},
+                   {"/api/get_card_profile", get_profile_handler, []},
+                   {"/api/update_card_profile", update_profile_handler, []},
 
-                   {"/get_cast_names", get_casts_handler, []},
+                   {"/api/get_cast_names", get_casts_handler, []},
 
-                   {"/check_chest", check_chest_handler, []},
-                   {"/open_chest", open_chest_handler, []},
+                   {"/api/check_chest", check_chest_handler, []},
+                   {"/api/open_chest", open_chest_handler, []},
 
-                   {"/reset_database", reset_database_handler, []}
+                   {"/api/reset_database", reset_database_handler, []}
                   ]}
         ]),
 

@@ -50,7 +50,7 @@ handle_post(Req, State) ->
             {ReqBodyRaw, NewReq}
     catch
         error:Error ->
-            erlang:display(Error),
+            error_logger:info_report({request, error, Error}),
             {<<"Nah">>, Req}
     end,
 
@@ -66,7 +66,11 @@ handle_post(Req, State) ->
 
     QueryCheckNumberOfIdenticalNames = list_to_binary(["select count(profile->'player_name') from player_profile where profile->>'player_name' like '", Name, "%'"]),
     {ok, _, [{Numbers}]}= epgsql:squery(Conn, binary_to_list(QueryCheckNumberOfIdenticalNames)),
-    NewName = list_to_binary([Name, integer_to_binary(binary_to_integer(Numbers)+1)]),
+
+    NewName = case Numbers of 
+        <<"0">> -> Name;
+        More -> list_to_binary([Name, integer_to_binary(binary_to_integer(More))])
+    end,
 
     QueryAddProfile = list_to_binary([
         "insert into player_profile (id, profile) values ('",
@@ -85,21 +89,16 @@ handle_post(Req, State) ->
             \"1b0cf5e0-2164-46fd-8424-2146fca99fb9\"]}')"
     ]),
 
-    erlang:display(QueryAddProfile),
-
     QueryAddChestOpening = list_to_binary([
-        "insert into char_chest(char_id, last_opened_chest, last_opened_time) values ('", IDstring, "', '1', now())"
+        "insert into char_chest(char_id, last_opened_chest, last_opened_time, is_today_done) values ('", IDstring, "', '0', now(), 'no')"
     ]),
 
     AddProfileRes = epgsql:squery(Conn, binary_to_list(QueryAddProfile)),
-    error_logger:info_report(AddProfileRes),
-
     AddChestRes = epgsql:squery(Conn, binary_to_list(QueryAddChestOpening)),
-    error_logger:info_report(AddChestRes),
 
     ok = epgsql:close(Conn),
 
-    erlang:display({new_player, IDstring, created}),
+    error_logger:info_msg("new user (~ts ~ts) created.~n", [IDstring, NewName]),
 
     Res = cowboy_req:set_resp_body(list_to_binary(["{\"id\":\"",IDstring, "\"}"]), NextReq),
     {true, Res, State}.

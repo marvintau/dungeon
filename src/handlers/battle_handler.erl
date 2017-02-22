@@ -48,7 +48,7 @@ handle_post(Req, State) ->
 
     {[{_, Id1}, {_, Id2}]} = jiffy:decode(ReqBody),
 
-    {ok, Conn} = epgsql:connect("localhost", "marvin", "asdasdasd", [
+    {ok, Conn} = epgsql:connect("localhost", "yuetao", "asdasdasd", [
         {database, "dungeon"},
         {timeout, 100}
     ]),
@@ -62,6 +62,8 @@ handle_post(Req, State) ->
     {ok, _Cols, [{_, Profile2}]} = epgsql:squery(Conn, binary_to_list(ProfileQuery2)),
 
     ok = epgsql:close(Conn),
+
+    error_logger:info_report({battle_between, Id1, Id2}),
 
     {done, {records, Records}, {full_log, FullLogs}, {winner, Winner}} = case (Profile1 == Profile2) of
             true ->
@@ -77,8 +79,6 @@ handle_post(Req, State) ->
 
 
 parse(SinglePlayerData) ->
-
-    erlang:display(SinglePlayerData),
 
     #{<<"agi">>:=Agi,  <<"armor">>:=Armor, <<"block">>:=Block, <<"card_name">>:=CardName,
       <<"cast_list">>:=CastList,  <<"class">>:=Class, <<"range_type">>:=RangeType, <<"critical">>:=Critic, <<"dodge">>:=Dodge, <<"hit">>:=HitBonus,
@@ -114,6 +114,7 @@ parse(SinglePlayerData) ->
             attack_disabled => 0,
             cast_disabled => 0,
             effect_invalidated => 0,
+            is_frozen => 0,
             armor      => Armor,
             hit_bonus  => HitBonus,
             critical   => Critic,

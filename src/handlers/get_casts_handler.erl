@@ -41,7 +41,7 @@ handle_post(Req, State) ->
             {ReqBodyRaw, NewReq}
     catch
         error:Error ->
-            erlang:display(Error),
+            error_logger:error_report(Error),
             {<<"Nah">>, Req}
     end,
 
@@ -52,7 +52,7 @@ handle_post(Req, State) ->
     {true, Res, State}.
 
 get_cast_names_with(Data) ->
-    erlang:display({get_cast_name_from_class ,Data}),
+    error_logger:info_report({get_cast_name_from_class ,Data}),
     {[{<<"class">>, Class}]} = Data,
 
     General = lists:flatten(ets:match(casts, {'$1', general, '_'})),

@@ -1,0 +1,2 @@
+#!/bin/sh
+psql -h localhost -U yuetao -d dungeon -f database/init_database_for_the_first_time.sql
