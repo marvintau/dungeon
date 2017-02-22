@@ -386,7 +386,7 @@ $("#update").on('click', function(){
 });
 
 $("#refresh-chest1").on('click', function(){
-    $.postJSON('/api/check_chest', {id: $("#player-list-1").val()}, function(data){
+    $.postJSON('/api/check_chest', {id: "f2740862-674b-479e-b02c-500e8a0285a0"}, function(data){
         console.log(JSON.stringify(data));
         $("#next-chest1").text(data.next_name);
         $("#remaining1").text(data.remaining);
@@ -395,7 +395,7 @@ $("#refresh-chest1").on('click', function(){
 })
 
 $("#open-chest1").on('click', function(){
-    $.postJSON('/api/open_chest', {id: $("#player-list-1").val()}, function(data){
+    $.postJSON('/api/open_chest', {id: "f2740862-674b-479e-b02c-500e8a0285a0"}, function(data){
 
         console.log(JSON.stringify(data));
 
@@ -410,7 +410,7 @@ $("#open-chest1").on('click', function(){
         }
     })
 
-    $.postJSON('/api/check_chest', {id: $("#player-list-1").val()}, function(data){
+    $.postJSON('/api/check_chest', {id: "f2740862-674b-479e-b02c-500e8a0285a0"}, function(data){
         $("#next-chest1").text(data.next_name);
 
         console.log(data);

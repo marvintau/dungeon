@@ -259,7 +259,7 @@ create table char_chest(
     foreign key(last_opened_chest) references chest_spec(chest_id)
 );
 
-insert into char_chest(char_id, last_opened_chest, last_opened_time) values
+insert into char_chest(char_id, last_opened_chest, last_opened_time, is_today_done) values
 ('f2740862-674b-479e-b02c-500e8a0285a0', '0', now(), 'no'),
 ('8673cc53-e2a8-4375-b6a3-007e2ebe6d5f', '0', now(), 'no'),
 ('68b19bbe-bc2a-400f-b4e7-6e632b3b908f', '0', now(), 'no'),

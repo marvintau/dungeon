@@ -56,7 +56,7 @@ handle_post(Req, State) ->
 
     % 如果剩余的时间小于等于0，并且今天仍然能开启宝箱，才能去开宝箱
     QueryCheck = list_to_binary(["select
-                ((interval '0' >= interval '1s' * open_interval - (now() - last_opened_time)) AND (NOT is_done_today)) as remaining
+                ((interval '0' >= interval '1s' * open_interval - (now() - last_opened_time)) AND (NOT is_today_done)) as remaining
             from
                 char_chest
                 inner join chest_spec on char_chest.last_opened_chest % 5 + 1 = chest_spec.chest_id
@@ -84,7 +84,7 @@ update_query(ID, Conn) ->
         set
             last_opened_chest = last_opened_chest % 5 + 1,
             last_opened_time = now(),
-            is_done_today = CASE WHEN (last_opened_chest == 5) THEN 'yes' ELSE 'no'
+            is_today_done = CASE WHEN (last_opened_chest = 4) or is_today_done THEN true ELSE false END
         where char_id = '", ID, "';"
     ]),
 
