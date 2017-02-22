@@ -70,15 +70,15 @@ handle_post(Req, State) ->
                 {done, {records, []}, {full_log, []}, {winner, none}};
             _ ->
                 battle:new({
-                    parse(jiffy:decode(Profile1, [return_maps])),
-                    parse(jiffy:decode(Profile2, [return_maps]))})
+                    parse(jiffy:decode(Profile1, [return_maps]), Id1),
+                    parse(jiffy:decode(Profile2, [return_maps]), Id2)})
         end,
 
     Res = cowboy_req:set_resp_body(jiffy:encode({[{records, Records}, {winner, Winner}, {full_log, FullLogs}]}), NextReq),
     {true, Res, State}.
 
 
-parse(SinglePlayerData) ->
+parse(SinglePlayerData, Id) ->
 
     #{<<"agi">>:=Agi,  <<"armor">>:=Armor, <<"block">>:=Block, <<"card_name">>:=CardName,
       <<"cast_list">>:=CastList,  <<"class">>:=Class, <<"range_type">>:=RangeType, <<"critical">>:=Critic, <<"dodge">>:=Dodge, <<"hit">>:=HitBonus,
@@ -88,7 +88,7 @@ parse(SinglePlayerData) ->
 
     #{
 
-        id         => CardName,
+        id         => Id,
 
         state      => #{
             position   => 2,

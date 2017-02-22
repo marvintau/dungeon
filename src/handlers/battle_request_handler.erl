@@ -46,7 +46,8 @@ handle_post(Req, State) ->
             {<<"Nah">>, Req}
     end,
 
-    {[{_, Id1}, {_, Id2}, {_, Skills}]} = jiffy:decode(ReqBody),
+    erlang:display(ReqBody),
+    {[{_, PlayerId1}, {_, PlayerId2}, {_, Id1}, {_, Id2}, {_, Skills}]} = jiffy:decode(ReqBody),
 
     {ok, Conn} = epgsql:connect("localhost", "yuetao", "asdasdasd", [
         {database, "dungeon"},
@@ -73,15 +74,15 @@ handle_post(Req, State) ->
                 {done, {records, []}, {full_log, []}, {winner, none}};
             _ ->
                 battle:new({
-                    parse(jiffy:decode(Profile1, [return_maps])),
-                    parse(jiffy:decode(Profile2, [return_maps]))})
+                    parse(jiffy:decode(Profile1, [return_maps]), PlayerId1),
+                    parse(jiffy:decode(Profile2, [return_maps]), PlayerId2)})
             end,
 
     Res = cowboy_req:set_resp_body(jiffy:encode({[{records, Records}, {winner, Winner}, {player1, jiffy:decode(Profile1)}, {player2, jiffy:decode(Profile2)}]}), NextReq),
     {true, Res, State}.
 
 
-parse(SinglePlayerData) ->
+parse(SinglePlayerData, ID) ->
 
     #{<<"agi">>:=Agi,  <<"armor">>:=Armor, <<"block">>:=Block, <<"card_name">>:=CardName,
       <<"cast_list">>:=CastList,  <<"class">>:=Class, <<"range_type">>:=RangeType, <<"critical">>:=Critic, <<"dodge">>:=Dodge, <<"hit">>:=HitBonus,
@@ -91,7 +92,7 @@ parse(SinglePlayerData) ->
 
     #{
 
-        id         => CardName,
+        id         => ID,
 
         % State is the data that will be modified during a battle, and the result will
         % be preserved.
