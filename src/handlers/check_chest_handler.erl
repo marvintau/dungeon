@@ -98,7 +98,7 @@ handle_post(Req, State) ->
             error_logger:info_report({open_at_next_day, reset}),
 
             {ok, _Cols, UpdatedContents} = epgsql:squery(Conn, binary_to_list(QueryCheck)),
-            [{ID, NextChestID0, NextName0, Remaining0, _}] = UpdatedContents,
+            [{ID, NextChestID0, NextName0, Remaining0, _, IsTodayDone}] = UpdatedContents,
             {[{id, ID}, {next_chest, NextChestID0}, {next_name, NextName0}, {remaining, Remaining0}, {is_today_done, IsTodayDone}]}
         end,
 
@@ -110,8 +110,8 @@ handle_post(Req, State) ->
 is_same_day(<<Mega:4/binary, Sec:6/binary, MilliSec/binary>>) ->
 
     LastTimeStamp = {binary_to_integer(Mega), binary_to_integer(Sec), binary_to_integer(MilliSec)},
+    {LastDate, {LastHour, LastMin, _}} = calendar:now_to_datetime(os:timestamp()),
+    {CurrDate, {CurrHour, CurrMin, _}} = calendar:now_to_datetime(LastTimeStamp),
+    error_logger:info_report({LastDate, CurrDate, LastHour, CurrHour}),
 
-    {LastDate, _} = calendar:now_to_datetime(os:timestamp()),
-    {CurrDate, _} = calendar:now_to_datetime(LastTimeStamp),
-
-    {LastDate == CurrDate, CurrDate}.
+    {(LastDate == CurrDate) , CurrDate}.

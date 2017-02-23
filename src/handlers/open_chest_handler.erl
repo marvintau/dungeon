@@ -65,13 +65,15 @@ handle_post(Req, State) ->
 
 
     {ok, _Cols, [{OkayToOpen}]} = epgsql:squery(Conn, binary_to_list(QueryCheck)),
-    erlang:display(OkayToOpen),
+
+    error_logger:info_report({okay_to_open, OkayToOpen}),
 
     RawJsonContent = case OkayToOpen of
         <<"t">> -> update_query(ID, Conn);
         _ -> <<"not-right-time-to-open">>
     end,
 
+    ok = epgsql:close(Conn),
     % for test only
     % =============
     % RawJsonContent = update_query(ID, Conn),
@@ -80,11 +82,11 @@ handle_post(Req, State) ->
     {true, Res, State}.
 
 update_query(ID, Conn) ->
-    QueryUpdate = list_to_binary(["update char_chest
-        set
-            last_opened_chest = last_opened_chest % 5 + 1,
+    QueryUpdate = list_to_binary(
+    ["update char_chest
+        set last_opened_chest = last_opened_chest % 5 + 1,
             last_opened_time = now(),
-            is_today_done = CASE WHEN (last_opened_chest = 4) or is_today_done THEN true ELSE false END
+            is_today_done = case when last_opened_chest = 4 or is_today_done then true else false end
         where char_id = '", ID, "';"
     ]),
 
@@ -97,7 +99,9 @@ update_query(ID, Conn) ->
         "
     ]),
 
-    {ok, 1} = epgsql:squery(Conn, binary_to_list(QueryUpdate)),
+    error_logger:info_report(QueryUpdate),
+    {ok, C} = epgsql:squery(Conn, binary_to_list(QueryUpdate)),
+    error_logger:info_report({updated, C}),
 
     {ok, _, [{ChestID, DroppedNumberBin}]} = epgsql:squery(Conn, binary_to_list(QueryGetDroppedItemTypes)),
     DroppedNumber = binary_to_integer(DroppedNumberBin),
@@ -126,5 +130,4 @@ update_query(ID, Conn) ->
     {ok, _, PossibleDroppedItem} = epgsql:squery(Conn, binary_to_list(QueryListPossibleItems)),
     RawJsonContent = [{[{id, ItemID}, {name, ItemName}, {num, ItemNum}]} || {ItemID, ItemName, ItemNum} <- lists:sublist(PossibleDroppedItem, DroppedNumber)],
 
-    ok = epgsql:close(Conn),
     RawJsonContent.

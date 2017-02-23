@@ -115,6 +115,9 @@ parse(SinglePlayerData, Id) ->
             cast_disabled => 0,
             effect_invalidated => 0,
             is_frozen => 0,
+            is_disarmed => 0,
+            is_stunned => 0,
+
             armor      => Armor,
             hit_bonus  => HitBonus,
             critical   => Critic,

@@ -51,37 +51,32 @@ parse_groups_logged({Name, _Type, Groups}, S, O, D) ->
 parse_cast(Name, S, O, D) ->
     parse_groups_logged(hd(ets:lookup(casts, Name)), S, O, D).
 
+
 cast(_S, #{casts:=[]}=O, D, L) ->
     {O, D, L};
 
 cast(_S, #{casts:=[none | RemainingCasts]}=O, D, L) ->
     {O#{casts:=RemainingCasts}, D, L};
 
-cast(S, #{casts:=[CastName | RemainingCasts], effects:=ExistingEffects}=O, D, L) ->
+cast(S, #{attr:=#{cast_disabled:=CastDisabled}, casts:=[CastName | RemainingCasts], effects:=ExistingEffects}=O, D, L) ->
 
-    {CurrLogs, CurrEffects} = parse_cast(CastName, S, O, D),
-    NewEffects = lists:append(CurrEffects, ExistingEffects),
-    NewLog = lists:append(CurrLogs, L),
+    {NextEffects, NextLog} = case CastDisabled of 
+    0 ->
+        {CurrLogs, CurrEffects} = parse_cast(CastName, S, O, D),
+        NewEffects = lists:append(CurrEffects, ExistingEffects),
+        NewLog = lists:append(CurrLogs, L),
+        {NewEffects, NewLog};
+    _ ->
+        {ExistingEffects, L}
+    end,
 
-    {O#{casts:=RemainingCasts, effects:=NewEffects}, D, NewLog}.
-
+    {O#{casts:=RemainingCasts, effects:=NextEffects}, D, NextLog}.
 
 
 apply(State, #{attr:=#{cast_disabled:=CastDisabled}}=O, D, Log) ->
-    {MovedO, MovedD, MovedLog} = case CastDisabled of
-        0 -> {CastedO, CastedD, CastedLog} = cast(State, O, D, Log),
-             effect:apply(State, CastedO, CastedD, CastedLog);
-        _ -> {O, D, Log}
-    end,
-    {MovedO#{done:=already}, MovedD, MovedLog};
-
-apply(_State, #{casts:=Casts}=O, D, Log) ->
-    ConsumedCasts = case Casts of
-        [] -> [];
-        [_|RemCasts] -> RemCasts
-    end,
-
-    {O#{casts:=ConsumedCasts, done:=already}, D, Log}.
+    {CastedO, CastedD, CastedLog} = cast(State, O, D, Log),
+    {MovedO, MovedD, MovedLog} = effect:apply(State, CastedO, CastedD, CastedLog),
+    {MovedO#{done:=already}, MovedD, MovedLog}.
 
 
 cast_opening(_S, #{talented:=none}=O, D, L) ->

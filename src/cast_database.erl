@@ -113,7 +113,8 @@ create_casts() ->
                  [{{set, {1}, none}, {attr, attack_disabled, def}},
                   {{set, {1}, none}, {attr, cast_disabled, def}},
                   {{set, {0}, none}, {attr, dodge, def}},
-                  {{set, {0}, none}, {attr, block, def}}
+                  {{set, {0}, none}, {attr, block, def}},
+                  {{set, {1}, none}, {attr, is_stunned, def}}
                  ] }
             ]},
             {0.5, [
@@ -122,7 +123,8 @@ create_casts() ->
                  [{{set, {1}, none}, {attr, attack_disabled, off}},
                   {{set, {1}, none}, {attr, cast_disabled, off}},
                   {{set, {0}, none}, {attr, dodge, off}},
-                  {{set, {0}, none}, {attr, block, off}}
+                  {{set, {0}, none}, {attr, block, off}},
+                  {{set, {1}, none}, {attr, is_stunned, off}}
                  ] }
             ]}
         ]}
@@ -160,7 +162,10 @@ create_casts() ->
 
         {chain_lock, warrior, [
             {1, [
-                { {{0, 1, casting}, []}, [{{set, {1}, resistable}, {attr, attack_disabled, def}}] }
+                { {{0, 1, casting}, []}, 
+                [{{set, {1}, resistable}, {attr, attack_disabled, def}},
+                 {{set, {1}, resistable}, {attr, is_disarmed, def}}
+                ] }
             ]}
         ]},
 

@@ -33,6 +33,12 @@ content_types_provided(Req, State) ->
 allow_missing_posts(Req, State) ->
     {false, Req, State}.
 
+get_cast_names_with(Class) ->
+
+    General = lists:flatten(ets:match(casts, {'$1', general, '_'})),
+    ClassCast = lists:flatten(ets:match(casts, {'$1', binary_to_atom(Class, utf8), '_'})),
+
+    lists:append([ClassCast, General,[none]]).
 
 handle_post(Req, State) ->
 
@@ -66,8 +72,6 @@ handle_post(Req, State) ->
         {database, "dungeon"},
         {timeout, 100}
     ]),
-
-
 
     Contents = case epgsql:squery(Conn, binary_to_list(PayLoad)) of
         {ok, _Cols, ResList} -> [ {[{card_id, ID}, {card_profile, jiffy:decode(Res)}]} || {ID, Res} <- ResList];
