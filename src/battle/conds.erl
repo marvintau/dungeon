@@ -44,7 +44,9 @@ seq_check({StartingSeq, TerminalSeq, Phase}, #{seq:=CurrSeq, stage:=CurrStage}) 
     CalculatedPhase = case {Phase, StartingSeq - CurrSeq} of
         {casting, 0} -> casting;
         {casting, _} -> settling;
-        {_, _} -> Phase
+        {opening, 0} -> opening;
+        {opening, _} -> settling;
+         {_, _} -> Phase
     end,
 
     (CurrSeq >= StartingSeq) and (CurrSeq < TerminalSeq) and (CalculatedPhase == CurrStage).

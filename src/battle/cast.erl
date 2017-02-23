@@ -73,7 +73,7 @@ cast(S, #{attr:=#{cast_disabled:=CastDisabled}, casts:=[CastName | RemainingCast
     {O#{casts:=RemainingCasts, effects:=NextEffects}, D, NextLog}.
 
 
-apply(State, #{attr:=#{cast_disabled:=CastDisabled}}=O, D, Log) ->
+apply(State, O, D, Log) ->
     {CastedO, CastedD, CastedLog} = cast(State, O, D, Log),
     {MovedO, MovedD, MovedLog} = effect:apply(State, CastedO, CastedD, CastedLog),
     {MovedO#{done:=already}, MovedD, MovedLog}.
@@ -82,15 +82,21 @@ apply(State, #{attr:=#{cast_disabled:=CastDisabled}}=O, D, Log) ->
 cast_opening(_S, #{talented:=none}=O, D, L) ->
     {O, D, L};
 
-cast_opening(S, #{talented:=Opening, effects:=ExistingEffects}=O, D, L) ->
+cast_opening(S, #{attr:=#{cast_disabled:=CastDisabled}, talented:=Opening, effects:=ExistingEffects}=O, D, L) ->
 
-    {CurrLogs, CurrEffects} = parse_cast(Opening, S, O, D),
-    NewEffects = lists:append(CurrEffects, ExistingEffects),
-    NewLog = lists:append(CurrLogs, L),
+    {NextEffects, NextLog} = case CastDisabled of
+    0 ->
+        {CurrLogs, CurrEffects} = parse_cast(Opening, S, O, D),
+        NewEffects = lists:append(CurrEffects, ExistingEffects),
+        NewLog = lists:append(CurrLogs, L),
+        {NewEffects, NewLog};
+    _ ->
+        {ExistingEffects, L}
+    end,
 
-    {O#{effects:=NewEffects}, D, NewLog}.
+    {O#{effects:=NextEffects}, D, NextLog}.
 
-apply_opening(State, O, #{id:=ID}=D, Log) ->
+apply_opening(State, O, D, Log) ->
     {MovedO, MovedD, MovedLog} = cast_opening(State, O, D, Log),
     {EffectedO, EffectedD, EffectedLog} = effect:apply(State, MovedO, MovedD, MovedLog),
     {EffectedO#{done:=already}, EffectedD, EffectedLog}.
