@@ -59,7 +59,7 @@ handle_post(Req, State) ->
 
     QueryCheck = list_to_binary(["select
                 char_id, last_opened_chest % 5 + 1, chest_name,
-                interval '1s' * open_interval - (now() - last_opened_time) as remaining,
+                interval '1m' * open_interval - (now() - last_opened_time) as remaining,
                 extract(epoch from last_opened_time) * 100000 as last_opened_time, is_today_done
             from
                 char_chest

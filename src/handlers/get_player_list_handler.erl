@@ -55,7 +55,11 @@ handle_post(Req, State) ->
         {timeout, 100}
     ]),
 
-    PayLoad = list_to_binary("select id, profile from player_profile"), 
+    PayLoad = list_to_binary(["select player_profile.id, player_profile.profile || jsonb_build_object(
+            'card_head', character_card_profile.profile->>'image_name',
+            'card_name', character_card_profile.profile->>'card_name')
+        from player_profile join character_card_profile on (player_profile.profile->>'default_card' = character_card_profile.id::text)"]),
+
     
     {ok, _Cols, Contents} = epgsql:squery(Conn, binary_to_list(PayLoad)),
         

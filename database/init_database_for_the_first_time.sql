@@ -15,6 +15,7 @@ create table player_profile (
 insert into player_profile(id, profile) values
 ( 'f2740862-674b-479e-b02c-500e8a0285a0',
  '{"player_name": "Albert Einstein", "player_level": 58,
+  "player_head" : "normal_hunter",
   "default_card" : "946ae77c-183b-4538-b439-ac9036024676",
   "default_skills" : ["talisman_of_death", "rune_of_the_void", "talisman_of_spellshrouding", "holy_hand_grenade", "poison_gas"],
   "card_list" : [
@@ -28,6 +29,7 @@ insert into player_profile(id, profile) values
         "1b0cf5e0-2164-46fd-8424-2146fca99fb9"]}'),
 ( '8673cc53-e2a8-4375-b6a3-007e2ebe6d5f',
  '{"player_name": "Max Planc", "player_level": 58,
+  "player_head" : "normal_rogue",
   "default_card" : "15d715a8-d585-48fc-a65a-286fc41c9a3f",
   "default_skills" : ["healing_potion", "pierce_armor", "flurry", "spellbreak", "perfect_strike"],
   "card_list" : [
@@ -41,7 +43,9 @@ insert into player_profile(id, profile) values
         "1b0cf5e0-2164-46fd-8424-2146fca99fb9"]}'),
 ( '68b19bbe-bc2a-400f-b4e7-6e632b3b908f',
  '{"player_name": "Erwin Schodinger", "player_level": 58,
+  "player_head" : "normal_mage",
   "default_card" : "a0c1a883-2995-4526-856c-26870e5b3f74",
+  "default_skills" : ["talisman_of_death", "rune_of_the_void", "talisman_of_spellshrouding", "holy_hand_grenade", "poison_gas"],
   "card_list" : [
         "946ae77c-183b-4538-b439-ac9036024676",
         "15d715a8-d585-48fc-a65a-286fc41c9a3f",
@@ -53,7 +57,9 @@ insert into player_profile(id, profile) values
         "1b0cf5e0-2164-46fd-8424-2146fca99fb9"]}'),
 ( 'db863aec-ee33-4161-884b-ef7109db4d25',
  '{"player_name": "Wolfgang Polly", "player_level": 58,
+  "player_head" : "normal_warrior",
   "default_card" : "be2d65f0-3c93-457e-8180-de7c93a365a5",
+  "default_skills" : ["tornado", "mend", "outbreak", "roots", "tree_hide"],
   "card_list" : [
         "946ae77c-183b-4538-b439-ac9036024676",
         "15d715a8-d585-48fc-a65a-286fc41c9a3f",
@@ -65,7 +71,9 @@ insert into player_profile(id, profile) values
         "1b0cf5e0-2164-46fd-8424-2146fca99fb9"]}'),
 ( '54e52b98-b8cc-40c0-a5a5-9f3598b12f87',
  '{"player_name": "Yang Zhen-Ning", "player_level": 58,
+  "player_head" : "awaken_hunter",
   "default_card" : "a009e5e9-2057-4353-9871-309d68752c1b",
+  "default_skills" : ["talisman_of_death", "rune_of_the_void", "talisman_of_spellshrouding", "holy_hand_grenade", "poison_gas"],
   "card_list" : [
         "946ae77c-183b-4538-b439-ac9036024676",
         "15d715a8-d585-48fc-a65a-286fc41c9a3f",
@@ -77,7 +85,9 @@ insert into player_profile(id, profile) values
         "1b0cf5e0-2164-46fd-8424-2146fca99fb9"]}'),
 ( '536b144c-4867-4ba4-b687-7e01c5419a49',
  '{"player_name": "Richard Feymann", "player_level": 58,
+  "player_head" : "awaken_rogue",
   "default_card" : "db1c75ca-aa32-4f2b-9bb1-355267d4a2ad",
+  "default_skills" : ["vampiric_bolt", "arcane_surge", "lower_resist", "pyromania", "mind_blast"],
   "card_list" : [
         "946ae77c-183b-4538-b439-ac9036024676",
         "15d715a8-d585-48fc-a65a-286fc41c9a3f",
@@ -89,7 +99,9 @@ insert into player_profile(id, profile) values
         "1b0cf5e0-2164-46fd-8424-2146fca99fb9"]}'),
 ( '31213724-55a4-4f0c-8dd9-b17e80c38b03',
  '{"player_name": "Enrico Fermi", "player_level": 58,
+  "player_head" : "awaken_mage",
   "default_card" : "849d31be-b9cd-494c-9ccd-7cc656153b57",
+  "default_skills" : ["talisman_of_death", "rune_of_the_void", "talisman_of_spellshrouding", "holy_hand_grenade", "poison_gas"],
   "card_list" : [
         "946ae77c-183b-4538-b439-ac9036024676",
         "15d715a8-d585-48fc-a65a-286fc41c9a3f",
@@ -101,7 +113,9 @@ insert into player_profile(id, profile) values
         "1b0cf5e0-2164-46fd-8424-2146fca99fb9"]}'),
 ( '81322bdc-652c-467f-861e-b7e27610c106',
  '{"player_name": "Stephen Hawking", "player_level": 58,
+  "player_head" : "awaken_warrior",
   "default_card" : "1b0cf5e0-2164-46fd-8424-2146fca99fb9",
+  "default_skills" : ["shield_wall", "sure_hit", "double_swing", "chain_lock", "first_aid"],
   "card_list" : [
         "946ae77c-183b-4538-b439-ac9036024676",
         "15d715a8-d585-48fc-a65a-286fc41c9a3f",
@@ -111,6 +125,8 @@ insert into player_profile(id, profile) values
         "db1c75ca-aa32-4f2b-9bb1-355267d4a2ad",
         "849d31be-b9cd-494c-9ccd-7cc656153b57",
         "1b0cf5e0-2164-46fd-8424-2146fca99fb9"]}');
+
+select * from player_profile;
 
 drop table if exists character_card_profile CASCADE;
 
@@ -126,56 +142,56 @@ insert into character_card_profile (id, profile) values
 '{"hp": 2700, "card_name":"普通刺客", "image_name": "normal_rogue", "class": "rogue", "range_type" : "near",
  "agi": 75, "hit": 35, "armor": 4500, "block": 0, "dodge": 30, "resist": 35, "critical": 30,
  "prim_type": "physical", "prim_max": 205, "prim_min": 190, "secd_type": "physical", "secd_max": 190, "secd_min": 175,
- "cast_list": ["talisman_of_death", "rune_of_the_void", "talisman_of_spellshrouding", "holy_hand_grenade", "poison_gas"],
+ "cast_list": ["talisman_of_death", "rune_of_the_void", "talisman_of_spellshrouding", "holy_hand_grenade", "poison_gas", "healing_potion", "pierce_armor", "flurry", "spellbreak", "perfect_strike"],
  "talented_skill": "blade_dance"}'),
 
 ( '15d715a8-d585-48fc-a65a-286fc41c9a3f',
 '{"hp": 2700, "card_name":"霸道刺客", "image_name": "awaken_rogue", "class": "rogue", "range_type" : "near",
  "agi": 75, "hit": 35, "armor": 4500, "block": 0, "dodge": 30, "resist": 35, "critical": 30,
  "prim_type": "physical", "prim_max": 205, "prim_min": 190, "secd_type": "physical", "secd_max": 190, "secd_min": 175,
- "cast_list": ["healing_potion", "pierce_armor", "flurry", "spellbreak", "perfect_strike"],
+ "cast_list": ["talisman_of_death", "rune_of_the_void", "talisman_of_spellshrouding", "holy_hand_grenade", "poison_gas", "healing_potion", "pierce_armor", "flurry", "spellbreak", "perfect_strike"],
  "talented_skill": "blade_dance"}'),
 
 ('a0c1a883-2995-4526-856c-26870e5b3f74',
 '{"hp": 3400, "card_name":"普通猎人", "image_name": "normal_hunter", "class": "hunter", "range_type" : "far",
  "agi": 40, "hit": 35, "armor": 4500, "block": 0, "dodge": 30, "resist": 35, "critical": 30,
  "prim_type": "physical", "prim_max": 370, "prim_min": 335, "secd_type": "bare", "secd_max": 100, "secd_min": 50,
- "cast_list": ["talisman_of_death", "rune_of_the_void", "talisman_of_spellshrouding", "holy_hand_grenade", "poison_gas"],
+ "cast_list": ["talisman_of_death", "rune_of_the_void", "talisman_of_spellshrouding", "holy_hand_grenade", "poison_gas", "tornado", "mend", "outbreak", "roots", "tree_hide"],
  "talented_skill": "assault"}'),
 
 ('be2d65f0-3c93-457e-8180-de7c93a365a5',
 '{"hp": 3400, "card_name":"痴呆猎人", "image_name": "awaken_hunter", "class": "hunter", "range_type" : "far",
  "agi": 40, "hit": 35, "armor": 4500, "block": 0, "dodge": 30, "resist": 35, "critical": 30,
  "prim_type": "physical", "prim_max": 370, "prim_min": 335, "secd_type": "bare", "secd_max": 100, "secd_min": 50,
- "cast_list": ["tornado", "mend", "outbreak", "roots", "tree_hide"],
+ "cast_list": ["talisman_of_death", "rune_of_the_void", "talisman_of_spellshrouding", "holy_hand_grenade", "poison_gas", "tornado", "mend", "outbreak", "roots", "tree_hide"],
  "talented_skill": "assault"}'),
 
 ('a009e5e9-2057-4353-9871-309d68752c1b',
  '{"hp": 2300, "card_name":"普通法师", "image_name": "normal_mage", "class": "mage", "range_type" : "far",
  "agi": 35, "hit": 20, "armor": 2700, "block": 0, "dodge": 20, "resist": 15, "critical": 35,
  "prim_type": "magic", "prim_max": 280, "prim_min": 255, "secd_type": "bare", "secd_max": 100, "secd_min": 50,
- "cast_list": ["talisman_of_death", "rune_of_the_void", "talisman_of_spellshrouding", "holy_hand_grenade", "poison_gas"],
+ "cast_list": ["talisman_of_death", "rune_of_the_void", "talisman_of_spellshrouding", "holy_hand_grenade", "poison_gas", "vampiric_bolt", "arcane_surge", "lower_resist", "pyromania", "mind_blast"],
  "talented_skill": "freeze"}'),
 
 ('db1c75ca-aa32-4f2b-9bb1-355267d4a2ad',
  '{"hp": 2300, "card_name":"暴躁法师", "image_name": "awaken_mage", "class": "mage", "range_type" : "far",
  "agi": 35, "hit": 20, "armor": 2700, "block": 0, "dodge": 20, "resist": 15, "critical": 35,
  "prim_type": "magic", "prim_max": 280, "prim_min": 255, "secd_type": "bare", "secd_max": 100, "secd_min": 50,
- "cast_list": ["vampiric_bolt", "arcane_surge", "lower_resist", "pyromania", "mind_blast"],
+ "cast_list": ["talisman_of_death", "rune_of_the_void", "talisman_of_spellshrouding", "holy_hand_grenade", "poison_gas", "vampiric_bolt", "arcane_surge", "lower_resist", "pyromania", "mind_blast"],
  "talented_skill": "freeze"}'),
 
 ('849d31be-b9cd-494c-9ccd-7cc656153b57',
  '{"hp": 3400, "card_name":"普通战士", "image_name": "normal_warrior", "class": "warrior", "range_type" : "near",
  "agi": 50, "hit": 35, "armor": 4500, "block": 0, "dodge": 30, "resist": 35, "critical": 30,
  "prim_type": "physical", "prim_max": 205, "prim_min": 190, "secd_type": "physical", "secd_max": 190, "secd_min": 175,
- "cast_list": ["talisman_of_death", "rune_of_the_void", "talisman_of_spellshrouding", "holy_hand_grenade", "poison_gas"],
+ "cast_list": ["talisman_of_death", "rune_of_the_void", "talisman_of_spellshrouding", "holy_hand_grenade", "poison_gas", "shield_wall", "sure_hit", "double_swing", "chain_lock", "first_aid"], 
  "talented_skill": "brave_shield_counterback"}'),
 
 ('1b0cf5e0-2164-46fd-8424-2146fca99fb9',
  '{"hp": 3400, "card_name":"癫狂战士", "image_name": "awaken_warrior", "class": "warrior", "range_type" : "near",
  "agi": 50, "hit": 35, "armor": 4500, "block": 0, "dodge": 30, "resist": 35, "critical": 30,
  "prim_type": "physical", "prim_max": 205, "prim_min": 190, "secd_type": "physical", "secd_max": 190, "secd_min": 175,
- "cast_list": ["shield_wall", "sure_hit", "double_swing", "chain_lock", "first_aid"],
+ "cast_list": ["talisman_of_death", "rune_of_the_void", "talisman_of_spellshrouding", "holy_hand_grenade", "poison_gas", "shield_wall", "sure_hit", "double_swing", "chain_lock", "first_aid"],
  "talented_skill": "brave_shield_counterback"}');
 
 select id, profile as name from character_card_profile;

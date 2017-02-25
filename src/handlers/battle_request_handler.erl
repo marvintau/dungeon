@@ -46,46 +46,59 @@ handle_post(Req, State) ->
             {<<"Nah">>, Req}
     end,
 
-    erlang:display(ReqBody),
-    {[{_, PlayerId1}, {_, PlayerId2}, {_, Id1}, {_, Id2}, {_, Skills}]} = jiffy:decode(ReqBody),
+    {[{_, SelfPlayerId}, {_, OppoPlayerId}, {_, SelfSelectedCard}, {_, SelfSelectedSkills}]} = jiffy:decode(ReqBody),
 
     {ok, Conn} = epgsql:connect("localhost", "yuetao", "asdasdasd", [
         {database, "dungeon"},
         {timeout, 100}
     ]),
 
-    SkillsBinary = jiffy:encode(Skills),
+    SelfSelectedSkillsBinary = jiffy:encode(SelfSelectedSkills),
 
-    ProfileQuery1 = list_to_binary(["select jsonb_set(profile, '{cast_list}', jsonb '",SkillsBinary ,"') from
-        (select profile from character_card_profile where id='",Id1 ,"') as profile"]),
+    UpdateSelfDefaultSkillsQuery = list_to_binary(["update player_profile 
+        set profile=jsonb_set(profile, '{default_skills}', '", SelfSelectedSkillsBinary, "') where id='", SelfPlayerId, "';"]),
 
-    ProfileQuery2 = list_to_binary(["select profile from character_card_profile where id='", Id2, "'"]),
+    UpdateSelfDefaultCardQuery = list_to_binary(["update player_profile set profile=jsonb_set(profile, '{default_card}', '\"", SelfSelectedCard, "\"') where id='", SelfPlayerId, "';"]),
 
+    GetSelfDefaultSkillsQuery = list_to_binary(["select (profile ->>'default_skills')
+        from player_profile where id='", SelfPlayerId ,"'"]),
 
-    {ok, _Cols, [{Profile1}]} = epgsql:squery(Conn, binary_to_list(ProfileQuery1)),
-    {ok, _, [{Profile2}]} = epgsql:squery(Conn, binary_to_list(ProfileQuery2)),
+    GetOppoDefaultSkillsQuery = list_to_binary(["select (profile ->>'default_skills')
+        from player_profile where id='", OppoPlayerId ,"'"]),
+
+    erlang:display({SelfPlayerId, OppoPlayerId, binary_to_list(UpdateSelfDefaultCardQuery)}),
+
+    GetSelfCardProfile = list_to_binary(["select profile from character_card_profile where id in
+        (select (profile ->>'default_card')::uuid from player_profile where id='", SelfPlayerId, "')"]),
+
+    GetOppoCardProfile = list_to_binary(["select profile from character_card_profile where id in
+        (select (profile ->>'default_card')::uuid from player_profile where id='", OppoPlayerId, "')"]),
+
+    {ok, 1} = epgsql:squery(Conn, binary_to_list(UpdateSelfDefaultSkillsQuery)),
+    {ok, 1} = epgsql:squery(Conn, binary_to_list(UpdateSelfDefaultCardQuery)),
+
+    {ok, _, [{SelfSkills}]} = epgsql:squery(Conn, binary_to_list(GetSelfDefaultSkillsQuery)),
+    {ok, _, [{OppoSkills}]} = epgsql:squery(Conn, binary_to_list(GetOppoDefaultSkillsQuery)),
+
+    {ok, _, [{SelfCardProfile}]} = epgsql:squery(Conn, binary_to_list(GetSelfCardProfile)),
+    {ok, _, [{OppoCardProfile}]} = epgsql:squery(Conn, binary_to_list(GetOppoCardProfile)),
 
     ok = epgsql:close(Conn),
 
-    error_logger:info_report({battle, Id1, challenges, Id2}),
+    error_logger:info_report({battle, SelfPlayerId, challenges, OppoPlayerId}),
 
-    {done, {records, Records}, {full_log, _FullLog}, {winner, Winner}} = case (Profile1 == Profile2) of
-            true ->
-                {done, {records, []}, {full_log, []}, {winner, none}};
-            _ ->
-                battle:new({
-                    parse(jiffy:decode(Profile1, [return_maps]), PlayerId1),
-                    parse(jiffy:decode(Profile2, [return_maps]), PlayerId2)})
-            end,
+    {done, {records, Records}, {full_log, _}, {winner, Winner}} = battle:new({
+        parse(jiffy:decode(SelfCardProfile, [return_maps]), SelfPlayerId, jiffy:decode(SelfSkills)),
+        parse(jiffy:decode(SelfCardProfile, [return_maps]), OppoPlayerId, jiffy:decode(OppoSkills))}),
 
-    Res = cowboy_req:set_resp_body(jiffy:encode({[{records, Records}, {winner, Winner}, {player1, jiffy:decode(Profile1)}, {player2, jiffy:decode(Profile2)}]}), NextReq),
+    Res = cowboy_req:set_resp_body(jiffy:encode({[{records, Records}, {winner, Winner}, {player1, jiffy:decode(SelfCardProfile)}, {player2, jiffy:decode(OppoCardProfile)}]}), NextReq),
     {true, Res, State}.
 
 
-parse(SinglePlayerData, ID) ->
+parse(SinglePlayerData, ID, Skills) ->
 
-    #{<<"agi">>:=Agi,  <<"armor">>:=Armor, <<"block">>:=Block, <<"card_name">>:=CardName,
-      <<"cast_list">>:=CastList,  <<"class">>:=Class, <<"range_type">>:=RangeType, <<"critical">>:=Critic, <<"dodge">>:=Dodge, <<"hit">>:=HitBonus,
+    #{<<"agi">>:=Agi,  <<"armor">>:=Armor, <<"block">>:=Block, <<"card_name">>:=_CardName,
+      <<"cast_list">>:=_CastList,  <<"class">>:=_Class, <<"range_type">>:=RangeType, <<"critical">>:=Critic, <<"dodge">>:=Dodge, <<"hit">>:=HitBonus,
       <<"hp">>:=HP, <<"prim_max">>:=PrimMax, <<"prim_min">>:=PrimMin, <<"prim_type">>:=PrimType, <<"image_name">>:=_ImageName,
       <<"resist">>:=Resist, <<"secd_max">>:=SecdMax, <<"secd_min">>:=SecdMin, <<"secd_type">>:=SecdType,
       <<"talented_skill">>:=TalentedSkill} = SinglePlayerData,
@@ -113,7 +126,7 @@ parse(SinglePlayerData, ID) ->
         prim_hand  => {prim, binary_to_atom(PrimType, utf8), {PrimMin, PrimMax}},
 
         talented => binary_to_atom(TalentedSkill, utf8),
-        casts => lists:map(fun(X) -> binary_to_atom(X, utf8) end, CastList),
+        casts => lists:map(fun(X) -> binary_to_atom(X, utf8) end, Skills),
         effects => [],
 
         orig_attr => #{
