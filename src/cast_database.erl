@@ -107,7 +107,7 @@ create_casts() ->
         ]},
 
         {poison_gas, general, [
-            {1, [
+            {0.5, [
                 {
                  {{0, 2, casting}, []},
                  [{{set, {1}, none}, {attr, attack_disabled, def}},
@@ -133,7 +133,7 @@ create_casts() ->
     Warrior = [
         {shield_wall, warrior, [
             {1, [
-                { {{0, 10, casting}, []},
+                { {{0, 1, casting}, []},
                 [{{set, {0}, none}, {attr, dodge, off}},
                  {{set, {119}, none}, {attr, block, off}},
                  {{set, {0}, none}, {attr, hit_bonus, def}},

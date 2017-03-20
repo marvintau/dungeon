@@ -121,13 +121,17 @@ trans(S,
         _ -> Damage
     end,
 
+    NewHpD = H2 - AddedDamage,
+
     NextA = case HandType of
         prim -> A#{curr_hand:=SecdHand};
         secd -> A#{curr_hand:=PrimHand}
     end,
-    NextD = D#{attr:=CurrAttrD#{damage_taken:=AddedDamage, outcome:=Outcome}, state:=StateD#{hp:=H2 - AddedDamage}},
+    NextD = D#{attr:=CurrAttrD#{damage_taken:=AddedDamage, outcome:=Outcome}, state:=StateD#{hp:=NewHpD}},
     #{state:=NextStateD} = NextD,
 
+
+    erlang:display({S, is_stunned, IsStunned}),
 
     {NewPosO, NewPosD, NewPosActO, NewPosActD} = case is_no_damage_move(A) of
         
@@ -159,7 +163,9 @@ trans(S,
     {NewPosDAfter, NewPosActDAfter} = case {NewPosD, NewPosActD} of
         {1, not_assigned_yet} -> {1, stand};
         {_, not_assigned_yet} ->
-            case ((rand:uniform() > 0.5) and (IsFrozen == 0) and (IsDisarmed == 0) and (IsStunned == 0) and (Outcome /= dodge) and (Outcome /=block)) of
+            case ((rand:uniform() > 0.9) and (RemMoves >= 2) and (IsFrozen == 0) and
+                    (IsDisarmed == 0) and (IsStunned == 0) and (Outcome /= dodge) and
+                    (Outcome /=block) or (NewHpD =< 0)) of
                 true -> {NewPosD - 1, blown_out};
                 _ -> {NewPosD, stand}
             end;
@@ -191,5 +197,10 @@ apply(State, #{attr:=#{attack_disabled:=0}}=O, D, Log) ->
 
     {ReactedO, ReactedD, ReactedLog};
 
-apply(_State, #{state:=StateO}=O, D, Log) ->
+apply(State, #{state:=StateO, attr:=#{attack_disabled:=AttackDisabled, is_stunned:=IsStunned}}=O, D, Log) ->
+    case AttackDisabled /= 0 of
+        true -> erlang:display({State, attack_disabled, is_stunned, IsStunned});
+        _ -> ok
+    end,
+
     {O#{done:=already, state:=StateO#{rem_moves:=0}}, D, Log}.

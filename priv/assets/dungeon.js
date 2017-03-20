@@ -256,9 +256,7 @@ $("#submit").on('click', function(){
 
         $.make_graph(data.full_log);
 
-        var res ="<div class=\"cap\"><br>Win:" + data.res + "</b>";
-        $(res).appendTo("#table");
-
+        data = JSON.parse(JSON.stringify(data).replace(OutgoingData.player1, "舒克").replace(OutgoingData.player2, "贝塔"));
 
         data.player1 = $.getData("1");
         data.player2 = $.getData("2");

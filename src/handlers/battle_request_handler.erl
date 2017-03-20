@@ -89,7 +89,9 @@ handle_post(Req, State) ->
 
     {done, {records, Records}, {full_log, _}, {winner, Winner}} = battle:new({
         parse(jiffy:decode(SelfCardProfile, [return_maps]), SelfPlayerId, jiffy:decode(SelfSkills)),
-        parse(jiffy:decode(SelfCardProfile, [return_maps]), OppoPlayerId, jiffy:decode(OppoSkills))}),
+        parse(jiffy:decode(OppoCardProfile, [return_maps]), OppoPlayerId, jiffy:decode(OppoSkills))}),
+
+    error_logger:info_report({winner, Winner}),
 
     Res = cowboy_req:set_resp_body(jiffy:encode({[{records, Records}, {winner, Winner}, {player1, jiffy:decode(SelfCardProfile)}, {player2, jiffy:decode(OppoCardProfile)}]}), NextReq),
     {true, Res, State}.

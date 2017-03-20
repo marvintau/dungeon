@@ -82,7 +82,9 @@ apply(State, O, D, Log) ->
 cast_opening(_S, #{talented:=none}=O, D, L) ->
     {O, D, L};
 
-cast_opening(S, #{attr:=#{cast_disabled:=CastDisabled}, talented:=Opening, effects:=ExistingEffects}=O, D, L) ->
+cast_opening(S, #{attr:=#{cast_disabled:=CastDisabled}, talented:=Opening, effects:=ExistingEffects}=O, #{talented:=OpeningD}=D, L) ->
+
+    erlang:display({opening, Opening, OpeningD}),
 
     {NextEffects, NextLog} = case CastDisabled of
     0 ->
